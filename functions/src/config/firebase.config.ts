@@ -1,7 +1,13 @@
 import * as admin from "firebase-admin";
 
-export const firebaseApp = admin.initializeApp();
+export function initFirebaseAdmin() {
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      projectId: process.env.PROJECT_ID,
+    });
+  }
 
-export const firestore = admin.firestore();
-export const auth = admin.auth();
-export const storage = admin.storage();
+  return admin;
+}
+
+export const firebaseAdmin = initFirebaseAdmin();
