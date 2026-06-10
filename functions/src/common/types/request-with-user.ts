@@ -1,6 +1,6 @@
 export interface RequestWithUser extends Request {
-  user?: {
+  user: {
     uid: string;
-    email?: string;
+    email: string;
   };
 }
