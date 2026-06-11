@@ -1,63 +1,52 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { firebaseAdmin } from "../config/firebase.config";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { AuthUser } from "../auth/types/auth-user.type";
+import { UsersRepository } from "./users.respository";
+import { User } from "./users.entity";
 
 @Injectable()
 export class UsersService {
-  private usersCollection = firebaseAdmin.firestore().collection("users");
+  constructor(private usersRepository: UsersRepository) {}
 
   async getById(uid: string) {
-    const doc = await this.usersCollection.doc(uid).get();
+    const user = await this.usersRepository.findOne(uid);
 
-    if (!doc.exists) {
+    if (!user) {
       throw new NotFoundException("User not found");
     }
 
-    return doc.data();
+    return user;
   }
 
   async createUserProfile(
     { uid, email }: AuthUser,
     { name, surname }: CreateUserDto,
   ) {
-    const userData = {
+    const userData: User = {
       uid,
       email,
       name: name || "",
       surname: surname || "",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    await this.usersCollection.doc(uid).set(userData);
-
-    return {
-      success: true,
-      user: userData,
-    };
+    return await this.usersRepository.create(userData);
   }
 
   async updateUser(uid: string, data: Partial<UpdateUserDto>) {
-    const ref = this.usersCollection.doc(uid);
+    const updatedUser = await this.usersRepository.update(uid, data);
 
-    const doc = await ref.get();
-
-    if (!doc.exists) {
+    if (!updatedUser) {
       throw new NotFoundException("User not found");
     }
 
-    await ref.update({
-      ...data,
-      updatedAt: new Date().toISOString(),
-    });
-
-    return this.getById(uid);
+    return updatedUser;
   }
 
   async deleteUser(uid: string) {
-    await this.usersCollection.doc(uid).delete();
+    await this.usersRepository.delete(uid);
 
     return { success: true };
   }
