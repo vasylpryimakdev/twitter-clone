@@ -21,6 +21,11 @@ import { CreateUserDto } from "./dto/create-user.dto";
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get("")
+  getAllUsers() {
+    return { status: "success" };
+  }
+
   @Get("me")
   getMe(@Req() req: RequestWithUser) {
     return req.user;

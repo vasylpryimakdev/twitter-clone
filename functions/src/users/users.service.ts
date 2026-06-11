@@ -5,9 +5,7 @@ import { CreateUserDto } from "./dto/create-user.dto";
 
 @Injectable()
 export class UsersService {
-  private db = firebaseAdmin.firestore();
-
-  private usersCollection = this.db.collection("users");
+  private usersCollection = firebaseAdmin.firestore().collection("users");
 
   async getById(uid: string) {
     const doc = await this.usersCollection.doc(uid).get();
@@ -22,14 +20,13 @@ export class UsersService {
   async createUserProfile(
     userId: string,
     email: string,
-    { name, surname, photoURL }: CreateUserDto,
+    { name, surname }: CreateUserDto,
   ) {
     const userData = {
       uid: userId,
       email,
       name: name || "",
       surname: surname || "",
-      photoURL: photoURL || null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
