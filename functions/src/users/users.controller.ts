@@ -11,43 +11,40 @@ import {
 } from "@nestjs/common";
 
 import { UsersService } from "./users.service";
-import { FirebaseAuthGuard } from "../common/guards/firebase-auth.guard";
 import { UpdateUserDto } from "./dto/update-user.dto";
-import { RequestWithUser } from "../common/types/request-with-user";
 import { CreateUserDto } from "./dto/create-user.dto";
+import { FirebaseAuthGuard } from "../auth/guards/firebase-auth.guard";
+import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { AuthUser } from "../auth/types/auth-user.type";
 
 @UseGuards(FirebaseAuthGuard)
 @Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get("")
+  @Get()
   getAllUsers() {
     return { status: "success" };
   }
 
   @Get("me")
-  getMe(@Req() req: RequestWithUser) {
-    return req.user;
+  getMe(@CurrentUser() user: AuthUser) {
+    return user;
   }
 
   @Post("me")
-  createMe(@Req() req: RequestWithUser, @Body() body: CreateUserDto) {
-    return this.usersService.createUserProfile(
-      req.user.uid,
-      req.user.email,
-      body,
-    );
+  createMe(@CurrentUser() user: AuthUser, @Body() body: CreateUserDto) {
+    return this.usersService.createUserProfile(user, body);
   }
 
   @Patch("me")
-  updateMe(@Req() req: RequestWithUser, @Body() body: UpdateUserDto) {
-    return this.usersService.updateUser(req.user.uid, body);
+  updateMe(@CurrentUser() user: AuthUser, @Body() body: UpdateUserDto) {
+    return this.usersService.updateUser(user.uid, body);
   }
 
   @Delete("me")
-  deleteMe(@Req() req: RequestWithUser) {
-    return this.usersService.deleteUser(req.user.uid);
+  deleteMe(@CurrentUser() user: AuthUser) {
+    return this.usersService.deleteUser(user.uid);
   }
 
   @Get(":id")

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { firebaseAdmin } from "../config/firebase.config";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { CreateUserDto } from "./dto/create-user.dto";
+import { AuthUser } from "../auth/types/auth-user.type";
 
 @Injectable()
 export class UsersService {
@@ -18,12 +19,11 @@ export class UsersService {
   }
 
   async createUserProfile(
-    userId: string,
-    email: string,
+    { uid, email }: AuthUser,
     { name, surname }: CreateUserDto,
   ) {
     const userData = {
-      uid: userId,
+      uid,
       email,
       name: name || "",
       surname: surname || "",
@@ -31,7 +31,7 @@ export class UsersService {
       updatedAt: new Date().toISOString(),
     };
 
-    await this.usersCollection.doc(userId).set(userData);
+    await this.usersCollection.doc(uid).set(userData);
 
     return {
       success: true,

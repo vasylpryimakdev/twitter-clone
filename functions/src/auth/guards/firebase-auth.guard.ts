@@ -4,35 +4,37 @@ import {
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
-import { firebaseAdmin } from "../../config/firebase.config";
+import { AuthService } from "../auth.service";
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+  constructor(private authService: AuthService) {}
 
-    const authHeader = request.headers.authorization;
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const req = context.switchToHttp().getRequest();
+
+    const authHeader = req.headers.authorization;
 
     if (!authHeader) {
       throw new UnauthorizedException("No authorization header");
     }
 
-    const token = authHeader?.replace("Bearer ", "");
+    const token = authHeader.replace("Bearer ", "");
 
     if (!token) {
       throw new UnauthorizedException("No token provided");
     }
 
     try {
-      const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
+      const decoded = await this.authService.verifyToken(token);
 
-      request.user = {
-        uid: decodedToken.uid,
-        email: decodedToken.email,
+      req.user = {
+        uid: decoded.uid,
+        email: decoded.email,
       };
 
       return true;
-    } catch (err) {
+    } catch {
       throw new UnauthorizedException("Invalid token");
     }
   }
