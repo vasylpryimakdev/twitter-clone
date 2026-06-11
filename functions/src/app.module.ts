@@ -4,12 +4,14 @@ import { HealthController } from "./health/health.controller";
 import { UsersController } from "./users/users.controller";
 import { UsersService } from "./users/users.service";
 import { APP_PIPE } from "@nestjs/core";
+import { PostsModule } from './posts/posts.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    PostsModule,
   ],
   controllers: [HealthController, UsersController],
   providers: [
