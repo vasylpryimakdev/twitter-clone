@@ -6,6 +6,7 @@ import { APP_GUARD, APP_PIPE } from "@nestjs/core";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { UsersModule } from "./users/users.module";
+import { PostsModule } from './posts/posts.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UsersModule } from "./users/users.module";
       },
     ]),
     UsersModule,
+    PostsModule,
   ],
   controllers: [AppController],
   providers: [
