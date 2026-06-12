@@ -29,7 +29,7 @@ export class FirebaseAuthGuard implements CanActivate {
       const decoded = await this.authService.verifyToken(token);
 
       req.user = {
-        uid: decoded.uid,
+        id: decoded.uid,
         email: decoded.email,
         emailVerified: decoded.email_verified ?? false,
       };

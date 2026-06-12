@@ -6,8 +6,9 @@ import { APP_GUARD, APP_PIPE } from "@nestjs/core";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { UsersModule } from "./users/users.module";
-import { PostsModule } from './posts/posts.module';
-import { AuthModule } from './auth/auth.module';
+import { PostsModule } from "./posts/posts.module";
+import { AuthModule } from "./auth/auth.module";
+import { ContentTypeGuard } from "./common/guards/content-type.guard";
 
 @Module({
   imports: [
@@ -26,7 +27,10 @@ import { AuthModule } from './auth/auth.module';
   ],
   controllers: [AppController],
   providers: [
-    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ContentTypeGuard,
+    },
     {
       provide: APP_PIPE,
       useValue: new ValidationPipe({
@@ -39,6 +43,7 @@ import { AuthModule } from './auth/auth.module';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    AppService,
   ],
 })
 export class AppModule {}

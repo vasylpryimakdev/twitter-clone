@@ -1,45 +1,75 @@
-import { Injectable } from "@nestjs/common";
-import { User } from "./users.entity";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { FieldValue } from "firebase-admin/firestore";
+import { User } from "./types/users.entity";
 import { firebaseAdmin } from "../config/firebase.config";
-import { mapDoc } from "../common/utils/firestore.mapper";
+import mapFirestoreError from "../common/firestore/firestore-error.mapper";
+import { mapDoc } from "../common/firestore/firestore.mapper";
+import { CreateUserInput } from "./types/create-user-input.type";
 
 @Injectable()
 export class UsersRepository {
   private usersCollection = firebaseAdmin.firestore().collection("users");
 
-  async findOne(id: string): Promise<User | null> {
+  async findOne(id: string): Promise<User> {
     const doc = await this.usersCollection.doc(id).get();
+
+    if (!doc.exists) {
+      throw new NotFoundException("User not found");
+    }
 
     return mapDoc(doc);
   }
 
-  async create(user: User): Promise<User> {
-    const { uid, ...data } = user;
-    const docRef = this.usersCollection.doc(uid);
+  async create(id: string, user: CreateUserInput): Promise<User> {
+    const docRef = this.usersCollection.doc(id);
 
-    await docRef.set(data);
+    try {
+      await docRef.create({
+        ...user,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
 
-    return user;
+      const snapshot = await docRef.get();
+
+      return mapDoc<User>(snapshot);
+    } catch (err: any) {
+      mapFirestoreError(err);
+    }
   }
 
   async update(
     id: string,
-    data: Partial<Omit<User, "uid" | "createdAt">>,
-  ): Promise<User | null> {
+    data: Partial<Omit<User, "id" | "createdAt" | "updatedAt">>,
+  ): Promise<User> {
     const docRef = this.usersCollection.doc(id);
 
-    await docRef.update({
-      ...data,
-      updatedAt: new Date(),
-    });
+    try {
+      const doc = await docRef.get();
 
-    const updatedDoc = await docRef.get();
+      if (!doc.exists) {
+        throw new NotFoundException("User not found");
+      }
 
-    return mapDoc(updatedDoc);
+      await docRef.update({
+        ...data,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      const updatedDoc = await docRef.get();
+
+      return mapDoc<User>(updatedDoc);
+    } catch (err) {
+      mapFirestoreError(err);
+    }
   }
 
   async delete(id: string): Promise<void> {
     const docRef = this.usersCollection.doc(id);
-    await docRef.delete();
+    try {
+      await docRef.delete();
+    } catch (err) {
+      mapFirestoreError(err);
+    }
   }
 }

@@ -28,7 +28,7 @@ export class UsersController {
 
   @Get("me")
   getMe(@CurrentUser() user: AuthUser) {
-    return user;
+    return this.usersService.getById(user.id);
   }
 
   @Post("me")
@@ -38,12 +38,12 @@ export class UsersController {
 
   @Patch("me")
   updateMe(@CurrentUser() user: AuthUser, @Body() body: UpdateUserDto) {
-    return this.usersService.updateUser(user.uid, body);
+    return this.usersService.updateUser(user.id, body);
   }
 
   @Delete("me")
   deleteMe(@CurrentUser() user: AuthUser) {
-    return this.usersService.deleteUser(user.uid);
+    return this.usersService.deleteUser(user.id);
   }
 
   @Get(":id")

@@ -1,5 +1,5 @@
 export type AuthUser = {
-  uid: string;
+  id: string;
   email: string;
   emailVerified: boolean;
 };
