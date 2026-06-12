@@ -38,10 +38,7 @@ export class UsersRepository {
     }
   }
 
-  async update(
-    id: string,
-    data: Partial<Omit<User, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<User> {
+  async update(id: string, data: Partial<User>): Promise<User> {
     const docRef = this.usersCollection.doc(id);
 
     try {

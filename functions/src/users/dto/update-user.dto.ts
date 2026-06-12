@@ -1,4 +1,4 @@
-import { IsOptional, IsString, Length, Matches } from "class-validator";
+import { IsOptional, IsString, IsUrl, Length, Matches } from "class-validator";
 
 export class UpdateUserDto {
   @IsOptional()
@@ -19,8 +19,9 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^https?:\/\/.*\.(jpg|jpeg|png|webp)$/i, {
-    message: "Avatar must be a valid image URL",
+  @IsUrl({
+    protocols: ["http", "https"],
+    require_protocol: true,
   })
   avatar?: string;
 }

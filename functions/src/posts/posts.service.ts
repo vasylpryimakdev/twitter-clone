@@ -8,25 +8,19 @@ import { UpdatePostDto } from "./dto/update-post.dto";
 import { Post } from "./post.entity";
 import { PostsRepository } from "./posts.repository";
 import { mapDoc } from "../common/firestore/firestore.mapper";
+import { CreatePostInput } from "./types/create-post-input.type";
 
 @Injectable()
 export class PostsService {
   constructor(private readonly postsRepository: PostsRepository) {}
 
   async create(authorId: string, dto: CreatePostDto): Promise<Post> {
-    const post: Omit<Post, "id"> = {
+    const post: CreatePostInput = {
       authorId,
 
       title: dto.title,
       text: dto.text,
       photoUrl: dto.photoUrl ?? null,
-
-      likesCount: 0,
-      dislikesCount: 0,
-      commentsCount: 0,
-
-      createdAt: new Date(),
-      updatedAt: new Date(),
     };
 
     return this.postsRepository.create(post);

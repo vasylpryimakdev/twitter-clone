@@ -16,15 +16,10 @@ import { FirebaseAuthGuard } from "../auth/guards/firebase-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { AuthUser } from "../auth/types/auth-user.type";
 
-@UseGuards(FirebaseAuthGuard)
 @Controller("users")
+@UseGuards(FirebaseAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @Get()
-  getAllUsers() {
-    return { status: "success" };
-  }
 
   @Get("me")
   getMe(@CurrentUser() user: AuthUser) {

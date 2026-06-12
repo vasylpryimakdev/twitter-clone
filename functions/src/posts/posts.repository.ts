@@ -1,22 +1,34 @@
 import { Injectable } from "@nestjs/common";
 import { firebaseAdmin } from "../config/firebase.config";
 import { Post } from "./post.entity";
+import { CreatePostInput } from "./types/create-post-input.type";
+import { FieldValue } from "firebase-admin/firestore";
+import { mapDoc } from "../common/firestore/firestore.mapper";
+import mapFirestoreError from "../common/firestore/firestore-error.mapper";
 
 @Injectable()
 export class PostsRepository {
   private postsCollection = firebaseAdmin.firestore().collection("posts");
 
-  async create(data: Omit<Post, "id">): Promise<Post> {
+  async create(post: CreatePostInput): Promise<Post> {
     const docRef = this.postsCollection.doc();
 
-    await docRef.set(data);
+    try {
+      await docRef.create({
+        ...post,
+        likesCount: 0,
+        dislikesCount: 0,
+        commentsCount: 0,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
 
-    const snapshot = await docRef.get();
+      const snapshot = await docRef.get();
 
-    return {
-      id: snapshot.id,
-      ...snapshot.data(),
-    } as Post;
+      return mapDoc<Post>(snapshot);
+    } catch (err) {
+      mapFirestoreError(err);
+    }
   }
 
   async findById(id: string): Promise<Post | null> {

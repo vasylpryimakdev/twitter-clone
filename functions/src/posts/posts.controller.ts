@@ -24,7 +24,7 @@ export class PostsController {
 
   @Post()
   create(@CurrentUser() user: AuthUser, @Body() dto: CreatePostDto) {
-    return this.postsService.create(user.uid, dto);
+    return this.postsService.create(user.id, dto);
   }
 
   @Get()
@@ -38,7 +38,7 @@ export class PostsController {
     @Query("limit") limit = 10,
     @Query("cursor") cursor?: string,
   ) {
-    return this.postsService.findByUser(user.uid, Number(limit), cursor);
+    return this.postsService.findByUser(user.id, Number(limit), cursor);
   }
 
   @Get("user/:userId")
@@ -61,11 +61,11 @@ export class PostsController {
     @Param("id") id: string,
     @Body() dto: UpdatePostDto,
   ) {
-    return this.postsService.update(user.uid, id, dto);
+    return this.postsService.update(user.id, id, dto);
   }
 
   @Delete(":id")
   delete(@CurrentUser() user: AuthUser, @Param("id") id: string) {
-    return this.postsService.delete(user.uid, id);
+    return this.postsService.delete(user.id, id);
   }
 }

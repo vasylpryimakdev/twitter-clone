@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase-admin/firestore";
+
 export class Post {
   id!: string;
 
@@ -8,8 +10,8 @@ export class Post {
 
   photoUrl?: string | null;
 
-  createdAt!: Date;
-  updatedAt!: Date;
+  createdAt!: Timestamp;
+  updatedAt!: Timestamp;
 
   likesCount!: number;
   dislikesCount!: number;
