@@ -2,6 +2,7 @@ import {
   Injectable,
   ForbiddenException,
   NotFoundException,
+  BadRequestException,
 } from "@nestjs/common";
 import { CreatePostDto } from "./dto/create-post.dto";
 import { UpdatePostDto } from "./dto/update-post.dto";
@@ -20,20 +21,14 @@ export class PostsService {
 
       title: dto.title,
       text: dto.text,
-      photoUrl: dto.photoUrl ?? null,
+      imageUrl: dto.imageUrl ?? null,
     };
 
     return this.postsRepository.create(post);
   }
 
   async findOne(id: string): Promise<Post> {
-    const post = await this.postsRepository.findById(id);
-
-    if (!post) {
-      throw new NotFoundException("Post not found");
-    }
-
-    return post;
+    return await this.postsRepository.findById(id);
   }
 
   async findByUser(userId: string, limit = 10, cursor?: string) {
@@ -54,6 +49,12 @@ export class PostsService {
     postId: string,
     dto: UpdatePostDto,
   ): Promise<Post> {
+    const hasAtLeastOneField = Object.values(dto).some((v) => v !== undefined);
+
+    if (!hasAtLeastOneField) {
+      throw new BadRequestException("At least one field required");
+    }
+
     const post = await this.postsRepository.findById(postId);
 
     if (!post) {

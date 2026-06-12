@@ -38,7 +38,7 @@ export class UsersRepository {
     }
   }
 
-  async update(id: string, data: Partial<User>): Promise<User> {
+  async update(id: string, data: Partial<User>): Promise<User | null> {
     const docRef = this.usersCollection.doc(id);
 
     try {

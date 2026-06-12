@@ -22,5 +22,5 @@ export class CreatePostDto {
     protocols: ["http", "https"],
     require_protocol: true,
   })
-  photoUrl?: string;
+  imageUrl?: string;
 }

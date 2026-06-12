@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { firebaseAdmin } from "../config/firebase.config";
 import { Post } from "./post.entity";
 import { CreatePostInput } from "./types/create-post-input.type";
@@ -31,35 +31,43 @@ export class PostsRepository {
     }
   }
 
-  async findById(id: string): Promise<Post | null> {
-    const doc = await this.postsCollection.doc(id).get();
+  async findById(id: string): Promise<Post> {
+    try {
+      const doc = await this.postsCollection.doc(id).get();
 
-    if (!doc.exists) return null;
+      if (!doc.exists) {
+        throw new NotFoundException("Post not found");
+      }
 
-    return {
-      id: doc.id,
-      ...doc.data(),
-    } as Post;
+      return mapDoc<Post>(doc);
+    } catch (err) {
+      mapFirestoreError(err);
+    }
   }
 
   async update(id: string, data: Partial<Post>): Promise<Post> {
     const docRef = this.postsCollection.doc(id);
 
-    await docRef.update({
-      ...data,
-      updatedAt: new Date(),
-    });
+    try {
+      await docRef.update({
+        ...data,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
 
-    const updated = await docRef.get();
+      const updated = await docRef.get();
 
-    return {
-      id: updated.id,
-      ...updated.data(),
-    } as Post;
+      return mapDoc<Post>(updated);
+    } catch (err) {
+      mapFirestoreError(err);
+    }
   }
 
   async delete(id: string): Promise<void> {
-    await this.postsCollection.doc(id).delete();
+    try {
+      await this.postsCollection.doc(id).delete();
+    } catch (err) {
+      mapFirestoreError(err);
+    }
   }
 
   async findByUser(userId: string, limit: number, cursor?: string) {

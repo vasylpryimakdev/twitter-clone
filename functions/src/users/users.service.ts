@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { AuthUser } from "../auth/types/auth-user.type";
@@ -14,47 +10,30 @@ export class UsersService {
   constructor(private usersRepository: UsersRepository) {}
 
   async getById(id: string) {
-    const user = await this.usersRepository.findOne(id);
-
-    if (!user) {
-      throw new NotFoundException("User not found");
-    }
-
-    return user;
+    return await this.usersRepository.findOne(id);
   }
 
-  async createUserProfile(
-    { id, email }: AuthUser,
-    { name, surname }: CreateUserDto,
-  ) {
+  async createUserProfile({ id, email }: AuthUser, dto: CreateUserDto) {
     const userData: CreateUserInput = {
       email,
-      name,
-      surname,
+      name: dto.name,
+      surname: dto.surname,
     };
 
     return this.usersRepository.create(id, userData);
   }
 
-  async updateUser(id: string, data: Partial<UpdateUserDto>) {
-    const updatedUser = await this.usersRepository.update(id, data);
-
-    const hasAtLeastOneField = Object.values(data).some((v) => v !== undefined);
+  async updateUser(id: string, dto: Partial<UpdateUserDto>) {
+    const hasAtLeastOneField = Object.values(dto).some((v) => v !== undefined);
 
     if (!hasAtLeastOneField) {
       throw new BadRequestException("At least one field required");
     }
 
-    if (!updatedUser) {
-      throw new NotFoundException("User not found");
-    }
-
-    return updatedUser;
+    return await this.usersRepository.update(id, dto);
   }
 
   async deleteUser(id: string) {
-    await this.usersRepository.delete(id);
-
-    return { success: true };
+    return await this.usersRepository.delete(id);
   }
 }

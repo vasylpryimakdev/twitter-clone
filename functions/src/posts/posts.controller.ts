@@ -13,16 +13,16 @@ import {
 import { PostsService } from "./posts.service";
 import { CreatePostDto } from "./dto/create-post.dto";
 import { UpdatePostDto } from "./dto/update-post.dto";
-import { FirebaseAuthGuard } from "../auth/guards/firebase-auth.guard";
+import { AuthGuard } from "../auth/guards/firebase-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { AuthUser } from "../auth/types/auth-user.type";
 
 @Controller("posts")
-@UseGuards(FirebaseAuthGuard)
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
+  @UseGuards(AuthGuard)
   create(@CurrentUser() user: AuthUser, @Body() dto: CreatePostDto) {
     return this.postsService.create(user.id, dto);
   }
@@ -33,6 +33,7 @@ export class PostsController {
   }
 
   @Get("me")
+  @UseGuards(AuthGuard)
   findMyPosts(
     @CurrentUser() user: AuthUser,
     @Query("limit") limit = 10,
@@ -56,15 +57,17 @@ export class PostsController {
   }
 
   @Patch(":id")
+  @UseGuards(AuthGuard)
   update(
     @CurrentUser() user: AuthUser,
-    @Param("id") id: string,
+    @Param("id") postId: string,
     @Body() dto: UpdatePostDto,
   ) {
-    return this.postsService.update(user.id, id, dto);
+    return this.postsService.update(user.id, postId, dto);
   }
 
   @Delete(":id")
+  @UseGuards(AuthGuard)
   delete(@CurrentUser() user: AuthUser, @Param("id") id: string) {
     return this.postsService.delete(user.id, id);
   }

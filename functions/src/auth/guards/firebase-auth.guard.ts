@@ -7,7 +7,7 @@ import {
 import { AuthService } from "../auth.service";
 
 @Injectable()
-export class FirebaseAuthGuard implements CanActivate {
+export class AuthGuard implements CanActivate {
   constructor(private authService: AuthService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
