@@ -26,13 +26,13 @@ export class UsersService {
     const userData: User = {
       uid,
       email,
-      name: name || "",
-      surname: surname || "",
+      name: name,
+      surname: surname,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    return await this.usersRepository.create(userData);
+    return this.usersRepository.create(userData);
   }
 
   async updateUser(uid: string, data: Partial<UpdateUserDto>) {
