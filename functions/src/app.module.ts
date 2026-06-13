@@ -9,6 +9,7 @@ import { UsersModule } from "./users/users.module";
 import { PostsModule } from "./posts/posts.module";
 import { AuthModule } from "./auth/auth.module";
 import { ContentTypeGuard } from "./common/guards/content-type.guard";
+import { ReactionsModule } from './reactions/reactions.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ContentTypeGuard } from "./common/guards/content-type.guard";
     UsersModule,
     PostsModule,
     AuthModule,
+    ReactionsModule,
   ],
   controllers: [AppController],
   providers: [
