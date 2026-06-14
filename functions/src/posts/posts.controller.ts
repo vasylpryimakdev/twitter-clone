@@ -16,10 +16,15 @@ import { UpdatePostDto } from "./dto/update-post.dto";
 import { AuthGuard } from "../auth/guards/firebase-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { AuthUser } from "../auth/types/auth-user.type";
+import { ReactionsService } from "../reactions/reactions.service";
+import { ReactionDto } from "../reactions/dto/reaction-dto";
 
 @Controller("posts")
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(
+    private readonly postsService: PostsService,
+    private readonly reactionsService: ReactionsService,
+  ) {}
 
   @Post()
   @UseGuards(AuthGuard)
@@ -49,6 +54,16 @@ export class PostsController {
     @Query("cursor") cursor?: string,
   ) {
     return this.postsService.findByUser(userId, Number(limit), cursor);
+  }
+
+  @Post(":id/reaction")
+  @UseGuards(AuthGuard)
+  react(
+    @Param("id") postId: string,
+    @Body() dto: ReactionDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.reactionsService.react(postId, user.id, dto.type);
   }
 
   @Get(":id")

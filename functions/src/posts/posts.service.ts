@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { CreatePostDto } from "./dto/create-post.dto";
 import { UpdatePostDto } from "./dto/update-post.dto";
-import { Post } from "./post.entity";
+import { Post } from "./types/post.entity";
 import { PostsRepository } from "./posts.repository";
 import { mapDoc } from "../common/firestore/firestore.mapper";
 import { CreatePostInput } from "./types/create-post-input.type";

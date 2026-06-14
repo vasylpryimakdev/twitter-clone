@@ -1,7 +1,9 @@
 import { Timestamp } from "firebase-admin/firestore";
 
-export type ReactionType = "like" | "dislike";
-
+export enum ReactionType {
+  LIKE = "like",
+  DISLIKE = "dislike",
+}
 export interface Reaction {
   id: string;
   postId: string;

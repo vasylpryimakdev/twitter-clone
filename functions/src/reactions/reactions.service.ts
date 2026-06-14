@@ -1,57 +1,37 @@
 import { Injectable } from "@nestjs/common";
 import { ReactionsRepository } from "./reactions.repository";
-
-export type ReactionType = "like" | "dislike";
+import { ReactionType } from "./types/reaction.entity";
 
 @Injectable()
 export class ReactionsService {
   constructor(private readonly repo: ReactionsRepository) {}
 
-  async like(postId: string, userId: string): Promise<void> {
-    const existing = await this.repo.findByPostAndUser(postId, userId);
+  async react(
+    postId: string,
+    userId: string,
+    type: ReactionType,
+  ): Promise<void> {
+    const id = `${postId}_${userId}`;
+
+    const existing = await this.repo.findById(id);
 
     if (!existing) {
       await this.repo.create({
-        id: this.buildId(postId, userId),
+        id,
         postId,
         userId,
-        type: "like",
+        type,
       });
       return;
     }
 
-    if (existing.type === "like") return;
-
-    await this.repo.updateType(existing.id, "like");
-  }
-
-  async dislike(postId: string, userId: string): Promise<void> {
-    const existing = await this.repo.findByPostAndUser(postId, userId);
-
-    if (!existing) {
-      await this.repo.create({
-        id: this.buildId(postId, userId),
-        postId,
-        userId,
-        type: "dislike",
-      });
+    if (existing.type === type) {
+      await this.repo.delete(id);
       return;
     }
 
-    if (existing.type === "dislike") return;
-
-    await this.repo.updateType(existing.id, "dislike");
-  }
-
-  async remove(postId: string, userId: string): Promise<void> {
-    const existing = await this.repo.findByPostAndUser(postId, userId);
-
-    if (!existing) return;
-
-    await this.repo.delete(existing.id);
-  }
-
-  private buildId(postId: string, userId: string): string {
-    return `${postId}_${userId}`;
+    await this.repo.update(id, {
+      type,
+    });
   }
 }

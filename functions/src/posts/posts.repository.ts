@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { firebaseAdmin } from "../config/firebase.config";
-import { Post } from "./post.entity";
+import { Post } from "./types/post.entity";
 import { CreatePostInput } from "./types/create-post-input.type";
 import { FieldValue } from "firebase-admin/firestore";
 import { mapDoc } from "../common/firestore/firestore.mapper";
