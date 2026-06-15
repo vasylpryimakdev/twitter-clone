@@ -3,6 +3,7 @@ import { Firestore, FieldValue } from "firebase-admin/firestore";
 
 import { FIRESTORE } from "../common/firestore/firestore.provider";
 import { CommentInput } from "./types/comment-input";
+import { mapDoc } from "../common/firestore/firestore.mapper";
 
 @Injectable()
 export class CommentsRepository {
@@ -13,6 +14,10 @@ export class CommentsRepository {
     private readonly firestore: Firestore,
   ) {
     this.collection = this.firestore.collection("comments");
+  }
+
+  getRef(id: string) {
+    return this.collection.doc(id);
   }
 
   createId(): string {
@@ -54,18 +59,17 @@ export class CommentsRepository {
       .limit(limit);
 
     if (cursor) {
-      const cursorSnap = await this.collection.doc(cursor).get();
-      if (cursorSnap.exists) {
-        query = query.startAfter(cursorSnap);
+      const cursorDoc = await this.collection.doc(cursor).get();
+
+      if (cursorDoc.exists) {
+        query = query.startAfter(cursorDoc);
       }
     }
 
     const snapshot = await query.get();
 
-    const comments = snapshot.docs.map((doc) => doc.data() as CommentInput);
-
     return {
-      data: comments,
+      data: snapshot.docs.map((doc) => doc.data() as CommentInput),
       lastCursor: snapshot.docs.length
         ? snapshot.docs[snapshot.docs.length - 1].id
         : null,
@@ -87,8 +91,10 @@ export class CommentsRepository {
 
     const snapshot = await query.get();
 
+    console.log(parentId, limit, cursor, snapshot.docs);
+
     return {
-      data: snapshot.docs.map((doc) => doc.data() as CommentInput),
+      data: snapshot.docs.map((doc) => mapDoc(doc)),
       lastCursor: snapshot.docs.length
         ? snapshot.docs[snapshot.docs.length - 1].id
         : null,

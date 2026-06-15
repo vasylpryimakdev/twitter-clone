@@ -14,13 +14,13 @@ import { AuthGuard } from "../auth/guards/firebase-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { AuthUser } from "../auth/types/auth-user.type";
 
-import { CommentsApplicationService } from "./comments-application.service";
+import { CommentsService } from "./comments.service";
 import { CreateCommentDto } from "./dto/create-comment.dto";
 import { UpdateCommentDto } from "./dto/update-comment.dto";
 
 @Controller("comments")
 export class CommentsController {
-  constructor(private readonly commentsService: CommentsApplicationService) {}
+  constructor(private readonly commentsService: CommentsService) {}
 
   @Post("post/:postId")
   @UseGuards(AuthGuard)
@@ -64,6 +64,19 @@ export class CommentsController {
     @Query("cursor") cursor?: string,
     @Query("limit") limit?: string,
   ) {
-    return this.commentsService.getByPost(postId, Number(limit ?? 20), cursor);
+    return this.commentsService.findByPost(postId, Number(limit ?? 20), cursor);
+  }
+
+  @Get(":commentId/replies")
+  getReplies(
+    @Param("commentId") commentId: string,
+    @Query("cursor") cursor?: string,
+    @Query("limit") limit?: string,
+  ) {
+    return this.commentsService.findReplies(
+      commentId,
+      Number(limit ?? 20),
+      cursor,
+    );
   }
 }

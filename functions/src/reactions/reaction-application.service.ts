@@ -3,7 +3,7 @@ import { Injectable, NotFoundException, Inject } from "@nestjs/common";
 import { ReactionsRepository } from "./reactions.repository";
 import { PostsRepository } from "../posts/posts.repository";
 import { ReactionType } from "./types/reaction.entity";
-import { Firestore } from "firebase-admin/firestore";
+import { FieldValue, Firestore } from "firebase-admin/firestore";
 
 @Injectable()
 export class ReactionApplicationService {
@@ -28,11 +28,6 @@ export class ReactionApplicationService {
         throw new NotFoundException("Post not found");
       }
 
-      const post = postSnap.data() as {
-        likesCount: number;
-        dislikesCount: number;
-      };
-
       const existing = reactionSnap.exists
         ? (reactionSnap.data() as { type: ReactionType })
         : null;
@@ -49,16 +44,12 @@ export class ReactionApplicationService {
 
         if (type === "like") likeDelta = 1;
         else dislikeDelta = 1;
-      }
-
-      else if (existing.type === type) {
+      } else if (existing.type === type) {
         tx.delete(reactionRef);
 
         if (type === "like") likeDelta = -1;
         else dislikeDelta = -1;
-      }
-
-      else {
+      } else {
         tx.set(reactionRef, {
           userId,
           postId,
@@ -75,8 +66,8 @@ export class ReactionApplicationService {
       }
 
       tx.update(postRef, {
-        likesCount: (post.likesCount || 0) + likeDelta,
-        dislikesCount: (post.dislikesCount || 0) + dislikeDelta,
+        likesCount: FieldValue.increment(likeDelta),
+        dislikesCount: FieldValue.increment(dislikeDelta),
       });
     });
   }

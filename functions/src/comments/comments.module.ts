@@ -1,14 +1,16 @@
 import { Module } from "@nestjs/common";
+
 import { FirestoreModule } from "../common/firestore/firestore.module";
+import { PostsModule } from "../posts/posts.module";
+import { AuthModule } from "../auth/auth.module";
 
 import { CommentsController } from "./comments.controller";
+import { CommentsService } from "./comments.service";
 import { CommentsRepository } from "./comments.repository";
-import { CommentsApplicationService } from "./comments-application.service";
 
 @Module({
-  imports: [FirestoreModule],
+  imports: [FirestoreModule, PostsModule, AuthModule],
   controllers: [CommentsController],
-  providers: [CommentsRepository, CommentsApplicationService],
-  exports: [CommentsRepository],
+  providers: [CommentsService, CommentsRepository],
 })
 export class CommentsModule {}

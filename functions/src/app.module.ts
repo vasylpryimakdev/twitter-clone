@@ -10,6 +10,7 @@ import { PostsModule } from "./posts/posts.module";
 import { AuthModule } from "./auth/auth.module";
 import { ContentTypeGuard } from "./common/guards/content-type.guard";
 import { FirestoreModule } from "./common/firestore/firestore.module";
+import { CommentsModule } from "./comments/comments.module";
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { FirestoreModule } from "./common/firestore/firestore.module";
     FirestoreModule,
     UsersModule,
     PostsModule,
+    CommentsModule,
     AuthModule,
   ],
   controllers: [AppController],

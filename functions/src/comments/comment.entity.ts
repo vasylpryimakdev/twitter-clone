@@ -10,6 +10,8 @@ export type Comment = {
 
   text: string;
 
+  repliesCount: number;
+
   createdAt: Timestamp;
   updatedAt: Timestamp;
 };

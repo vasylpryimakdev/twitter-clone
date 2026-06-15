@@ -108,37 +108,4 @@ export class PostsRepository {
       lastDoc: snapshot.docs[snapshot.docs.length - 1] ?? null,
     };
   }
-
-  async incrementPostCounts(
-    id: string,
-    deltas: {
-      likeDelta?: number;
-      dislikeDelta?: number;
-      commentDelta?: number;
-    },
-  ): Promise<void> {
-    const update: Record<string, FieldValue> = {};
-
-    if (deltas.likeDelta !== undefined) {
-      update.likeCount = FieldValue.increment(deltas.likeDelta);
-    }
-
-    if (deltas.dislikeDelta !== undefined) {
-      update.dislikeCount = FieldValue.increment(deltas.dislikeDelta);
-    }
-
-    if (deltas.commentDelta !== undefined) {
-      update.commentCount = FieldValue.increment(deltas.commentDelta);
-    }
-
-    if (!Object.keys(update).length) {
-      return;
-    }
-
-    try {
-      await this.postsCollection.doc(id).update(update);
-    } catch (err) {
-      mapFirestoreError(err);
-    }
-  }
 }
