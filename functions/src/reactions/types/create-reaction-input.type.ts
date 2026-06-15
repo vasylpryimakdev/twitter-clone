@@ -1,4 +1,4 @@
-import { ReactionType } from "../entities/reaction.entity";
+import { ReactionType } from "./reaction.entity";
 
 export type CreateReactionInput = {
   id: string;

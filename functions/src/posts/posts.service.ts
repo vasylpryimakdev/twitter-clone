@@ -10,10 +10,11 @@ import { Post } from "./types/post.entity";
 import { PostsRepository } from "./posts.repository";
 import { mapDoc } from "../common/firestore/firestore.mapper";
 import { CreatePostInput } from "./types/create-post-input.type";
-
 @Injectable()
 export class PostsService {
-  constructor(private readonly postsRepository: PostsRepository) {}
+  constructor(
+    private readonly postsRepository: PostsRepository,
+  ) {}
 
   async create(authorId: string, dto: CreatePostDto): Promise<Post> {
     const post: CreatePostInput = {

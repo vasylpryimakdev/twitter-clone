@@ -9,6 +9,7 @@ import { UsersModule } from "./users/users.module";
 import { PostsModule } from "./posts/posts.module";
 import { AuthModule } from "./auth/auth.module";
 import { ContentTypeGuard } from "./common/guards/content-type.guard";
+import { FirestoreModule } from "./common/firestore/firestore.module";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ContentTypeGuard } from "./common/guards/content-type.guard";
         limit: 100,
       },
     ]),
+    FirestoreModule,
     UsersModule,
     PostsModule,
     AuthModule,

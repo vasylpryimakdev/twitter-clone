@@ -16,14 +16,14 @@ import { UpdatePostDto } from "./dto/update-post.dto";
 import { AuthGuard } from "../auth/guards/firebase-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { AuthUser } from "../auth/types/auth-user.type";
-import { ReactionsService } from "../reactions/reactions.service";
+import { ReactionApplicationService } from "../reactions/reaction-application.service";
 import { ReactionDto } from "../reactions/dto/reaction-dto";
 
 @Controller("posts")
 export class PostsController {
   constructor(
     private readonly postsService: PostsService,
-    private readonly reactionsService: ReactionsService,
+    private readonly reactionApplicationService: ReactionApplicationService,
   ) {}
 
   @Post()
@@ -56,16 +56,6 @@ export class PostsController {
     return this.postsService.findByUser(userId, Number(limit), cursor);
   }
 
-  @Post(":id/reaction")
-  @UseGuards(AuthGuard)
-  react(
-    @Param("id") postId: string,
-    @Body() dto: ReactionDto,
-    @CurrentUser() user: AuthUser,
-  ) {
-    return this.reactionsService.react(postId, user.id, dto.type);
-  }
-
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.postsService.findOne(id);
@@ -85,5 +75,15 @@ export class PostsController {
   @UseGuards(AuthGuard)
   delete(@CurrentUser() user: AuthUser, @Param("id") id: string) {
     return this.postsService.delete(user.id, id);
+  }
+
+  @Post(":id/reaction")
+  @UseGuards(AuthGuard)
+  react(
+    @CurrentUser() user: AuthUser,
+    @Param("id") postId: string,
+    @Body() dto: ReactionDto,
+  ) {
+    return this.reactionApplicationService.react(user.id, postId, dto.type);
   }
 }
