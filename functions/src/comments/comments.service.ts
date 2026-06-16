@@ -43,7 +43,7 @@ export class CommentsService {
         updatedAt: FieldValue.serverTimestamp(),
       };
 
-      await this.commentsRepository.create(tx, comment.id, comment);
+      await this.commentsRepository.create(comment.id, comment, tx);
 
       this.postsRepository.incrementComments(tx, postId);
 
@@ -66,7 +66,7 @@ export class CommentsService {
         updatedAt: FieldValue.serverTimestamp(),
       };
 
-      await this.commentsRepository.create(tx, reply.id, reply);
+      await this.commentsRepository.create(reply.id, reply, tx);
 
       this.commentsRepository.incrementRepliesCount(tx, parentId);
 
@@ -93,7 +93,7 @@ export class CommentsService {
       throw new ForbiddenException("Forbidden");
     }
 
-    await this.commentsRepository.updateDirect(commentId, dto);
+    await this.commentsRepository.update(commentId, dto);
 
     return this.commentsRepository.findById(commentId);
   }

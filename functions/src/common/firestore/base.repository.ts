@@ -63,30 +63,51 @@ export abstract class BaseRepository<
   // -------------------
   // WRITE
   // -------------------
-  create(tx: Transaction, id: string, data: WriteModel): void {
-    tx.create(this.getRef(id), data);
+  async create(id: string, data: WriteModel, tx?: Transaction): Promise<void> {
+    const ref = this.getRef(id);
+
+    if (tx) {
+      tx.create(ref, data);
+      return;
+    }
+
+    await ref.create(data);
   }
 
-  set(tx: Transaction, id: string, data: WriteModel): void {
-    tx.set(this.getRef(id), data);
+  async set(id: string, data: WriteModel, tx?: Transaction): Promise<void> {
+    const ref = this.getRef(id);
+
+    if (tx) {
+      tx.set(ref, data);
+      return;
+    }
+
+    await ref.set(data);
   }
 
-  update(
-    tx: Transaction,
+  async update(
     id: string,
     data: UpdateData<Partial<WriteModel>>,
-  ): void {
-    tx.update(this.getRef(id), data);
-  }
-
-  async updateDirect(
-    id: string,
-    data: UpdateData<Partial<WriteModel>>,
+    tx?: Transaction,
   ): Promise<void> {
-    await this.getRef(id).update(data);
+    const ref = this.getRef(id);
+
+    if (tx) {
+      tx.update(ref, data);
+      return;
+    }
+
+    await ref.update(data);
   }
 
-  delete(tx: Transaction, id: string): void {
-    tx.delete(this.getRef(id));
+  async delete(id: string, tx?: Transaction): Promise<void> {
+    const ref = this.getRef(id);
+
+    if (tx) {
+      tx.delete(ref);
+      return;
+    }
+
+    await ref.delete();
   }
 }
