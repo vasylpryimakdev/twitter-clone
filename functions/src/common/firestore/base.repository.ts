@@ -7,6 +7,7 @@ import {
   WithFieldValue,
 } from "firebase-admin/firestore";
 import { mapDoc } from "./firestore.mapper";
+import mapFirestoreError from "./firestore-error.mapper";
 
 export abstract class BaseRepository<
   ReadModel,
@@ -64,25 +65,33 @@ export abstract class BaseRepository<
   // WRITE
   // -------------------
   async create(id: string, data: WriteModel, tx?: Transaction): Promise<void> {
-    const ref = this.getRef(id);
+    try {
+      const ref = this.getRef(id);
 
-    if (tx) {
-      tx.create(ref, data);
-      return;
+      if (tx) {
+        tx.create(ref, data);
+        return;
+      }
+
+      await ref.create(data);
+    } catch (err) {
+      mapFirestoreError(err);
     }
-
-    ref.create(data);
   }
 
   async set(id: string, data: WriteModel, tx?: Transaction): Promise<void> {
-    const ref = this.getRef(id);
+    try {
+      const ref = this.getRef(id);
 
-    if (tx) {
-      tx.set(ref, data);
-      return;
+      if (tx) {
+        tx.set(ref, data);
+        return;
+      }
+
+      await ref.set(data);
+    } catch (err) {
+      mapFirestoreError(err);
     }
-
-    await ref.set(data);
   }
 
   async update(
@@ -90,24 +99,32 @@ export abstract class BaseRepository<
     data: UpdateData<Partial<WriteModel>>,
     tx?: Transaction,
   ): Promise<void> {
-    const ref = this.getRef(id);
+    try {
+      const ref = this.getRef(id);
 
-    if (tx) {
-      tx.update(ref, data);
-      return;
+      if (tx) {
+        tx.update(ref, data);
+        return;
+      }
+
+      await ref.update(data);
+    } catch (err) {
+      mapFirestoreError(err);
     }
-
-    await ref.update(data);
   }
 
   async delete(id: string, tx?: Transaction): Promise<void> {
-    const ref = this.getRef(id);
+    try {
+      const ref = this.getRef(id);
 
-    if (tx) {
-      tx.delete(ref);
-      return;
+      if (tx) {
+        tx.delete(ref);
+        return;
+      }
+
+      await ref.delete();
+    } catch (err) {
+      mapFirestoreError(err);
     }
-
-    await ref.delete();
   }
 }
