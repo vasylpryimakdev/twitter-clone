@@ -2,14 +2,14 @@ import { Injectable, Inject } from "@nestjs/common";
 import { Firestore, FieldValue, Transaction } from "firebase-admin/firestore";
 
 import { FIRESTORE } from "../common/firestore/firestore.provider";
-import { CommentInput } from "./types/comment-input";
 import { mapDoc } from "../common/firestore/firestore.mapper";
 import { Comment } from "./comment.entity";
 import { BaseRepository } from "../common/firestore/base.repository";
-import { CreateComment } from "./types/create-comment.type";
+import { WriteComment } from "./types/write-comment.model";
+import { CommentCounterField } from "./types/comment-counter-field";
 
 @Injectable()
-export class CommentsRepository extends BaseRepository<Comment, CreateComment> {
+export class CommentsRepository extends BaseRepository<Comment, WriteComment> {
   constructor(
     @Inject(FIRESTORE)
     firestore: Firestore,
@@ -35,7 +35,7 @@ export class CommentsRepository extends BaseRepository<Comment, CreateComment> {
     const snapshot = await query.get();
 
     return {
-      data: snapshot.docs.map((doc) => doc.data() as CommentInput),
+      data: snapshot.docs.map((doc) => doc.data() as Comment),
       lastCursor: snapshot.docs.length
         ? snapshot.docs[snapshot.docs.length - 1].id
         : null,
@@ -65,12 +65,23 @@ export class CommentsRepository extends BaseRepository<Comment, CreateComment> {
     };
   }
 
-  async incrementRepliesCount(tx: Transaction, commentId: string) {
-    const ref = this.getRef(commentId);
+  async adjustCounter(
+    id: string,
+    field: CommentCounterField,
+    delta: number,
+    tx?: Transaction,
+  ): Promise<void> {
+    const ref = this.getRef(id);
 
-    tx.update(ref, {
-      repliesCount: FieldValue.increment(1),
-      updatedAt: FieldValue.serverTimestamp(),
-    });
+    const update = {
+      [field]: FieldValue.increment(delta),
+    };
+
+    if (tx) {
+      tx.update(ref, update);
+      return;
+    }
+
+    await ref.update(update);
   }
 }

@@ -1,105 +1,33 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { firebaseAdmin } from "../config/firebase.config";
+import { Inject, Injectable } from "@nestjs/common";
 import { Post } from "./types/post.entity";
-import { CreatePostInput } from "./types/create-post-input.type";
-import { FieldValue, Transaction } from "firebase-admin/firestore";
-import { mapDoc } from "../common/firestore/firestore.mapper";
-import mapFirestoreError from "../common/firestore/firestore-error.mapper";
+import { FieldValue, Firestore, Transaction } from "firebase-admin/firestore";
+
+import { BaseRepository } from "../common/firestore/base.repository";
+import { FIRESTORE } from "../common/firestore/firestore.provider";
+import { WritePostModel } from "./types/write-post.model";
+import { PostCounterField } from "./types/post-counter-field";
 
 @Injectable()
-export class PostsRepository {
-  private postsCollection = firebaseAdmin.firestore().collection("posts");
-
-  getRef(id: string) {
-    return this.postsCollection.doc(id);
-  }
-
-  async assertExists(tx: Transaction, postId: string) {
-    const postRef = this.getRef(postId);
-
-    const postSnap = await tx.get(postRef);
-
-    if (!postSnap.exists) {
-      throw new NotFoundException("Post not found");
-    }
-
-    return postSnap.data();
-  }
-
-  async incrementComments(tx: Transaction, postId: string) {
-    tx.update(this.getRef(postId), {
-      commentsCount: FieldValue.increment(1),
-    });
-  }
-
-  async create(post: CreatePostInput): Promise<Post> {
-    const docRef = this.postsCollection.doc();
-
-    try {
-      await docRef.create({
-        ...post,
-        likesCount: 0,
-        dislikesCount: 0,
-        commentsCount: 0,
-        createdAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-
-      const snapshot = await docRef.get();
-
-      return mapDoc<Post>(snapshot);
-    } catch (err) {
-      mapFirestoreError(err);
-    }
-  }
-
-  async findById(id: string): Promise<Post> {
-    try {
-      const doc = await this.postsCollection.doc(id).get();
-
-      if (!doc.exists) {
-        throw new NotFoundException("Post not found");
-      }
-
-      return mapDoc<Post>(doc);
-    } catch (err) {
-      mapFirestoreError(err);
-    }
-  }
-
-  async update(id: string, data: Partial<Post>): Promise<Post> {
-    const docRef = this.postsCollection.doc(id);
-
-    try {
-      await docRef.update({
-        ...data,
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-
-      const updated = await docRef.get();
-
-      return mapDoc<Post>(updated);
-    } catch (err) {
-      mapFirestoreError(err);
-    }
-  }
-
-  async delete(id: string): Promise<void> {
-    try {
-      await this.postsCollection.doc(id).delete();
-    } catch (err) {
-      mapFirestoreError(err);
-    }
+export class PostsRepository extends BaseRepository<Post, WritePostModel> {
+  constructor(
+    @Inject(FIRESTORE)
+    firestore: Firestore,
+  ) {
+    super(firestore, "posts");
   }
 
   async findByUser(userId: string, limit: number, cursor?: string) {
-    let query = this.postsCollection
+    let query = this.firestore
+      .collection("posts")
       .where("authorId", "==", userId)
       .orderBy("createdAt", "desc")
       .limit(limit);
 
     if (cursor) {
-      const cursorDoc = await this.postsCollection.doc(cursor).get();
+      const cursorDoc = await this.firestore
+        .collection("posts")
+        .doc(cursor)
+        .get();
       query = query.startAfter(cursorDoc);
     }
 
@@ -112,10 +40,16 @@ export class PostsRepository {
   }
 
   async findFeed(limit: number, cursor?: string) {
-    let query = this.postsCollection.orderBy("createdAt", "desc").limit(limit);
+    let query = this.firestore
+      .collection("posts")
+      .orderBy("createdAt", "desc")
+      .limit(limit);
 
     if (cursor) {
-      const cursorDoc = await this.postsCollection.doc(cursor).get();
+      const cursorDoc = await this.firestore
+        .collection("posts")
+        .doc(cursor)
+        .get();
       query = query.startAfter(cursorDoc);
     }
 
@@ -125,5 +59,25 @@ export class PostsRepository {
       docs: snapshot.docs,
       lastDoc: snapshot.docs[snapshot.docs.length - 1] ?? null,
     };
+  }
+
+  async adjustCounter(
+    id: string,
+    field: PostCounterField,
+    delta: number,
+    tx?: Transaction,
+  ): Promise<void> {
+    const ref = this.getRef(id);
+
+    const updateData = {
+      [field]: FieldValue.increment(delta),
+    };
+
+    if (tx) {
+      tx.update(ref, updateData);
+      return;
+    }
+
+    await ref.update(updateData);
   }
 }

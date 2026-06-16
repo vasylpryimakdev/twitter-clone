@@ -9,7 +9,7 @@ import { UsersModule } from "./users/users.module";
 import { PostsModule } from "./posts/posts.module";
 import { AuthModule } from "./auth/auth.module";
 import { ContentTypeGuard } from "./common/guards/content-type.guard";
-import { FirestoreModule } from "./common/firestore/firestore.module";
+import FirebaseModule from "./common/firestore/firestore.module";
 import { CommentsModule } from "./comments/comments.module";
 
 @Module({
@@ -23,7 +23,7 @@ import { CommentsModule } from "./comments/comments.module";
         limit: 100,
       },
     ]),
-    FirestoreModule,
+    FirebaseModule,
     UsersModule,
     PostsModule,
     CommentsModule,

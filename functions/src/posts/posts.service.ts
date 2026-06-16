@@ -9,27 +9,35 @@ import { UpdatePostDto } from "./dto/update-post.dto";
 import { Post } from "./types/post.entity";
 import { PostsRepository } from "./posts.repository";
 import { mapDoc } from "../common/firestore/firestore.mapper";
-import { CreatePostInput } from "./types/create-post-input.type";
+import { WritePostModel } from "./types/write-post.model";
+import { FieldValue } from "firebase-admin/firestore";
 @Injectable()
 export class PostsService {
-  constructor(
-    private readonly postsRepository: PostsRepository,
-  ) {}
+  constructor(private readonly postsRepository: PostsRepository) {}
 
   async create(authorId: string, dto: CreatePostDto): Promise<Post> {
-    const post: CreatePostInput = {
+    const post: WritePostModel = {
+      id: this.postsRepository.createId(),
       authorId,
 
       title: dto.title,
       text: dto.text,
       imageUrl: dto.imageUrl ?? null,
+      likesCount: 0,
+      dislikesCount: 0,
+      commentsCount: 0,
+
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     };
 
-    return this.postsRepository.create(post);
+    await this.postsRepository.create(post.id, post);
+
+    return await this.postsRepository.findByIdOrThrow(post.id);
   }
 
   async findOne(id: string): Promise<Post> {
-    return await this.postsRepository.findById(id);
+    return await this.postsRepository.findByIdOrThrow(id);
   }
 
   async findByUser(userId: string, limit = 10, cursor?: string) {
@@ -66,7 +74,9 @@ export class PostsService {
       throw new ForbiddenException("You cannot edit this post");
     }
 
-    return this.postsRepository.update(postId, dto);
+    await this.postsRepository.update(postId, dto);
+
+    return await this.postsRepository.findByIdOrThrow(post.id);
   }
 
   async delete(userId: string, postId: string): Promise<void> {

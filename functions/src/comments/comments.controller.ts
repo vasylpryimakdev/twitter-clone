@@ -49,7 +49,7 @@ export class CommentsController {
     @Body() dto: UpdateCommentDto,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.commentsService.update(user.id, commentId, dto);
+    return this.commentsService.updateComment(user.id, commentId, dto);
   }
 
   @Delete(":id")

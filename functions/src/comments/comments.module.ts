@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 
-import { FirestoreModule } from "../common/firestore/firestore.module";
+import FirebaseModule from "../common/firestore/firestore.module";
 import { PostsModule } from "../posts/posts.module";
 import { AuthModule } from "../auth/auth.module";
 
@@ -9,7 +9,7 @@ import { CommentsService } from "./comments.service";
 import { CommentsRepository } from "./comments.repository";
 
 @Module({
-  imports: [FirestoreModule, PostsModule, AuthModule],
+  imports: [FirebaseModule, PostsModule, AuthModule],
   controllers: [CommentsController],
   providers: [CommentsService, CommentsRepository],
 })

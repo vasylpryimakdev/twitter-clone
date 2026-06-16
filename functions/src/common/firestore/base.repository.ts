@@ -50,7 +50,7 @@ export abstract class BaseRepository<
     return mapDoc<ReadModel>(snap);
   }
 
-  async getDataOrThrow(tx: Transaction, id: string): Promise<ReadModel> {
+  async getDataOrThrow(id: string, tx: Transaction): Promise<ReadModel> {
     const snap = await tx.get(this.getRef(id));
 
     if (!snap.exists) {
@@ -71,7 +71,7 @@ export abstract class BaseRepository<
       return;
     }
 
-    await ref.create(data);
+    ref.create(data);
   }
 
   async set(id: string, data: WriteModel, tx?: Transaction): Promise<void> {

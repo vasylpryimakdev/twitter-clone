@@ -24,5 +24,5 @@ export class UpdatePostDto {
     protocols: ["http", "https"],
     require_protocol: true,
   })
-  photoUrl?: string | null;
+  imageUrl?: string | null;
 }

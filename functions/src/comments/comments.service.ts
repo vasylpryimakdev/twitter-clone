@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-  Inject,
-} from "@nestjs/common";
+import { Injectable, ForbiddenException, Inject } from "@nestjs/common";
 
 import { CommentsRepository } from "./comments.repository";
 import { PostsRepository } from "../posts/posts.repository";
@@ -12,7 +7,9 @@ import { CreateCommentDto } from "./dto/create-comment.dto";
 import { UpdateCommentDto } from "./dto/update-comment.dto";
 import { FieldValue, Firestore } from "firebase-admin/firestore";
 import { FIRESTORE } from "../common/firestore/firestore.provider";
-import { CreateComment } from "./types/create-comment.type";
+import { WriteComment } from "./types/write-comment.model";
+import { PostCounterFields } from "../posts/types/post-counter-field";
+import { CommentCounterFields } from "./types/comment-counter-field";
 @Injectable()
 export class CommentsService {
   constructor(
@@ -23,17 +20,13 @@ export class CommentsService {
   ) {}
 
   async createForPost(userId: string, postId: string, dto: CreateCommentDto) {
-    const postRef = this.postsRepository.getRef(postId);
+    const commentId = this.commentsRepository.createId();
 
-    return this.firestore.runTransaction(async (tx) => {
-      const postSnap = await tx.get(postRef);
+    await this.firestore.runTransaction(async (tx) => {
+      await this.postsRepository.getDataOrThrow(postId, tx);
 
-      if (!postSnap.exists) {
-        throw new NotFoundException("Post not found");
-      }
-
-      const comment: CreateComment = {
-        id: this.commentsRepository.createId(),
+      const comment: WriteComment = {
+        id: commentId,
         authorId: userId,
         postId,
         parentId: null,
@@ -45,18 +38,27 @@ export class CommentsService {
 
       await this.commentsRepository.create(comment.id, comment, tx);
 
-      this.postsRepository.incrementComments(tx, postId);
+      await this.postsRepository.adjustCounter(
+        postId,
+        PostCounterFields.COMMENTS,
+        1,
+        tx,
+      );
 
       return comment;
     });
+
+    return this.commentsRepository.findByIdOrThrow(commentId);
   }
 
-  async reply(userId: string, parentId: string, dto: CreateCommentDto) {
-    return this.firestore.runTransaction(async (tx) => {
-      const parent = await this.commentsRepository.getDataOrThrow(tx, parentId);
+  async createReply(userId: string, parentId: string, dto: CreateCommentDto) {
+    const commentId = this.commentsRepository.createId();
 
-      const reply: CreateComment = {
-        id: this.commentsRepository.createId(),
+    await this.firestore.runTransaction(async (tx) => {
+      const parent = await this.commentsRepository.getDataOrThrow(parentId, tx);
+
+      const reply: WriteComment = {
+        id: commentId,
         authorId: userId,
         postId: parent.postId,
         parentId,
@@ -68,10 +70,15 @@ export class CommentsService {
 
       await this.commentsRepository.create(reply.id, reply, tx);
 
-      this.commentsRepository.incrementRepliesCount(tx, parentId);
-
-      return reply;
+      await this.commentsRepository.adjustCounter(
+        parentId,
+        CommentCounterFields.REPLIES,
+        1,
+        tx,
+      );
     });
+
+    return this.commentsRepository.findByIdOrThrow(commentId);
   }
 
   findByPost(postId: string, limit = 20, cursor?: string) {
@@ -82,65 +89,54 @@ export class CommentsService {
     return this.commentsRepository.findReplies(parentId, limit, cursor);
   }
 
-  async update(authorId: string, commentId: string, dto: UpdateCommentDto) {
-    const comment = await this.commentsRepository.findById(commentId);
-
-    if (!comment) {
-      throw new NotFoundException("Comment not found");
-    }
+  async updateComment(
+    authorId: string,
+    commentId: string,
+    dto: UpdateCommentDto,
+  ) {
+    const comment = await this.commentsRepository.findByIdOrThrow(commentId);
 
     if (comment.authorId !== authorId) {
       throw new ForbiddenException("Forbidden");
     }
 
-    await this.commentsRepository.update(commentId, dto);
+    await this.commentsRepository.update(commentId, { text: dto.text });
 
     return this.commentsRepository.findById(commentId);
   }
 
   async delete(authorId: string, commentId: string) {
-    const commentRef = this.commentsRepository.getRef(commentId);
-
     return this.firestore.runTransaction(async (tx) => {
-      const commentSnap = await tx.get(commentRef);
+      const comment = await this.commentsRepository.getDataOrThrow(
+        commentId,
+        tx,
+      );
 
-      if (!commentSnap.exists) {
-        throw new NotFoundException("Comment not found");
-      }
-
-      const comment = commentSnap.data();
-
-      if (!comment) {
-        throw new NotFoundException("Comment data is empty");
-      }
-
-      if (comment.userId !== authorId) {
+      if (comment.authorId !== authorId) {
         throw new ForbiddenException("Forbidden");
       }
 
-      const postRef = this.postsRepository.getRef(comment.postId);
-      const postSnap = await tx.get(postRef);
+      const post = await this.postsRepository.getDataOrThrow(
+        comment.postId,
+        tx,
+      );
 
-      if (!postSnap.exists) {
-        throw new NotFoundException("Post not found");
-      }
+      await this.commentsRepository.delete(commentId, tx);
 
-      const parentRef = comment.parentId
-        ? this.commentsRepository.getRef(comment.parentId)
-        : null;
+      await this.postsRepository.adjustCounter(
+        post.id,
+        PostCounterFields.COMMENTS,
+        -1,
+        tx,
+      );
 
-      const parentSnap = parentRef ? await tx.get(parentRef) : null;
-
-      tx.delete(commentRef);
-
-      tx.update(postRef, {
-        commentsCount: FieldValue.increment(-1),
-      });
-
-      if (parentRef && parentSnap?.exists) {
-        tx.update(parentRef, {
-          repliesCount: FieldValue.increment(-1),
-        });
+      if (comment.parentId) {
+        await this.commentsRepository.adjustCounter(
+          comment.parentId,
+          CommentCounterFields.REPLIES,
+          -1,
+          tx,
+        );
       }
 
       return { success: true };

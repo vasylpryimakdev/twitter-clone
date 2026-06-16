@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, Inject } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
 
 import { ReactionsRepository } from "./reactions.repository";
 import { PostsRepository } from "../posts/posts.repository";
 import { ReactionType } from "./types/reaction.entity";
-import { FieldValue, Firestore } from "firebase-admin/firestore";
+import { Firestore } from "firebase-admin/firestore";
+import { PostCounterFields } from "../posts/types/post-counter-field";
 
 @Injectable()
 export class ReactionApplicationService {
@@ -15,60 +16,92 @@ export class ReactionApplicationService {
   ) {}
 
   async react(userId: string, postId: string, type: ReactionType) {
-    const postRef = this.postsRepository.getRef(postId);
     const reactionRef = this.reactionsRepository.getRef(postId, userId);
 
     return this.firestore.runTransaction(async (tx) => {
-      const [postSnap, reactionSnap] = await Promise.all([
-        tx.get(postRef),
-        tx.get(reactionRef),
-      ]);
+      await this.postsRepository.getDataOrThrow(postId, tx);
 
-      if (!postSnap.exists) {
-        throw new NotFoundException("Post not found");
-      }
+      const reactionSnap = await tx.get(reactionRef);
 
       const existing = reactionSnap.exists
         ? (reactionSnap.data() as { type: ReactionType })
         : null;
 
-      let likeDelta = 0;
-      let dislikeDelta = 0;
-
       if (!existing) {
-        tx.set(reactionRef, {
-          userId,
-          postId,
-          type,
-        });
-
-        if (type === "like") likeDelta = 1;
-        else dislikeDelta = 1;
-      } else if (existing.type === type) {
-        tx.delete(reactionRef);
-
-        if (type === "like") likeDelta = -1;
-        else dislikeDelta = -1;
-      } else {
-        tx.set(reactionRef, {
-          userId,
-          postId,
-          type,
-        });
+        tx.set(reactionRef, { userId, postId, type });
 
         if (type === "like") {
-          likeDelta = 1;
-          dislikeDelta = -1;
+          await this.postsRepository.adjustCounter(
+            postId,
+            PostCounterFields.LIKES,
+            1,
+            tx,
+          );
         } else {
-          likeDelta = -1;
-          dislikeDelta = 1;
+          await this.postsRepository.adjustCounter(
+            postId,
+            PostCounterFields.DISLIKES,
+            1,
+            tx,
+          );
         }
+
+        return;
       }
 
-      tx.update(postRef, {
-        likesCount: FieldValue.increment(likeDelta),
-        dislikesCount: FieldValue.increment(dislikeDelta),
-      });
+      if (existing.type === type) {
+        tx.delete(reactionRef);
+
+        if (type === "like") {
+          await this.postsRepository.adjustCounter(
+            postId,
+            PostCounterFields.LIKES,
+            -1,
+            tx,
+          );
+        } else {
+          await this.postsRepository.adjustCounter(
+            postId,
+            PostCounterFields.DISLIKES,
+            -1,
+            tx,
+          );
+        }
+
+        return;
+      }
+
+      tx.set(reactionRef, { userId, postId, type });
+
+      if (type === "like") {
+        await this.postsRepository.adjustCounter(
+          postId,
+          PostCounterFields.LIKES,
+          1,
+          tx,
+        );
+
+        await this.postsRepository.adjustCounter(
+          postId,
+          PostCounterFields.DISLIKES,
+          -1,
+          tx,
+        );
+      } else {
+        await this.postsRepository.adjustCounter(
+          postId,
+          PostCounterFields.LIKES,
+          -1,
+          tx,
+        );
+
+        await this.postsRepository.adjustCounter(
+          postId,
+          PostCounterFields.DISLIKES,
+          1,
+          tx,
+        );
+      }
     });
   }
 }
