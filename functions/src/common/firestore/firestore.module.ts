@@ -5,4 +5,4 @@ import { firestoreProvider } from "./firestore.provider";
   providers: [firestoreProvider],
   exports: [firestoreProvider],
 })
-export class FirestoreModule {}
+export class FirebaseModule {}

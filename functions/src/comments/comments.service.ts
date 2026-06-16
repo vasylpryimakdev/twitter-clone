@@ -12,7 +12,7 @@ import { CreateCommentDto } from "./dto/create-comment.dto";
 import { UpdateCommentDto } from "./dto/update-comment.dto";
 import { FieldValue, Firestore } from "firebase-admin/firestore";
 import { FIRESTORE } from "../common/firestore/firestore.provider";
-
+import { CreateComment } from "./types/create-comment.type";
 @Injectable()
 export class CommentsService {
   constructor(
@@ -32,77 +32,45 @@ export class CommentsService {
         throw new NotFoundException("Post not found");
       }
 
-      const commentId = this.commentsRepository.createId();
-      const commentRef = this.commentsRepository.getRef(commentId);
-
-      const comment = {
-        id: commentId,
+      const comment: CreateComment = {
+        id: this.commentsRepository.createId(),
+        authorId: userId,
         postId,
-        userId,
         parentId: null,
         text: dto.text,
+        repliesCount: 0,
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       };
 
-      tx.set(commentRef, comment);
+      await this.commentsRepository.create(tx, comment.id, comment);
 
-      tx.update(postRef, {
-        commentsCount: FieldValue.increment(1),
-      });
+      this.postsRepository.incrementComments(tx, postId);
 
       return comment;
     });
   }
 
   async reply(userId: string, parentId: string, dto: CreateCommentDto) {
-    const parent = await this.commentsRepository.findById(parentId);
-
-    if (!parent) {
-      throw new NotFoundException("Parent comment not found");
-    }
-
-    const postRef = this.postsRepository.getRef(parent.postId);
-    const parentRef = this.commentsRepository.getRef(parentId);
-
     return this.firestore.runTransaction(async (tx) => {
-      const [postSnap, parentSnap] = await Promise.all([
-        tx.get(postRef),
-        tx.get(parentRef),
-      ]);
+      const parent = await this.commentsRepository.getDataOrThrow(tx, parentId);
 
-      if (!postSnap.exists) {
-        throw new NotFoundException("Post not found");
-      }
-
-      if (!parentSnap.exists) {
-        throw new NotFoundException("Parent comment not found");
-      }
-
-      const commentId = this.commentsRepository.createId();
-      const commentRef = this.commentsRepository.getRef(commentId);
-
-      const comment = {
-        id: commentId,
+      const reply: CreateComment = {
+        id: this.commentsRepository.createId(),
+        authorId: userId,
         postId: parent.postId,
-        userId,
         parentId,
         text: dto.text,
+        repliesCount: 0,
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       };
 
-      tx.set(commentRef, comment);
+      await this.commentsRepository.create(tx, reply.id, reply);
 
-      tx.update(postRef, {
-        commentsCount: FieldValue.increment(1),
-      });
+      this.commentsRepository.incrementRepliesCount(tx, parentId);
 
-      tx.update(parentRef, {
-        repliesCount: FieldValue.increment(1),
-      });
-
-      return comment;
+      return reply;
     });
   }
 
@@ -114,23 +82,23 @@ export class CommentsService {
     return this.commentsRepository.findReplies(parentId, limit, cursor);
   }
 
-  async update(userId: string, commentId: string, dto: UpdateCommentDto) {
+  async update(authorId: string, commentId: string, dto: UpdateCommentDto) {
     const comment = await this.commentsRepository.findById(commentId);
 
     if (!comment) {
       throw new NotFoundException("Comment not found");
     }
 
-    if (comment.userId !== userId) {
+    if (comment.authorId !== authorId) {
       throw new ForbiddenException("Forbidden");
     }
 
-    await this.commentsRepository.update(commentId, dto);
+    await this.commentsRepository.updateDirect(commentId, dto);
 
     return this.commentsRepository.findById(commentId);
   }
 
-  async delete(userId: string, commentId: string) {
+  async delete(authorId: string, commentId: string) {
     const commentRef = this.commentsRepository.getRef(commentId);
 
     return this.firestore.runTransaction(async (tx) => {
@@ -146,7 +114,7 @@ export class CommentsService {
         throw new NotFoundException("Comment data is empty");
       }
 
-      if (comment.userId !== userId) {
+      if (comment.userId !== authorId) {
         throw new ForbiddenException("Forbidden");
       }
 

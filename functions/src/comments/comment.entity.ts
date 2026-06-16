@@ -4,7 +4,7 @@ export type Comment = {
   id: string;
 
   postId: string;
-  userId: string;
+  authorId: string;
 
   parentId: string | null;
 

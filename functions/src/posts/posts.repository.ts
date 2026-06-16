@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { firebaseAdmin } from "../config/firebase.config";
 import { Post } from "./types/post.entity";
 import { CreatePostInput } from "./types/create-post-input.type";
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, Transaction } from "firebase-admin/firestore";
 import { mapDoc } from "../common/firestore/firestore.mapper";
 import mapFirestoreError from "../common/firestore/firestore-error.mapper";
 
@@ -12,6 +12,24 @@ export class PostsRepository {
 
   getRef(id: string) {
     return this.postsCollection.doc(id);
+  }
+
+  async assertExists(tx: Transaction, postId: string) {
+    const postRef = this.getRef(postId);
+
+    const postSnap = await tx.get(postRef);
+
+    if (!postSnap.exists) {
+      throw new NotFoundException("Post not found");
+    }
+
+    return postSnap.data();
+  }
+
+  async incrementComments(tx: Transaction, postId: string) {
+    tx.update(this.getRef(postId), {
+      commentsCount: FieldValue.increment(1),
+    });
   }
 
   async create(post: CreatePostInput): Promise<Post> {

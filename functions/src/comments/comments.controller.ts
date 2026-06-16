@@ -39,7 +39,7 @@ export class CommentsController {
     @Body() dto: CreateCommentDto,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.commentsService.reply(user.id, commentId, dto);
+    return this.commentsService.createReply(user.id, commentId, dto);
   }
 
   @Patch(":id")
