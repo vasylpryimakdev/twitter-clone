@@ -70,10 +70,17 @@ export class CommentsService {
 
       await this.commentsRepository.create(reply.id, reply, tx);
 
+      await this.postsRepository.adjustCounter(
+        reply.postId,
+        PostCounterFields.COMMENTS,
+        +1,
+        tx,
+      );
+
       await this.commentsRepository.adjustCounter(
         parentId,
         CommentCounterFields.REPLIES,
-        1,
+        +1,
         tx,
       );
     });

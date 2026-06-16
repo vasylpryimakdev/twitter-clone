@@ -16,92 +16,39 @@ export class ReactionApplicationService {
   ) {}
 
   async react(userId: string, postId: string, type: ReactionType) {
-    const reactionRef = this.reactionsRepository.getRef(postId, userId);
-
     return this.firestore.runTransaction(async (tx) => {
       await this.postsRepository.getDataOrThrow(postId, tx);
 
-      const reactionSnap = await tx.get(reactionRef);
+      const existing = await this.reactionsRepository.get(postId, userId, tx);
 
-      const existing = reactionSnap.exists
-        ? (reactionSnap.data() as { type: ReactionType })
-        : null;
+      const isLike = type === "like";
+
+      const targetField = isLike
+        ? PostCounterFields.LIKES
+        : PostCounterFields.DISLIKES;
+
+      const oppositeField = isLike
+        ? PostCounterFields.DISLIKES
+        : PostCounterFields.LIKES;
 
       if (!existing) {
-        tx.set(reactionRef, { userId, postId, type });
+        this.reactionsRepository.set(postId, userId, type, tx);
 
-        if (type === "like") {
-          await this.postsRepository.adjustCounter(
-            postId,
-            PostCounterFields.LIKES,
-            1,
-            tx,
-          );
-        } else {
-          await this.postsRepository.adjustCounter(
-            postId,
-            PostCounterFields.DISLIKES,
-            1,
-            tx,
-          );
-        }
-
+        await this.postsRepository.adjustCounter(postId, targetField, 1, tx);
         return;
       }
 
       if (existing.type === type) {
-        tx.delete(reactionRef);
+        this.reactionsRepository.delete(postId, userId, tx);
 
-        if (type === "like") {
-          await this.postsRepository.adjustCounter(
-            postId,
-            PostCounterFields.LIKES,
-            -1,
-            tx,
-          );
-        } else {
-          await this.postsRepository.adjustCounter(
-            postId,
-            PostCounterFields.DISLIKES,
-            -1,
-            tx,
-          );
-        }
-
+        await this.postsRepository.adjustCounter(postId, targetField, -1, tx);
         return;
       }
 
-      tx.set(reactionRef, { userId, postId, type });
+      this.reactionsRepository.set(postId, userId, type, tx);
 
-      if (type === "like") {
-        await this.postsRepository.adjustCounter(
-          postId,
-          PostCounterFields.LIKES,
-          1,
-          tx,
-        );
-
-        await this.postsRepository.adjustCounter(
-          postId,
-          PostCounterFields.DISLIKES,
-          -1,
-          tx,
-        );
-      } else {
-        await this.postsRepository.adjustCounter(
-          postId,
-          PostCounterFields.LIKES,
-          -1,
-          tx,
-        );
-
-        await this.postsRepository.adjustCounter(
-          postId,
-          PostCounterFields.DISLIKES,
-          1,
-          tx,
-        );
-      }
+      await this.postsRepository.adjustCounter(postId, targetField, 1, tx);
+      await this.postsRepository.adjustCounter(postId, oppositeField, -1, tx);
     });
   }
 }
