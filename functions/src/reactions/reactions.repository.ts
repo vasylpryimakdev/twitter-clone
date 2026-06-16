@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { Firestore, Transaction } from "firebase-admin/firestore";
 import { FIRESTORE } from "../common/firestore/firestore.provider";
-import { ReactionType } from "./types/reaction.entity";
+import { Reaction, ReactionType } from "./types/reaction.entity";
 
 @Injectable()
 export class ReactionsRepository {
@@ -26,5 +26,14 @@ export class ReactionsRepository {
 
   delete(postId: string, userId: string, tx: Transaction) {
     tx.delete(this.getRef(postId, userId));
+  }
+
+  async findByUser(userId: string): Promise<Reaction[]> {
+    const snap = await this.firestore
+      .collection("reactions")
+      .where("userId", "==", userId)
+      .get();
+
+    return snap.docs.map((doc) => doc.data() as Reaction);
   }
 }

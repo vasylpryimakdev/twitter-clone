@@ -6,6 +6,7 @@ import { BaseRepository } from "../common/firestore/base.repository";
 import { FIRESTORE } from "../common/firestore/firestore.provider";
 import { WritePostModel } from "./types/write-post.model";
 import { PostCounterField } from "./types/post-counter-field";
+import { mapDoc } from "../common/firestore/firestore.mapper";
 
 @Injectable()
 export class PostsRepository extends BaseRepository<Post, WritePostModel> {
@@ -28,14 +29,15 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
         .collection("posts")
         .doc(cursor)
         .get();
+
       query = query.startAfter(cursorDoc);
     }
 
     const snapshot = await query.get();
 
     return {
-      docs: snapshot.docs,
-      lastDoc: snapshot.docs[snapshot.docs.length - 1] ?? null,
+      data: snapshot.docs.map((doc) => mapDoc<Post>(doc)),
+      lastDoc: snapshot.docs[snapshot.docs.length - 1].id ?? null,
     };
   }
 

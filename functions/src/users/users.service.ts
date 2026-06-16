@@ -5,10 +5,14 @@ import { AuthUser } from "../auth/types/auth-user.type";
 import { UsersRepository } from "./users.respository";
 import { WriteUserModel } from "./types/write-user.model";
 import { FieldValue } from "firebase-admin/firestore";
+import { UserDeletionService } from "./user-deletion.service";
 
 @Injectable()
 export class UsersService {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(
+    private usersRepository: UsersRepository,
+    private readonly userDeletionService: UserDeletionService,
+  ) {}
 
   async getById(id: string) {
     return await this.usersRepository.findById(id);
@@ -42,6 +46,6 @@ export class UsersService {
   }
 
   async deleteUser(id: string) {
-    return await this.usersRepository.delete(id);
+    return this.userDeletionService.deleteUser(id);
   }
 }

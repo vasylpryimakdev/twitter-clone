@@ -41,15 +41,15 @@ export class PostsService {
   }
 
   async findByUser(userId: string, limit = 10, cursor?: string) {
-    const { docs, lastDoc } = await this.postsRepository.findByUser(
+    const { data, lastDoc } = await this.postsRepository.findByUser(
       userId,
       limit,
       cursor,
     );
 
     return {
-      data: docs.map((doc) => mapDoc<Post>(doc)),
-      nextCursor: lastDoc ? lastDoc.id : null,
+      data,
+      nextCursor: lastDoc,
     };
   }
 

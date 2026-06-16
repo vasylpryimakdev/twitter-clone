@@ -12,5 +12,6 @@ import { CommentsRepository } from "./comments.repository";
   imports: [FirebaseModule, PostsModule, AuthModule],
   controllers: [CommentsController],
   providers: [CommentsService, CommentsRepository],
+  exports: [CommentsRepository],
 })
 export class CommentsModule {}

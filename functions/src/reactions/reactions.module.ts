@@ -7,6 +7,6 @@ import { PostsRepository } from "../posts/posts.repository";
 @Module({
   imports: [FirebaseModule],
   providers: [ReactionsRepository, ReactionApplicationService, PostsRepository],
-  exports: [ReactionApplicationService],
+  exports: [ReactionApplicationService, ReactionsRepository],
 })
 export class ReactionsModule {}

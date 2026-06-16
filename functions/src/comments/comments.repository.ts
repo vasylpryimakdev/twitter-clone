@@ -42,6 +42,15 @@ export class CommentsRepository extends BaseRepository<Comment, WriteComment> {
     };
   }
 
+  async findByAuthor(authorId: string): Promise<Comment[]> {
+    const snap = await this.firestore
+      .collection("comments")
+      .where("authorId", "==", authorId)
+      .get();
+
+    return snap.docs.map((doc) => mapDoc<Comment>(doc));
+  }
+
   async findReplies(parentId: string, limit = 20, cursor?: string) {
     let query = this.collection
       .where("parentId", "==", parentId)

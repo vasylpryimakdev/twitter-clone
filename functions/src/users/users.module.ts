@@ -4,10 +4,20 @@ import { UsersService } from "./users.service";
 import { AuthModule } from "../auth/auth.module";
 import { UsersRepository } from "./users.respository";
 import FirebaseModule from "../common/firestore/firestore.module";
+import { UserDeletionService } from "./user-deletion.service";
+import { CommentsModule } from "../comments/comments.module";
+import { PostsModule } from "../posts/posts.module";
+import { ReactionsModule } from "../reactions/reactions.module";
 
 @Module({
-  imports: [FirebaseModule, AuthModule],
+  imports: [
+    FirebaseModule,
+    AuthModule,
+    PostsModule,
+    CommentsModule,
+    ReactionsModule,
+  ],
   controllers: [UsersController],
-  providers: [UsersService, UsersRepository],
+  providers: [UsersService, UsersRepository, UserDeletionService],
 })
 export class UsersModule {}
