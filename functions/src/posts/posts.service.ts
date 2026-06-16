@@ -74,7 +74,7 @@ export class PostsService {
       throw new ForbiddenException("You cannot edit this post");
     }
 
-    await this.postsRepository.update(postId, dto);
+    await this.postsRepository.update(postId, { ...dto });
 
     return await this.postsRepository.findByIdOrThrow(post.id);
   }

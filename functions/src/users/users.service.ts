@@ -3,24 +3,30 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { AuthUser } from "../auth/types/auth-user.type";
 import { UsersRepository } from "./users.respository";
-import { CreateUserInput } from "./types/create-user-input.type";
+import { WriteUserModel } from "./types/write-user.model";
+import { FieldValue } from "firebase-admin/firestore";
 
 @Injectable()
 export class UsersService {
   constructor(private usersRepository: UsersRepository) {}
 
   async getById(id: string) {
-    return await this.usersRepository.findOne(id);
+    return await this.usersRepository.findById(id);
   }
 
   async createUserProfile({ id, email }: AuthUser, dto: CreateUserDto) {
-    const userData: CreateUserInput = {
+    const userData: WriteUserModel = {
+      id,
       email,
       name: dto.name,
       surname: dto.surname,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     };
 
-    return this.usersRepository.create(id, userData);
+    await this.usersRepository.create(id, userData);
+
+    return await this.usersRepository.findById(id);
   }
 
   async updateUser(id: string, dto: Partial<UpdateUserDto>) {
@@ -30,7 +36,9 @@ export class UsersService {
       throw new BadRequestException("At least one field required");
     }
 
-    return await this.usersRepository.update(id, dto);
+    await this.usersRepository.update(id, { ...dto });
+
+    return await this.usersRepository.findById(id);
   }
 
   async deleteUser(id: string) {

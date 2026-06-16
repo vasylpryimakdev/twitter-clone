@@ -107,7 +107,7 @@ export class CommentsService {
       throw new ForbiddenException("Forbidden");
     }
 
-    await this.commentsRepository.update(commentId, { text: dto.text });
+    await this.commentsRepository.update(commentId, { ...dto });
 
     return this.commentsRepository.findById(commentId);
   }
