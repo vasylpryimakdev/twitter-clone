@@ -8,7 +8,7 @@ export const MainLayout = () => {
     <Box>
       <Header />
 
-      <Box component="main" sx={{ maxWidth: 900, mx: "auto", p: 2 }}>
+      <Box component="main" sx={{ height: "100%", maxWidth: 900, mx: "auto", p: 2 }}>
         <Outlet />
       </Box>
     </Box>

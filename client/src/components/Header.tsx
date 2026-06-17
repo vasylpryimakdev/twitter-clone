@@ -8,7 +8,7 @@ import {
   Button,
   Stack,
 } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import { useAuthStore } from "../stores/auth.store";
 
@@ -33,7 +33,7 @@ export const Header = () => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Link
+          <RouterLink
             to="/"
             style={{
               display: "flex",
@@ -48,21 +48,21 @@ export const Header = () => {
             >
               TwitterClone
             </Typography>
-          </Link>
+          </RouterLink>
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center" }}>
           {user ? (
-            <IconButton component={Link} to={`/user/${user.id}`}>
+            <IconButton component={RouterLink} to={"/profile"}>
               <Avatar src={user.avatar} sx={{ width: 34, height: 34 }} />
             </IconButton>
           ) : (
             <Stack direction="row" spacing={1}>
-              <Button component={Link} to="/login" variant="text">
+              <Button component={RouterLink} to="/login" variant="text">
                 Login
               </Button>
 
-              <Button component={Link} to="/signup" variant="contained">
+              <Button component={RouterLink} to="/signup" variant="contained">
                 Sign Up
               </Button>
             </Stack>
