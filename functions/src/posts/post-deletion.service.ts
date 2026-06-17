@@ -23,9 +23,9 @@ export class PostDeletionService {
         this.reactionsRepository.delete(r.postId, r.userId, tx);
       }
 
-      const postComments = await this.commentsRepository.findByPost(postId);
+      const postComments = await this.commentsRepository.findAllByPost(postId);
 
-      for (const c of postComments.data) {
+      for (const c of postComments) {
         this.commentsRepository.delete(c.id, tx);
       }
 

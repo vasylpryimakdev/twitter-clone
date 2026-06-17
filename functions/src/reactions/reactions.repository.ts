@@ -62,10 +62,14 @@ export class ReactionsRepository {
     }
 
     const snapshot = await query.get();
+    const lastDoc =
+      snapshot.docs.length > 0
+        ? snapshot.docs[snapshot.docs.length - 1].id
+        : null;
 
     return {
       data: snapshot.docs.map((d) => mapDoc<Reaction>(d)),
-      lastCursor: snapshot.docs[snapshot.docs.length - 1].id ?? null,
+      lastCursor: lastDoc,
     };
   }
 }

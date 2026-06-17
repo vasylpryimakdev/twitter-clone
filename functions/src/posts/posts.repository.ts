@@ -34,10 +34,14 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
     }
 
     const snapshot = await query.get();
+    const lastDoc =
+      snapshot.docs.length > 0
+        ? snapshot.docs[snapshot.docs.length - 1].id
+        : null;
 
     return {
       data: snapshot.docs.map((doc) => mapDoc<Post>(doc)),
-      lastDoc: snapshot.docs[snapshot.docs.length - 1].id ?? null,
+      lastDoc: lastDoc,
     };
   }
 

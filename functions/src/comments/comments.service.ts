@@ -89,7 +89,7 @@ export class CommentsService {
   }
 
   findByPost(postId: string, limit = 20, cursor?: string) {
-    return this.commentsRepository.findByPost(postId, limit, cursor);
+    return this.commentsRepository.findTopLevelByPost(postId, limit, cursor);
   }
 
   findReplies(parentId: string, limit = 20, cursor?: string) {

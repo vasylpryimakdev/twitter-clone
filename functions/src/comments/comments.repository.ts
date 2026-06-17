@@ -17,7 +17,13 @@ export class CommentsRepository extends BaseRepository<Comment, WriteComment> {
     super(firestore, "comments");
   }
 
-  async findByPost(postId: string, limit = 20, cursor?: string) {
+  async findAllByPost(postId: string) {
+    const snapshot = await this.collection.where("postId", "==", postId).get();
+
+    return snapshot.docs.map((doc) => mapDoc<Comment>(doc));
+  }
+
+  async findTopLevelByPost(postId: string, limit = 20, cursor?: string) {
     let query = this.collection
       .where("postId", "==", postId)
       .where("parentId", "==", null)
@@ -33,12 +39,14 @@ export class CommentsRepository extends BaseRepository<Comment, WriteComment> {
     }
 
     const snapshot = await query.get();
+    const lastDoc =
+      snapshot.docs.length > 0
+        ? snapshot.docs[snapshot.docs.length - 1].id
+        : null;
 
     return {
       data: snapshot.docs.map((doc) => mapDoc<Comment>(doc)),
-      lastCursor: snapshot.docs.length
-        ? snapshot.docs[snapshot.docs.length - 1].id
-        : null,
+      lastCursor: lastDoc,
     };
   }
 
