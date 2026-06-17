@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   NotFoundException,
   BadRequestException,
+  Inject,
 } from "@nestjs/common";
 import { CreatePostDto } from "./dto/create-post.dto";
 import { UpdatePostDto } from "./dto/update-post.dto";
@@ -10,10 +11,20 @@ import { Post } from "./types/post.entity";
 import { PostsRepository } from "./posts.repository";
 import { mapDoc } from "../common/firestore/firestore.mapper";
 import { WritePostModel } from "./types/write-post.model";
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, Firestore } from "firebase-admin/firestore";
+import { PostDeletionService } from "./post-deletion.service";
+import { FIRESTORE } from "../common/firestore/firestore.provider";
+import { ReactionType, ReactionTypes } from "../reactions/reaction.entity";
+import { PostCounterFields } from "./types/post-counter-field";
+import { ReactionsRepository } from "../reactions/reactions.repository";
 @Injectable()
 export class PostsService {
-  constructor(private readonly postsRepository: PostsRepository) {}
+  constructor(
+    @Inject(FIRESTORE) private readonly firestore: Firestore,
+    private readonly postsRepository: PostsRepository,
+    private readonly postDeletionService: PostDeletionService,
+    private readonly reactionsRepository: ReactionsRepository,
+  ) {}
 
   async create(authorId: string, dto: CreatePostDto): Promise<Post> {
     const post: WritePostModel = {
@@ -79,18 +90,14 @@ export class PostsService {
     return await this.postsRepository.findByIdOrThrow(post.id);
   }
 
-  async delete(userId: string, postId: string): Promise<void> {
-    const post = await this.postsRepository.findById(postId);
+  async delete(authorId: string, postId: string): Promise<void> {
+    const post = await this.postsRepository.findByIdOrThrow(postId);
 
-    if (!post) {
-      throw new NotFoundException("Post not found");
-    }
-
-    if (post.authorId !== userId) {
+    if (post.authorId !== authorId) {
       throw new ForbiddenException("You cannot delete this post");
     }
 
-    await this.postsRepository.delete(postId);
+    await this.postDeletionService.deletePost(postId);
   }
 
   async findFeed(limit = 10, cursor?: string) {
@@ -103,5 +110,101 @@ export class PostsService {
       data: docs.map((doc) => mapDoc<Post>(doc)),
       nextCursor: lastDoc ? lastDoc.id : null,
     };
+  }
+
+  async react(userId: string, postId: string, type: ReactionType) {
+    return this.firestore.runTransaction(async (tx) => {
+      await this.postsRepository.getDataOrThrow(postId, tx);
+
+      const existing = await this.reactionsRepository.get(postId, userId, tx);
+
+      const currentType = existing?.type ?? null;
+
+      if (currentType === type) {
+        await this.reactionsRepository.delete(postId, userId, tx);
+
+        if (type === ReactionTypes.LIKE) {
+          await this.postsRepository.adjustCounter(
+            postId,
+            PostCounterFields.LIKES,
+            -1,
+            tx,
+          );
+        }
+
+        if (type === ReactionTypes.DISLIKE) {
+          await this.postsRepository.adjustCounter(
+            postId,
+            PostCounterFields.DISLIKES,
+            -1,
+            tx,
+          );
+        }
+
+        return;
+      }
+
+      if (!currentType) {
+        await this.reactionsRepository.set(postId, userId, type, tx);
+
+        if (type === ReactionTypes.LIKE) {
+          await this.postsRepository.adjustCounter(
+            postId,
+            PostCounterFields.LIKES,
+            1,
+            tx,
+          );
+        }
+
+        if (type === ReactionTypes.DISLIKE) {
+          await this.postsRepository.adjustCounter(
+            postId,
+            PostCounterFields.DISLIKES,
+            1,
+            tx,
+          );
+        }
+
+        return;
+      }
+
+      await this.reactionsRepository.set(postId, userId, type, tx);
+
+      if (currentType === ReactionTypes.LIKE) {
+        await this.postsRepository.adjustCounter(
+          postId,
+          PostCounterFields.LIKES,
+          -1,
+          tx,
+        );
+      }
+
+      if (currentType === ReactionTypes.DISLIKE) {
+        await this.postsRepository.adjustCounter(
+          postId,
+          PostCounterFields.DISLIKES,
+          -1,
+          tx,
+        );
+      }
+
+      if (type === ReactionTypes.LIKE) {
+        await this.postsRepository.adjustCounter(
+          postId,
+          PostCounterFields.LIKES,
+          1,
+          tx,
+        );
+      }
+
+      if (type === ReactionTypes.DISLIKE) {
+        await this.postsRepository.adjustCounter(
+          postId,
+          PostCounterFields.DISLIKES,
+          1,
+          tx,
+        );
+      }
+    });
   }
 }

@@ -1,7 +1,8 @@
-import { Inject, Injectable } from "@nestjs/common";
 import { Firestore, Transaction } from "firebase-admin/firestore";
+import { Reaction, ReactionType } from "./reaction.entity";
 import { FIRESTORE } from "../common/firestore/firestore.provider";
-import { Reaction, ReactionType } from "./types/reaction.entity";
+import { Inject, Injectable } from "@nestjs/common";
+import { mapDoc } from "../common/firestore/firestore.mapper";
 
 @Injectable()
 export class ReactionsRepository {
@@ -10,14 +11,20 @@ export class ReactionsRepository {
     private readonly firestore: Firestore,
   ) {}
 
-  getRef(targetId: string, userId: string) {
-    return this.firestore.collection("reactions").doc(`${targetId}_${userId}`);
+  getRef(postId: string, userId: string) {
+    return this.firestore.collection("reactions").doc(`${postId}_${userId}`);
   }
 
-  async get(postId: string, userId: string, tx: Transaction) {
-    const snap = await tx.get(this.getRef(postId, userId));
+  async get(
+    postId: string,
+    userId: string,
+    tx?: Transaction,
+  ): Promise<Reaction | null> {
+    const ref = this.getRef(postId, userId);
 
-    return snap.exists ? (snap.data() as { type: ReactionType }) : null;
+    const snap = tx ? await tx.get(ref) : await ref.get();
+
+    return snap.exists ? mapDoc<Reaction>(snap) : null;
   }
 
   set(postId: string, userId: string, type: ReactionType, tx: Transaction) {
@@ -28,12 +35,37 @@ export class ReactionsRepository {
     tx.delete(this.getRef(postId, userId));
   }
 
-  async findByUser(userId: string): Promise<Reaction[]> {
+  async findByUser(userId: string) {
     const snap = await this.firestore
       .collection("reactions")
       .where("userId", "==", userId)
       .get();
 
-    return snap.docs.map((doc) => doc.data() as Reaction);
+    return snap.docs.map((d) => mapDoc<Reaction>(d));
+  }
+
+  async findByPost(postId: string, limit = 100, cursor?: string) {
+    let query = this.firestore
+      .collection("reactions")
+      .where("postId", "==", postId)
+      .limit(limit);
+
+    if (cursor) {
+      const cursorDoc = await this.firestore
+        .collection("reactions")
+        .doc(cursor)
+        .get();
+
+      if (cursorDoc.exists) {
+        query = query.startAfter(cursorDoc);
+      }
+    }
+
+    const snapshot = await query.get();
+
+    return {
+      data: snapshot.docs.map((d) => mapDoc<Reaction>(d)),
+      lastCursor: snapshot.docs[snapshot.docs.length - 1].id ?? null,
+    };
   }
 }

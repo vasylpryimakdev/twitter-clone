@@ -35,7 +35,7 @@ export class CommentsRepository extends BaseRepository<Comment, WriteComment> {
     const snapshot = await query.get();
 
     return {
-      data: snapshot.docs.map((doc) => doc.data() as Comment),
+      data: snapshot.docs.map((doc) => mapDoc<Comment>(doc)),
       lastCursor: snapshot.docs.length
         ? snapshot.docs[snapshot.docs.length - 1].id
         : null,

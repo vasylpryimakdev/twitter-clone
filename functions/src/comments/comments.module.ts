@@ -9,7 +9,11 @@ import { CommentsService } from "./comments.service";
 import { CommentsRepository } from "./comments.repository";
 
 @Module({
-  imports: [FirebaseModule, PostsModule, AuthModule],
+  imports: [
+    FirebaseModule,
+    PostsModule,
+    AuthModule,
+  ],
   controllers: [CommentsController],
   providers: [CommentsService, CommentsRepository],
   exports: [CommentsRepository],
