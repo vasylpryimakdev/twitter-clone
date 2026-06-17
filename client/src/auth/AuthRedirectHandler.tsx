@@ -4,20 +4,20 @@ import { useAuthStore } from "../stores/auth.store";
 
 export const AuthRedirectHandler = () => {
   const user = useAuthStore((s) => s.user);
-  const isInitialized = useAuthStore((s) => s.isInitialized);
+  const status = useAuthStore((s) => s.status);
 
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    if (!isInitialized || !user) return;
+    if (status === "loading" || !user) return;
 
     const publicRoutes = ["/login", "/signup"];
 
     if (publicRoutes.includes(location.pathname)) {
       navigate("/");
     }
-  }, [user, isInitialized, location.pathname, navigate]);
+  }, [user, status, location.pathname, navigate]);
 
   return null;
 };

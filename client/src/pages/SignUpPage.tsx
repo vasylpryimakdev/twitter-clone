@@ -14,8 +14,13 @@ import { authService } from "../services/auth.service";
 import { usersService } from "../services/users.service";
 import { signUpSchema, type SignUpFormData } from "../schemas/signup.schema";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../stores/auth.store";
 
 export const SignUpPage = () => {
+  const navigate = useNavigate();
+  const setUser = useAuthStore((s) => s.setUser);
+
   const {
     register,
     handleSubmit,
@@ -28,11 +33,15 @@ export const SignUpPage = () => {
     try {
       await authService.signUp(data.email, data.password);
 
-      await usersService.createProfile({
+      const user = await usersService.createProfile({
         name: data.name,
         surname: data.surname,
         username: data.username.toLowerCase(),
       });
+
+      setUser(user);
+
+      navigate("/", { replace: true });
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         console.log("STATUS:", err.response?.status);

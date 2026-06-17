@@ -1,5 +1,6 @@
 import { Menu, MenuItem, ListItemText, Divider } from "@mui/material";
 import { authService } from "../../services/auth.service";
+import { useNavigate } from "react-router-dom";
 
 type Props = {
   anchorEl: HTMLElement | null;
@@ -7,9 +8,15 @@ type Props = {
 };
 
 const ProfileSettingsMenu = ({ anchorEl, setAnchorEl }: Props) => {
+  const navigate = useNavigate();
   const open = Boolean(anchorEl);
 
   const handleClose = () => setAnchorEl(null);
+
+  const handleLogout = () => {
+    authService.logout();
+    navigate("/", { replace: true });
+  };
 
   return (
     <Menu
@@ -35,7 +42,7 @@ const ProfileSettingsMenu = ({ anchorEl, setAnchorEl }: Props) => {
 
       <Divider />
 
-      <MenuItem onClick={authService.logout}>
+      <MenuItem onClick={handleLogout}>
         <ListItemText>Log out</ListItemText>
       </MenuItem>
 

@@ -68,9 +68,9 @@ export const Header = () => {
               </Button>
             </Stack>
           )}
-          {status === "authenticated" && (
+          {status === "authenticated" && user && (
             <IconButton component={RouterLink} to={"/profile"}>
-              <Avatar src={user?.avatar} sx={{ width: 34, height: 34 }} />
+              <Avatar src={user.avatar} sx={{ width: 34, height: 34 }} />
             </IconButton>
           )}
         </Box>
