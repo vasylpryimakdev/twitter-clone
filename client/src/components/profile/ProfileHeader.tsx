@@ -11,13 +11,13 @@ import {
   profileEditSchema,
   type ProfileEditForm,
 } from "../../schemas/profileEdit.schema";
-import ProfileSettingsModal from "./ProfileSettingsModal";
 import { zodResolver } from "@hookform/resolvers/zod";
+import ProfileSettingsMenu from "./ProfileSettingsMenu";
 
 export const ProfileHeader = ({ user }: { user: UserProfile }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [savedUser, setSavedUser] = useState(user);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   const { register, handleSubmit, reset, control, formState } =
     useForm<ProfileEditForm>({
@@ -90,20 +90,21 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
                 onCancel={handleCancel}
               />
             ) : (
-              <ProfileView form={form} onEdit={() => setIsEditing(true)} />
+              <ProfileView
+                form={form}
+                onEdit={() => setIsEditing(true)}
+                emailVerified={user.verified}
+              />
             )}
 
-            <IconButton onClick={() => setSettingsOpen(true)}>
+            <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
               <SettingsIcon />
             </IconButton>
           </Stack>
         </Stack>
       </Box>
 
-      <ProfileSettingsModal
-        setSettingsOpen={setSettingsOpen}
-        settingsOpen={settingsOpen}
-      />
+      <ProfileSettingsMenu anchorEl={anchorEl} setAnchorEl={setAnchorEl} />
     </>
   );
 };

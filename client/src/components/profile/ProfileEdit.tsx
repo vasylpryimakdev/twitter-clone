@@ -1,6 +1,6 @@
 import CloseIcon from "@mui/icons-material/Close";
 import CheckIcon from "@mui/icons-material/Check";
-import { Box,  TextField, IconButton } from "@mui/material";
+import { Box, TextField, IconButton } from "@mui/material";
 import type { ProfileEditForm } from "../../schemas/profileEdit.schema";
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 
@@ -14,7 +14,16 @@ type Props = {
 export const ProfileEdit = ({ register, errors, onSave, onCancel }: Props) => {
   return (
     <Box
-      sx={{ flex: 1, py: 2, display: "flex", flexDirection: "row", alignItems: "start", gap: 2 }}
+      component="form"
+      onSubmit={onSave}
+      sx={{
+        flex: 1,
+        py: 2,
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "start",
+        gap: 2,
+      }}
     >
       <Box
         sx={{
@@ -63,7 +72,7 @@ export const ProfileEdit = ({ register, errors, onSave, onCancel }: Props) => {
           <CloseIcon />
         </IconButton>
 
-        <IconButton sx={{ color: "text.secondary" }} onClick={onSave}>
+        <IconButton type="submit" sx={{ color: "text.secondary" }}>
           <CheckIcon />
         </IconButton>
       </Box>
