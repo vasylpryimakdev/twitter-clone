@@ -34,8 +34,6 @@ const mockPosts: PostType[] = [
 export const HomePage = () => {
   return (
     <div>
-      <h2>Home feed</h2>
-
       {mockPosts.map((post) => (
         <Post key={post.id} post={post} />
       ))}
