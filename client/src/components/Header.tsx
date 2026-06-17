@@ -1,11 +1,56 @@
+import {
+  AppBar,
+  Toolbar,
+  Box,
+  IconButton,
+  Typography,
+  Avatar,
+} from "@mui/material";
 import { Link } from "react-router-dom";
+import TwitterIcon from "@mui/icons-material/Twitter";
 
 export const Header = () => {
   return (
-    <div style={{ display: "flex", gap: 10 }}>
-      <Link to="/">Home</Link>
-      <Link to="/profile">Profile</Link>
-      <Link to="/login">Login</Link>
-    </div>
+    <AppBar
+      position="sticky"
+      elevation={0}
+      sx={{
+        backgroundColor: "white",
+        borderBottom: "1px solid #e6ecf0",
+        color: "black",
+      }}
+    >
+      <Toolbar
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          minHeight: 60,
+        }}
+      >
+        {/* LEFT - LOGO */}
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <IconButton component={Link} to="/" edge="start">
+            <TwitterIcon sx={{ fontSize: 30, color: "#1DA1F2" }} />
+          </IconButton>
+
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 700, ml: 1, color: "#1DA1F2" }}
+          >
+            Twitter
+          </Typography>
+        </Box>
+
+        {/* RIGHT - PROFILE */}
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <IconButton component={Link} to="/profile">
+            <Avatar
+              src="https://i.pravatar.cc/150?img=12"
+              sx={{ width: 34, height: 34 }}
+            />
+          </IconButton>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 };
