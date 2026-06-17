@@ -11,6 +11,11 @@ export async function createNestServer() {
     new ExpressAdapter(expressApp),
   );
 
+  app.enableCors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  });
+
   await app.init();
 
   return expressApp;
