@@ -27,18 +27,23 @@ export const Header = () => {
           minHeight: 60,
         }}
       >
-        {/* LEFT - LOGO */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <IconButton component={Link} to="/" edge="start">
-            <TwitterIcon sx={{ fontSize: 30, color: "#1DA1F2" }} />
-          </IconButton>
-
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 700, ml: 1, color: "#1DA1F2" }}
+          <Link
+            to="/"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              textDecoration: "none",
+            }}
           >
-            Twitter
-          </Typography>
+            <TwitterIcon sx={{ fontSize: 30, color: "#1DA1F2" }} />
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 700, ml: 1, color: "#1DA1F2" }}
+            >
+              Twitter
+            </Typography>
+          </Link>
         </Box>
 
         {/* RIGHT - PROFILE */}
