@@ -13,6 +13,7 @@ import {
 } from "../../schemas/profileEdit.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ProfileSettingsMenu from "./ProfileSettingsMenu";
+import { usersService } from "../../services/users.service";
 
 export const ProfileHeader = ({ user }: { user: UserProfile }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -34,14 +35,31 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
     setIsEditing(false);
   };
 
-  const onSubmit = (data: ProfileEditForm) => {
-    console.log("SAVE DATA:", data);
+  const hasChanges = (data: ProfileEditForm) => {
+    return (
+      data.name.trim() !== savedUser.name.trim() ||
+      data.surname.trim() !== savedUser.surname.trim() ||
+      data.username.trim().toLowerCase() !==
+        savedUser.username.trim().toLowerCase()
+    );
+  };
 
-    setSavedUser((prev) => ({
-      ...prev,
-      ...data,
-    }));
-    setIsEditing(false);
+  const onSubmit = async (data: ProfileEditForm) => {
+    if (!hasChanges(data)) {
+      setIsEditing(false);
+      reset(savedUser);
+
+      return;
+    }
+
+    try {
+      const updatedUser = await usersService.updateProfile(data);
+
+      setSavedUser(updatedUser);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Update failed:", error);
+    }
   };
 
   const watched = useWatch({ control });
@@ -88,6 +106,7 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
                 errors={formState.errors}
                 onSave={handleSubmit(onSubmit)}
                 onCancel={handleCancel}
+                isSaving={formState.isSubmitting}
               />
             ) : (
               <ProfileView
@@ -100,11 +119,13 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
             <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
               <SettingsIcon />
             </IconButton>
+            <ProfileSettingsMenu
+              anchorEl={anchorEl}
+              setAnchorEl={setAnchorEl}
+            />
           </Stack>
         </Stack>
       </Box>
-
-      <ProfileSettingsMenu anchorEl={anchorEl} setAnchorEl={setAnchorEl} />
     </>
   );
 };

@@ -3,15 +3,23 @@ import CheckIcon from "@mui/icons-material/Check";
 import { Box, TextField, IconButton } from "@mui/material";
 import type { ProfileEditForm } from "../../schemas/profileEdit.schema";
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
+import CircularProgress from "@mui/material/CircularProgress";
 
 type Props = {
   register: UseFormRegister<ProfileEditForm>;
   errors: FieldErrors<ProfileEditForm>;
   onSave: () => void;
   onCancel: () => void;
+  isSaving: boolean;
 };
 
-export const ProfileEdit = ({ register, errors, onSave, onCancel }: Props) => {
+export const ProfileEdit = ({
+  register,
+  errors,
+  onSave,
+  onCancel,
+  isSaving,
+}: Props) => {
   return (
     <Box
       component="form"
@@ -68,12 +76,24 @@ export const ProfileEdit = ({ register, errors, onSave, onCancel }: Props) => {
           gap: 1,
         }}
       >
-        <IconButton sx={{ color: "text.secondary" }} onClick={onCancel}>
+        <IconButton
+          sx={{ color: "text.secondary" }}
+          onClick={onCancel}
+          disabled={isSaving}
+        >
           <CloseIcon />
         </IconButton>
 
-        <IconButton type="submit" sx={{ color: "text.secondary" }}>
-          <CheckIcon />
+        <IconButton
+          type="submit"
+          sx={{ color: "text.secondary" }}
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <CircularProgress size={18} sx={{ color: "text.secondary" }} />
+          ) : (
+            <CheckIcon />
+          )}
         </IconButton>
       </Box>
     </Box>

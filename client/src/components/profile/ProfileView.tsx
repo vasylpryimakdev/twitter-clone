@@ -50,7 +50,7 @@ export const ProfileView = ({ form, emailVerified, onEdit }: Props) => {
           mt: 1,
           display: "flex",
           alignItems: "center",
-          gap: 1,
+          gap: 2,
         }}
       >
         <Typography variant="body2" color="text.secondary">
@@ -63,7 +63,7 @@ export const ProfileView = ({ form, emailVerified, onEdit }: Props) => {
         >
           <Badge
             overlap="circular"
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            anchorOrigin={{ vertical: "top", horizontal: "left" }}
             badgeContent={
               emailVerified ? (
                 <CheckCircle sx={{ fontSize: 10, color: "white" }} />
@@ -74,10 +74,14 @@ export const ProfileView = ({ form, emailVerified, onEdit }: Props) => {
             sx={{
               "& .MuiBadge-badge": {
                 backgroundColor: emailVerified ? "success.main" : "error.main",
-                width: 14,
-                height: 14,
-                minWidth: 14,
+                width: 10,
+                height: 10,
+                minWidth: 10,
                 borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 0,
               },
             }}
           >
