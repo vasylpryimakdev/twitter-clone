@@ -1,9 +1,4 @@
-export type PostUser = {
-  id: string;
-  name: string;
-  username: string;
-  avatar: string;
-};
+import type { PostUser } from "./user.types";
 
 export type Post = {
   id: string;

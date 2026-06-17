@@ -5,11 +5,16 @@ import {
   IconButton,
   Typography,
   Avatar,
+  Button,
+  Stack,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import TwitterIcon from "@mui/icons-material/Twitter";
+import { useAuthStore } from "../stores/auth.store";
 
 export const Header = () => {
+  const user = useAuthStore((state) => state.user);
+
   return (
     <AppBar
       position="sticky"
@@ -46,14 +51,22 @@ export const Header = () => {
           </Link>
         </Box>
 
-        {/* RIGHT - PROFILE */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <IconButton component={Link} to="/profile">
-            <Avatar
-              src="https://i.pravatar.cc/150?img=12"
-              sx={{ width: 34, height: 34 }}
-            />
-          </IconButton>
+          {user ? (
+            <IconButton component={Link} to={`/user/${user.id}`}>
+              <Avatar src={user.avatar} sx={{ width: 34, height: 34 }} />
+            </IconButton>
+          ) : (
+            <Stack direction="row" spacing={1}>
+              <Button component={Link} to="/login" variant="text">
+                Login
+              </Button>
+
+              <Button component={Link} to="/signup" variant="contained">
+                Sign Up
+              </Button>
+            </Stack>
+          )}
         </Box>
       </Toolbar>
     </AppBar>

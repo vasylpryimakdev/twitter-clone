@@ -1,7 +1,7 @@
-export const RegisterPage = () => {
+export const SignUpPage = () => {
   return (
     <div>
-      <h2>Register</h2>
+      <h2>Sign Up</h2>
 
       <input placeholder="email" />
       <input placeholder="password" type="password" />

@@ -14,22 +14,15 @@ import ThumbDownOffAltIcon from "@mui/icons-material/ThumbDownOffAlt";
 import ThumbUpOffAlt from "@mui/icons-material/ThumbUpOffAlt";
 import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
 
-import type { Post as PostType } from "./post.types";
+import type { Post as PostType } from "../../types/post.types";
 
 export type PostProps = {
   post: PostType;
 };
 
 export const Post = ({ post }: PostProps) => {
-  const {
-    user,
-    title,
-    text,
-    image,
-    likesCount,
-    dislikesCount,
-    commentsCount,
-  } = post;
+  const { user, title, text, image, likesCount, dislikesCount, commentsCount } =
+    post;
 
   return (
     <Card
