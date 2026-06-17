@@ -1,10 +1,4 @@
-import {
-  Avatar,
-  Stack,
-  Box,
-  IconButton,
-
-} from "@mui/material";
+import { Avatar, Stack, Box, IconButton } from "@mui/material";
 
 import type { UserProfile } from "../../types/user.types";
 import { useState } from "react";
@@ -13,33 +7,40 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import { ProfileEdit } from "./ProfileEdit";
 import { ProfileView } from "./ProfileView";
 import { useForm, useWatch } from "react-hook-form";
-import type { ProfileEditForm } from "../../schemas/profileEdit.schema";
+import {
+  profileEditSchema,
+  type ProfileEditForm,
+} from "../../schemas/profileEdit.schema";
 import ProfileSettingsModal from "./ProfileSettingsModal";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export const ProfileHeader = ({ user }: { user: UserProfile }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [savedUser, setSavedUser] = useState(user);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const { register, handleSubmit, reset, control } = useForm<ProfileEditForm>({
-    defaultValues: {
-      name: user.name,
-      surname: user.surname,
-      username: user.username,
-    },
-  });
+  const { register, handleSubmit, reset, control, formState } =
+    useForm<ProfileEditForm>({
+      resolver: zodResolver(profileEditSchema),
+      defaultValues: {
+        name: user.name,
+        surname: user.surname,
+        username: user.username,
+      },
+    });
 
   const handleCancel = () => {
-    reset({
-      name: user.name,
-      surname: user.surname,
-      username: user.username,
-    });
+    reset(savedUser);
     setIsEditing(false);
   };
 
   const onSubmit = (data: ProfileEditForm) => {
     console.log("SAVE DATA:", data);
 
+    setSavedUser((prev) => ({
+      ...prev,
+      ...data,
+    }));
     setIsEditing(false);
   };
 
@@ -48,7 +49,7 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
   const form = {
     name: watched.name ?? "",
     surname: watched.surname ?? "",
-    username: watched.username ?? "",
+    username: (watched.username ?? "").toLowerCase(),
   };
 
   return (
@@ -84,6 +85,7 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
             {isEditing ? (
               <ProfileEdit
                 register={register}
+                errors={formState.errors}
                 onSave={handleSubmit(onSubmit)}
                 onCancel={handleCancel}
               />

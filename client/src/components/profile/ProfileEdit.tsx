@@ -1,41 +1,71 @@
 import CloseIcon from "@mui/icons-material/Close";
 import CheckIcon from "@mui/icons-material/Check";
-import { Box, Stack, TextField, IconButton } from "@mui/material";
+import { Box,  TextField, IconButton } from "@mui/material";
 import type { ProfileEditForm } from "../../schemas/profileEdit.schema";
-import type { UseFormRegister } from "react-hook-form";
+import type { FieldErrors, UseFormRegister } from "react-hook-form";
 
 type Props = {
   register: UseFormRegister<ProfileEditForm>;
+  errors: FieldErrors<ProfileEditForm>;
   onSave: () => void;
   onCancel: () => void;
 };
 
-export const ProfileEdit = ({ register, onSave, onCancel }: Props) => {
+export const ProfileEdit = ({ register, errors, onSave, onCancel }: Props) => {
   return (
-    <Box sx={{ flex: 1, py: 2 }}>
-      <Stack
+    <Box
+      sx={{ flex: 1, py: 2, display: "flex", flexDirection: "row", alignItems: "start", gap: 2 }}
+    >
+      <Box
         sx={{
-          flexDirection: "row",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
           gap: 1,
-          alignItems: "center",
+          alignItems: "start",
         }}
       >
-        <TextField size="small" {...register("name")} />
-        <TextField size="small" {...register("surname")} />
+        <TextField
+          size="small"
+          label="First name"
+          {...register("name")}
+          error={!!errors.name}
+          helperText={errors.name?.message}
+        />
 
-        <Stack direction="row">
-          <IconButton onClick={onSave} color="success">
-            <CheckIcon />
-          </IconButton>
+        <TextField
+          size="small"
+          label="Last name"
+          {...register("surname")}
+          error={!!errors.surname}
+          helperText={errors.surname?.message}
+        />
 
-          <IconButton onClick={onCancel} color="error">
-            <CloseIcon />
-          </IconButton>
-        </Stack>
-      </Stack>
+        <Box sx={{ gridColumn: "1 / -1" }}>
+          <TextField
+            size="small"
+            label="Username"
+            fullWidth
+            {...register("username")}
+            error={!!errors.username}
+            helperText={errors.username?.message}
+          />
+        </Box>
+      </Box>
 
-      <Box sx={{ mt: 1 }}>
-        <TextField size="small" {...register("username")} />
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 1,
+        }}
+      >
+        <IconButton sx={{ color: "text.secondary" }} onClick={onCancel}>
+          <CloseIcon />
+        </IconButton>
+
+        <IconButton sx={{ color: "text.secondary" }} onClick={onSave}>
+          <CheckIcon />
+        </IconButton>
       </Box>
     </Box>
   );
