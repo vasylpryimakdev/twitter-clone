@@ -5,10 +5,15 @@ import {
   Typography,
   Stack,
   IconButton,
+  Avatar,
+  Box,
 } from "@mui/material";
+import { Link } from "react-router-dom";
+
 import ThumbDownOffAltIcon from "@mui/icons-material/ThumbDownOffAlt";
 import ThumbUpOffAlt from "@mui/icons-material/ThumbUpOffAlt";
 import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
+
 import type { Post as PostType } from "./post.types";
 
 export type PostProps = {
@@ -16,7 +21,15 @@ export type PostProps = {
 };
 
 export const Post = ({ post }: PostProps) => {
-  const { title, text, image, likesCount, dislikesCount, commentsCount } = post;
+  const {
+    user,
+    title,
+    text,
+    image,
+    likesCount,
+    dislikesCount,
+    commentsCount,
+  } = post;
 
   return (
     <Card
@@ -29,6 +42,34 @@ export const Post = ({ post }: PostProps) => {
         py: 2,
       }}
     >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          mb: 1.5,
+        }}
+      >
+        <Link to={`/user/${user.id}`} style={{ display: "flex" }}>
+          <Avatar src={user.avatar} sx={{ width: 36, height: 36 }} />
+        </Link>
+
+        <Box>
+          <Link
+            to={`/user/${user.id}`}
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
+            <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
+              {user.name}
+            </Typography>
+          </Link>
+
+          <Typography variant="caption" color="text.secondary">
+            @{user.username}
+          </Typography>
+        </Box>
+      </Box>
+
       {image && (
         <CardMedia
           component="img"

@@ -10,6 +10,12 @@ const mockPosts: PostType[] = [
     likesCount: 12,
     dislikesCount: 1,
     commentsCount: 3,
+    user: {
+      id: "u1",
+      name: "Vasyl Pryimak",
+      username: "vasyl",
+      avatar: "https://i.pravatar.cc/150?img=12",
+    },
   },
   {
     id: "2",
@@ -19,6 +25,12 @@ const mockPosts: PostType[] = [
     likesCount: 25,
     dislikesCount: 0,
     commentsCount: 7,
+    user: {
+      id: "u2",
+      name: "John Doe",
+      username: "johndoe",
+      avatar: "https://i.pravatar.cc/150?img=32",
+    },
   },
   {
     id: "3",
@@ -28,6 +40,12 @@ const mockPosts: PostType[] = [
     likesCount: 18,
     dislikesCount: 2,
     commentsCount: 5,
+    user: {
+      id: "u3",
+      name: "Alex Smith",
+      username: "alexsmith",
+      avatar: "https://i.pravatar.cc/150?img=45",
+    },
   },
 ];
 

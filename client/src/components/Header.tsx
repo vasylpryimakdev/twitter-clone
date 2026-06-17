@@ -41,7 +41,7 @@ export const Header = () => {
               variant="h6"
               sx={{ fontWeight: 700, ml: 1, color: "#1DA1F2" }}
             >
-              Twitter
+              TwitterClone
             </Typography>
           </Link>
         </Box>
