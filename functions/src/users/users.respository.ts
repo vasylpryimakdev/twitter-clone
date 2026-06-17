@@ -13,4 +13,23 @@ export class UsersRepository extends BaseRepository<User, WriteUserModel> {
   ) {
     super(firestore, "users");
   }
+
+  async findByUsername(username: string) {
+    const snapshot = await this.firestore
+      .collection("users")
+      .where("username", "==", username)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return null;
+    }
+
+    const doc = snapshot.docs[0];
+
+    return {
+      id: doc.id,
+      ...doc.data(),
+    };
+  }
 }

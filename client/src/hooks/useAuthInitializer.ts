@@ -31,7 +31,6 @@ export const useAuthInitializer = () => {
       try {
         const res = await api.get("/users/me");
 
-        console.log("hook working", res.data);
         setUser(res.data);
         setStatus("authenticated");
       } catch (e) {

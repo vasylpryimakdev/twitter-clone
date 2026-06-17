@@ -112,7 +112,7 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
               <ProfileView
                 form={form}
                 onEdit={() => setIsEditing(true)}
-                emailVerified={user.verified}
+                emailVerified={user.emailVerified}
               />
             )}
 

@@ -13,7 +13,7 @@ export type UserProfile = {
   avatar: string;
 
   bio?: string;
-  verified: boolean;
+  emailVerified: boolean;
 
   followersCount: number;
   followingCount: number;

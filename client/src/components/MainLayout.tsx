@@ -7,11 +7,20 @@ export const MainLayout = () => {
     <Box
       sx={{
         minHeight: "100dvh",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <Header />
 
-      <Box component="main" sx={{ maxWidth: 900, mx: "auto" }}>
+      <Box
+        component="main"
+        sx={{
+          maxWidth: 900,
+          mx: "auto",
+          flex: 1,
+        }}
+      >
         <Outlet />
       </Box>
     </Box>

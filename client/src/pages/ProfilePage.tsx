@@ -1,10 +1,4 @@
-import {
-  Box,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
-} from "@mui/material";
+import { Box, Typography, Tabs, Tab, Paper } from "@mui/material";
 import { useState } from "react";
 import { useAuthStore } from "../stores/auth.store";
 import { ProfileHeader } from "../components/profile/ProfileHeader";
@@ -23,7 +17,7 @@ export const ProfilePage = () => {
   }
 
   return (
-    <Box>
+    <Box sx={{ width: 900 }}>
       <ProfileHeader user={user} />
       <Box sx={{ mt: 3 }}>
         <Paper elevation={0}>

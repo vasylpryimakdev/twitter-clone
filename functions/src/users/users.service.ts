@@ -18,10 +18,20 @@ export class UsersService {
     return await this.usersRepository.findById(id);
   }
 
-  async createUserProfile({ id, email }: AuthUser, dto: CreateUserDto) {
+  async createUserProfile(
+    { id, email, emailVerified }: AuthUser,
+    dto: CreateUserDto,
+  ) {
+    const exists = await this.usersRepository.findByUsername(dto.username);
+
+    if (exists) {
+      throw new BadRequestException("Username already taken");
+    }
+
     const userData: WriteUserModel = {
       id,
       email,
+      emailVerified,
       name: dto.name,
       surname: dto.surname,
       username: dto.username,
