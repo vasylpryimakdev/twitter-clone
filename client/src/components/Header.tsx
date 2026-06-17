@@ -7,12 +7,14 @@ import {
   Avatar,
   Button,
   Stack,
+  Skeleton,
 } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import { useAuthStore } from "../stores/auth.store";
 
 export const Header = () => {
+  const status = useAuthStore((state) => state.status);
   const user = useAuthStore((state) => state.user);
 
   return (
@@ -52,11 +54,10 @@ export const Header = () => {
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          {user ? (
-            <IconButton component={RouterLink} to={"/profile"}>
-              <Avatar src={user.avatar} sx={{ width: 34, height: 34 }} />
-            </IconButton>
-          ) : (
+          {status === "loading" && (
+            <Skeleton variant="rectangular" width={80} height={34} />
+          )}
+          {status === "unauthenticated" && (
             <Stack direction="row" spacing={1}>
               <Button component={RouterLink} to="/login" variant="text">
                 Login
@@ -66,6 +67,11 @@ export const Header = () => {
                 Sign Up
               </Button>
             </Stack>
+          )}
+          {status === "authenticated" && (
+            <IconButton component={RouterLink} to={"/profile"}>
+              <Avatar src={user?.avatar} sx={{ width: 34, height: 34 }} />
+            </IconButton>
           )}
         </Box>
       </Toolbar>

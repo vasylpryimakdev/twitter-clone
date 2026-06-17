@@ -1,23 +1,31 @@
 import { create } from "zustand";
-
 import type { UserProfile } from "../types/user.types";
 
 type AuthState = {
   user: UserProfile | null;
-
-  isInitialized: boolean;
+  status: "loading" | "authenticated" | "unauthenticated";
 
   setUser: (user: UserProfile | null) => void;
+  setStatus: (s: AuthState["status"]) => void;
 
-  setInitialized: (value: boolean) => void;
+  reset: () => void;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  status: "loading",
 
-  isInitialized: false,
+  setUser: (user) =>
+    set({
+      user,
+      status: user ? "authenticated" : "unauthenticated",
+    }),
 
-  setUser: (user) => set({ user }),
+  setStatus: (status) => set({ status }),
 
-  setInitialized: (value) => set({ isInitialized: value }),
+  reset: () =>
+    set({
+      user: null,
+      status: "unauthenticated",
+    }),
 }));

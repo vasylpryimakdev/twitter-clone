@@ -1,4 +1,5 @@
 import { Menu, MenuItem, ListItemText, Divider } from "@mui/material";
+import { authService } from "../../services/auth.service";
 
 type Props = {
   anchorEl: HTMLElement | null;
@@ -34,7 +35,7 @@ const ProfileSettingsMenu = ({ anchorEl, setAnchorEl }: Props) => {
 
       <Divider />
 
-      <MenuItem onClick={handleClose}>
+      <MenuItem onClick={authService.logout}>
         <ListItemText>Log out</ListItemText>
       </MenuItem>
 

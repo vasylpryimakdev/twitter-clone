@@ -7,26 +7,31 @@ import { api } from "../api/api";
 
 export const useAuthInitializer = () => {
   const setUser = useAuthStore((s) => s.setUser);
-  const setInitialized = useAuthStore((s) => s.setInitialized);
+  const setStatus = useAuthStore((s) => s.setStatus);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (!firebaseUser) {
-        setUser(null);
-        setInitialized(true);
-        return;
-      }
+    setStatus("loading");
 
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
+        if (!firebaseUser) {
+          setUser(null);
+          setStatus("unauthenticated");
+          return;
+        }
+
         const res = await api.get("/users/me");
+
         setUser(res.data);
+        setStatus("authenticated");
       } catch (e) {
-        console.log("INIT ERROR:", e);
-      } finally {
-        setInitialized(true);
+        console.error("AUTH INIT ERROR:", e);
+
+        setUser(null);
+        setStatus("unauthenticated");
       }
     });
 
     return unsubscribe;
-  }, [setUser, setInitialized]);
+  }, [setUser, setStatus]);
 };
