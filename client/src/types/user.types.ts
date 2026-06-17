@@ -8,6 +8,7 @@ export type PostUser = {
 export type UserProfile = {
   id: string;
   name: string;
+  surname: string;
   username: string;
   avatar: string;
 

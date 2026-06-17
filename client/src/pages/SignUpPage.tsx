@@ -13,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { authService } from "../services/auth.service";
 import { usersService } from "../services/users.service";
 import { signUpSchema, type SignUpFormData } from "../schemas/signup.schema";
+import axios from "axios";
 
 export const SignUpPage = () => {
   const {
@@ -28,12 +29,18 @@ export const SignUpPage = () => {
       await authService.signUp(data.email, data.password);
 
       await usersService.createProfile({
-        firstName: data.firstName,
-        lastName: data.lastName,
+        name: data.name,
+        surname: data.surname,
         username: data.username.toLowerCase(),
       });
     } catch (err: unknown) {
-      console.error(err);
+      if (axios.isAxiosError(err)) {
+        console.log("STATUS:", err.response?.status);
+        console.log("DATA:", err.response?.data);
+        console.log("MESSAGE:", err.message);
+      } else {
+        console.log("UNKNOWN ERROR:", err);
+      }
     }
   };
 
@@ -72,16 +79,16 @@ export const SignUpPage = () => {
 
               <TextField
                 label="First name"
-                {...register("firstName")}
-                error={!!errors.firstName}
-                helperText={errors.firstName?.message}
+                {...register("name")}
+                error={!!errors.name}
+                helperText={errors.name?.message}
               />
 
               <TextField
                 label="Last name"
-                {...register("lastName")}
-                error={!!errors.lastName}
-                helperText={errors.lastName?.message}
+                {...register("surname")}
+                error={!!errors.surname}
+                helperText={errors.surname?.message}
               />
 
               <TextField

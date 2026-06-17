@@ -17,12 +17,16 @@ export const useAuthInitializer = () => {
         return;
       }
 
-      const res = await api.get("/users/me");
-
-      setUser(res.data);
-      setInitialized(true);
+      try {
+        const res = await api.get("/users/me");
+        setUser(res.data);
+      } catch (e) {
+        console.log("INIT ERROR:", e);
+      } finally {
+        setInitialized(true);
+      }
     });
 
     return unsubscribe;
-  }, [setInitialized, setUser]);
+  }, [setUser, setInitialized]);
 };

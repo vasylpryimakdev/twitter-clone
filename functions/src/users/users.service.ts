@@ -24,6 +24,7 @@ export class UsersService {
       email,
       name: dto.name,
       surname: dto.surname,
+      username: dto.username,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     };

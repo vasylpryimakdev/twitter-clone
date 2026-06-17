@@ -16,4 +16,12 @@ export class CreateUserDto {
     message: "Surname contains invalid characters",
   })
   surname!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Length(3, 20)
+  @Matches(/^[a-zA-Z0-9_]+$/, {
+    message: "Username can only contain letters, numbers and underscores",
+  })
+  username!: string;
 }

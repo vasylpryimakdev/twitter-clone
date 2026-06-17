@@ -2,11 +2,12 @@ import { api } from "../api/api";
 
 export const usersService = {
   createProfile: async (data: {
-    firstName: string;
-    lastName: string;
+    name: string;
+    surname: string;
     username: string;
   }) => {
-    const res = await api.post("/users", data);
+    const res = await api.post("/users/me", data);
+
     return res.data;
   },
 };

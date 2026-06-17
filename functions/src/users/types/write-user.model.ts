@@ -5,6 +5,7 @@ export class WriteUserModel {
   email!: string;
   name!: string;
   surname!: string;
+  username!: string;
   avatar?: string;
   createdAt!: FieldValue;
   updatedAt!: FieldValue;

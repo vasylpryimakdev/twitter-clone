@@ -5,9 +5,9 @@ export const signUpSchema = z.object({
 
   password: z.string().min(6, "Min 6 characters"),
 
-  firstName: z.string().min(2, "First name too short"),
+  name: z.string().min(2, "First name too short"),
 
-  lastName: z.string().min(2, "Last name too short"),
+  surname: z.string().min(2, "Last name too short"),
 
   username: z
     .string()

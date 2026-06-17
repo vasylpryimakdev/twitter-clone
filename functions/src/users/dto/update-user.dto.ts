@@ -19,6 +19,14 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
+  @Length(3, 20)
+  @Matches(/^[a-zA-Z0-9_]+$/, {
+    message: "Username can only contain letters, numbers and underscores",
+  })
+  username?: string;
+
+  @IsOptional()
+  @IsString()
   @IsUrl({
     protocols: ["http", "https"],
     require_protocol: true,
