@@ -33,10 +33,18 @@ export class UsersRepository extends BaseRepository<User, WriteUserModel> {
     };
   }
 
-  async assertUsernameAvailable(username: string) {
-    const exists = await this.findByUsername(username);
+  async assertUsernameAvailable(
+    username: string,
+    tx: FirebaseFirestore.Transaction,
+  ) {
+    const usernameQuery = this.firestore
+      .collection("users")
+      .where("username", "==", username)
+      .limit(1);
 
-    if (exists) {
+    const snap = await tx.get(usernameQuery);
+
+    if (!snap.empty) {
       throw new BadRequestException("Username already taken");
     }
   }

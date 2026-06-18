@@ -1,4 +1,13 @@
-import { IsOptional, IsString, IsUrl, Length, Matches } from "class-validator";
+import {
+  IsOptional,
+  IsString,
+  IsUrl,
+  Length,
+  Matches,
+  MaxLength,
+  MinLength,
+} from "class-validator";
+import { Transform } from "class-transformer";
 
 export class UpdateUserDto {
   @IsOptional()
@@ -17,13 +26,18 @@ export class UpdateUserDto {
   })
   surname?: string;
 
-  @IsOptional()
   @IsString()
-  @Length(3, 20)
-  @Matches(/^[a-zA-Z0-9_]+$/, {
-    message: "Username can only contain letters, numbers and underscores",
-  })
-  username?: string;
+  @MinLength(3)
+  @MaxLength(20)
+  @Matches(/^[a-zA-Z0-9_]+$/)
+  @Transform(({ value }) =>
+    value
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "")
+      .replace(/[^a-z0-9_]/g, ""),
+  )
+  username!: string;
 
   @IsOptional()
   @IsString()

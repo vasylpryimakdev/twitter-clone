@@ -1,4 +1,12 @@
-import { IsString, IsNotEmpty, Length, Matches } from "class-validator";
+import {
+  IsString,
+  IsNotEmpty,
+  Length,
+  Matches,
+  MaxLength,
+  MinLength,
+} from "class-validator";
+import { Transform } from "class-transformer";
 
 export class CreateUserDto {
   @IsString()
@@ -18,10 +26,15 @@ export class CreateUserDto {
   surname!: string;
 
   @IsString()
-  @IsNotEmpty()
-  @Length(3, 20)
-  @Matches(/^[a-zA-Z0-9_]+$/, {
-    message: "Username can only contain letters, numbers and underscores",
-  })
+  @MinLength(3)
+  @MaxLength(20)
+  @Matches(/^[a-zA-Z0-9_]+$/)
+  @Transform(({ value }) =>
+    value
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "")
+      .replace(/[^a-z0-9_]/g, ""),
+  )
   username!: string;
 }
