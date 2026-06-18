@@ -11,6 +11,8 @@ import {
 import LoadingButton from "@mui/lab/LoadingButton";
 import { authService } from "../../services/auth.service";
 import { useNavigate } from "react-router-dom";
+import { GoogleAuthProvider, reauthenticateWithPopup } from "firebase/auth";
+import { auth } from "../../firebase/firebase";
 
 type Props = {
   open: boolean;
@@ -23,6 +25,12 @@ export const DeleteAccountModal = ({ open, onClose }: Props) => {
 
   const navigate = useNavigate();
 
+  const user = auth.currentUser;
+  const provider = user?.providerData[0]?.providerId;
+
+  const isGoogle = provider === "google.com";
+  const isPassword = provider === "password";
+
   const handleClose = () => {
     if (loading) return;
 
@@ -30,10 +38,10 @@ export const DeleteAccountModal = ({ open, onClose }: Props) => {
     onClose();
   };
 
-  const handleDelete = async () => {
-    try {
-      setLoading(true);
+  const handlePasswordDelete = async () => {
+    setLoading(true);
 
+    try {
       await authService.deleteAccount(password);
 
       setPassword("");
@@ -46,12 +54,40 @@ export const DeleteAccountModal = ({ open, onClose }: Props) => {
     }
   };
 
+  const handleGoogleDelete = async () => {
+    setLoading(true);
+
+    try {
+      if (!user) return;
+
+      const provider = new GoogleAuthProvider();
+
+      await reauthenticateWithPopup(user, provider);
+
+      await authService.deleteAccount();
+
+      onClose();
+      navigate("/");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!password || loading) return;
+    if (loading) return;
 
-    handleDelete();
+    if (isPassword) {
+      if (!password) return;
+      handlePasswordDelete();
+    }
+
+    if (isGoogle) {
+      handleGoogleDelete();
+    }
   };
 
   return (
@@ -66,18 +102,27 @@ export const DeleteAccountModal = ({ open, onClose }: Props) => {
 
         <DialogContent>
           <DialogContentText>
-            Enter your password to permanently delete your account.
+            This action is permanent. Please confirm your identity.
           </DialogContentText>
 
-          <TextField
-            fullWidth
-            type="password"
-            label="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            sx={{ mt: 2 }}
-            disabled={loading}
-          />
+          {isPassword && (
+            <TextField
+              fullWidth
+              type="password"
+              label="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              sx={{ mt: 2 }}
+              disabled={loading}
+            />
+          )}
+
+          {isGoogle && (
+            <DialogContentText sx={{ mt: 2 }}>
+              You are signed in with Google. Click delete to continue with
+              Google authentication.
+            </DialogContentText>
+          )}
         </DialogContent>
 
         <DialogActions>
@@ -90,7 +135,7 @@ export const DeleteAccountModal = ({ open, onClose }: Props) => {
             variant="contained"
             color="error"
             loading={loading}
-            disabled={!password}
+            disabled={isPassword && !password}
           >
             Delete
           </LoadingButton>

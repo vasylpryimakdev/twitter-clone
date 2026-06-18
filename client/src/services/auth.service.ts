@@ -44,7 +44,7 @@ export const authService = {
     return signOut(auth);
   },
 
-  async deleteAccount(password: string) {
+  async deleteAccount(password?: string) {
     const user = auth.currentUser;
 
     if (!user) {
@@ -58,7 +58,7 @@ export const authService = {
     }
 
     await usersService.deleteProfile();
-    
+
     await deleteUser(user);
   },
 
@@ -70,17 +70,5 @@ export const authService = {
     }
 
     return await sendEmailVerification(user);
-  },
-
-  async reauthenticate(password: string) {
-    const user = auth.currentUser;
-
-    if (!user || !user.email) {
-      throw new Error("No authenticated email user");
-    }
-
-    const credential = EmailAuthProvider.credential(user.email, password);
-
-    return reauthenticateWithCredential(user, credential);
   },
 };
