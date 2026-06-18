@@ -17,8 +17,11 @@ export const MainLayout = () => {
         component="main"
         sx={{
           maxWidth: 900,
+          width: "100%",
           mx: "auto",
           flex: 1,
+          display: "flex",
+          justifyContent: "center",
         }}
       >
         <Outlet />

@@ -17,7 +17,7 @@ export const ProfilePage = () => {
   }
 
   return (
-    <Box sx={{ width: 900 }}>
+    <Box sx={{ width: "100%" }}>
       <ProfileHeader user={user} />
       <Box sx={{ mt: 3 }}>
         <Paper elevation={0}>

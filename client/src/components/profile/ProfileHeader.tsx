@@ -6,7 +6,7 @@ import { useState } from "react";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { ProfileEdit } from "./ProfileEdit";
 import { ProfileView } from "./ProfileView";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import {
   profileEditSchema,
   type ProfileEditForm,
@@ -14,40 +14,42 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import ProfileSettingsMenu from "./ProfileSettingsMenu";
 import { usersService } from "../../services/users.service";
+import { useAuthStore } from "../../stores/auth.store";
 
 export const ProfileHeader = ({ user }: { user: UserProfile }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [savedUser, setSavedUser] = useState(user);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
-  const { register, handleSubmit, reset, control, formState } =
-    useForm<ProfileEditForm>({
+  const setUser = useAuthStore((s) => s.setUser);
+
+  const { register, handleSubmit, reset, formState } = useForm<ProfileEditForm>(
+    {
       resolver: zodResolver(profileEditSchema),
       defaultValues: {
         name: user.name,
         surname: user.surname,
         username: user.username,
       },
-    });
+    },
+  );
 
   const handleCancel = () => {
-    reset(savedUser);
+    reset(user);
     setIsEditing(false);
   };
 
   const hasChanges = (data: ProfileEditForm) => {
     return (
-      data.name.trim() !== savedUser.name.trim() ||
-      data.surname.trim() !== savedUser.surname.trim() ||
-      data.username.trim().toLowerCase() !==
-        savedUser.username.trim().toLowerCase()
+      data.name.trim() !== user.name.trim() ||
+      data.surname.trim() !== user.surname.trim() ||
+      data.username.trim().toLowerCase() !== user.username.trim().toLowerCase()
     );
   };
 
   const onSubmit = async (data: ProfileEditForm) => {
     if (!hasChanges(data)) {
       setIsEditing(false);
-      reset(savedUser);
+      reset(user);
 
       return;
     }
@@ -55,19 +57,11 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
     try {
       const updatedUser = await usersService.updateProfile(data);
 
-      setSavedUser(updatedUser);
+      setUser(updatedUser);
       setIsEditing(false);
     } catch (error) {
       console.error("Update failed:", error);
     }
-  };
-
-  const watched = useWatch({ control });
-
-  const form = {
-    name: watched.name ?? "",
-    surname: watched.surname ?? "",
-    username: (watched.username ?? "").toLowerCase(),
   };
 
   return (
@@ -109,11 +103,7 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
                 isSaving={formState.isSubmitting}
               />
             ) : (
-              <ProfileView
-                form={form}
-                onEdit={() => setIsEditing(true)}
-                emailVerified={user.emailVerified}
-              />
+              <ProfileView user={user} onEdit={() => setIsEditing(true)} />
             )}
 
             <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>

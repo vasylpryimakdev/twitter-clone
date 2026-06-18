@@ -18,20 +18,12 @@ export class UsersService {
     return await this.usersRepository.findById(id);
   }
 
-  async createUserProfile(
-    { id, email, emailVerified }: AuthUser,
-    dto: CreateUserDto,
-  ) {
-    const exists = await this.usersRepository.findByUsername(dto.username);
-
-    if (exists) {
-      throw new BadRequestException("Username already taken");
-    }
+  async createUserProfile({ id, email }: AuthUser, dto: CreateUserDto) {
+    await this.usersRepository.assertUsernameAvailable(dto.username);
 
     const userData: WriteUserModel = {
       id,
       email,
-      emailVerified,
       name: dto.name,
       surname: dto.surname,
       username: dto.username,
@@ -51,7 +43,14 @@ export class UsersService {
       throw new BadRequestException("At least one field required");
     }
 
-    await this.usersRepository.update(id, { ...dto });
+    if (dto.username) {
+      await this.usersRepository.assertUsernameAvailable(dto.username);
+    }
+
+    await this.usersRepository.update(id, {
+      ...dto,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
 
     return await this.usersRepository.findById(id);
   }

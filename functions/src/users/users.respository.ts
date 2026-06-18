@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { User } from "./types/users.entity";
 import { WriteUserModel } from "./types/write-user.model";
 import { BaseRepository } from "../common/firestore/base.repository";
@@ -31,5 +31,13 @@ export class UsersRepository extends BaseRepository<User, WriteUserModel> {
       id: doc.id,
       ...doc.data(),
     };
+  }
+
+  async assertUsernameAvailable(username: string) {
+    const exists = await this.findByUsername(username);
+
+    if (exists) {
+      throw new BadRequestException("Username already taken");
+    }
   }
 }

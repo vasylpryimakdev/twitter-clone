@@ -32,7 +32,7 @@ export const SignUpPage = () => {
 
   const onSubmit = async (data: SignUpFormData) => {
     try {
-      await authService.signUp(data.email, data.password);
+      const credential = await authService.signUp(data.email, data.password);
 
       const user = await usersService.createProfile({
         name: data.name,
@@ -40,11 +40,15 @@ export const SignUpPage = () => {
         username: data.username.toLowerCase(),
       });
 
-      setUser(user);
+      setUser({
+        ...user,
+        id: credential.user.uid,
+        emailVerified: credential.user.emailVerified,
+      });
 
       navigate("/", { replace: true });
-    } catch (err: unknown) {
-      console.error("UNKNOWN ERROR:", err);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -85,11 +89,7 @@ export const SignUpPage = () => {
   };
 
   return (
-    <Box
-      sx={{
-        mt: "50%",
-      }}
-    >
+    <Box sx={{ alignSelf: "center" }}>
       <Card sx={{ width: 420 }}>
         <CardContent>
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>

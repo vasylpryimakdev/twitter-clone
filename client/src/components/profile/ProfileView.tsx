@@ -7,18 +7,23 @@ import {
   Tooltip,
   Badge,
 } from "@mui/material";
-import type { ProfileEditForm } from "../../schemas/profileEdit.schema";
 import MailOutlineOutlined from "@mui/icons-material/MailOutlineOutlined";
 import CheckCircle from "@mui/icons-material/CheckCircle";
 import Cancel from "@mui/icons-material/Cancel";
 
+import type { UserProfile } from "../../types/user.types";
+import { useEmailVerificationWatcher } from "../../hooks/useEmailVerificationWkatcher";
+
 type Props = {
-  form: ProfileEditForm;
+  user: UserProfile;
   onEdit: () => void;
-  emailVerified: boolean;
 };
 
-export const ProfileView = ({ form, emailVerified, onEdit }: Props) => {
+export const ProfileView = ({ user, onEdit }: Props) => {
+  const { name, surname, emailVerified } = user;
+
+  useEmailVerificationWatcher();
+
   return (
     <Box sx={{ flex: 1, py: 1 }}>
       <Stack
@@ -36,7 +41,7 @@ export const ProfileView = ({ form, emailVerified, onEdit }: Props) => {
           }}
         >
           <Typography variant="h5" sx={{ fontWeight: 600 }}>
-            {form.name} {form.surname}
+            {name} {surname}
           </Typography>
 
           <IconButton onClick={onEdit}>
@@ -54,7 +59,7 @@ export const ProfileView = ({ form, emailVerified, onEdit }: Props) => {
         }}
       >
         <Typography variant="body2" color="text.secondary">
-          @{form.username}
+          @{user.username}
         </Typography>
 
         <Tooltip

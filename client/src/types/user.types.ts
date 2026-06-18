@@ -11,8 +11,6 @@ export type UserProfile = {
   surname: string;
   username: string;
   avatar: string;
-
-  bio?: string;
   emailVerified: boolean;
 
   followersCount: number;

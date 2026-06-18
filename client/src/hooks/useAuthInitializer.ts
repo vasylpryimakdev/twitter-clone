@@ -9,7 +9,6 @@ export const useAuthInitializer = () => {
   const setUser = useAuthStore((s) => s.setUser);
   const setStatus = useAuthStore((s) => s.setStatus);
   const setInitialized = useAuthStore((s) => s.setInitialized);
-  const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
     setStatus("loading");
@@ -22,26 +21,20 @@ export const useAuthInitializer = () => {
         return;
       }
 
-      if (user) {
-        setStatus("authenticated");
+      await firebaseUser.reload();
 
-        return;
-      }
+      const res = await api.get("/users/me");
 
-      try {
-        const res = await api.get("/users/me");
+      setUser({
+        ...res.data,
+        id: firebaseUser.uid,
+        emailVerified: firebaseUser.emailVerified,
+      });
 
-        setUser(res.data);
-        setStatus("authenticated");
-      } catch (e) {
-        console.warn("Profile not loaded yet:", e);
-        setUser(null);
-        setStatus("unauthenticated");
-      } finally {
-        setInitialized(true);
-      }
+      setStatus("authenticated");
+      setInitialized(true);
     });
 
     return unsubscribe;
-  }, [setUser, user, setStatus, setInitialized]);
+  }, [setUser, setStatus, setInitialized]);
 };
