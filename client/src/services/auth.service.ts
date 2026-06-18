@@ -27,17 +27,27 @@ export const authService = {
   },
 
   signInWithGoogle() {
-    const provider = new GoogleAuthProvider();
+    const googleProvider = new GoogleAuthProvider();
 
-    provider.setCustomParameters({
+    googleProvider.setCustomParameters({
       prompt: "select_account",
     });
 
-    return signInWithPopup(auth, provider);
+    return signInWithPopup(auth, googleProvider);
   },
 
   login(email: string, password: string) {
     return signInWithEmailAndPassword(auth, email, password);
+  },
+
+  loginWithGoogle: async () => {
+    const googleProvider = new GoogleAuthProvider();
+
+    googleProvider.setCustomParameters({
+      prompt: "select_account",
+    });
+
+    return signInWithPopup(auth, googleProvider);
   },
 
   logout() {

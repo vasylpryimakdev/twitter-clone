@@ -7,6 +7,7 @@ import {
   Button,
   TextField,
   Link,
+  Divider,
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,10 +30,18 @@ export const LoginPage = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await authService.login(data.email, data.password);
-
       navigate("/", { replace: true });
     } catch (err) {
       console.error("Login error:", err);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await authService.loginWithGoogle();
+      navigate("/", { replace: true });
+    } catch (err) {
+      console.error("Google login error:", err);
     }
   };
 
@@ -63,6 +72,12 @@ export const LoginPage = () => {
 
               <Button type="submit" variant="contained" disabled={isSubmitting}>
                 {isSubmitting ? "Logging in..." : "Login"}
+              </Button>
+
+              <Divider>OR</Divider>
+
+              <Button variant="outlined" fullWidth onClick={handleGoogleLogin}>
+                Continue with Google
               </Button>
 
               <Box sx={{ textAlign: "center" }}>
