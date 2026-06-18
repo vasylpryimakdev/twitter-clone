@@ -1,6 +1,7 @@
 import { Menu, MenuItem, ListItemText, Divider } from "@mui/material";
 import { authService } from "../../services/auth.service";
 import { useNavigate } from "react-router-dom";
+import { auth } from "../../firebase/firebase";
 
 type Props = {
   anchorEl: HTMLElement | null;
@@ -15,6 +16,13 @@ const ProfileSettingsMenu = ({
   onDeleteAccount,
   onChangePassword,
 }: Props) => {
+  const user = auth.currentUser;
+
+  const provider = user?.providerData[0]?.providerId;
+
+  const isGoogle = provider === "google.com";
+  const isEmailVerified = user?.emailVerified;
+
   const navigate = useNavigate();
   const open = Boolean(anchorEl);
 
@@ -39,20 +47,24 @@ const ProfileSettingsMenu = ({
         horizontal: "right",
       }}
     >
-      <MenuItem
-        onClick={() => {
-          handleClose();
-          onChangePassword();
-        }}
-      >
-        <ListItemText>Change password</ListItemText>
-      </MenuItem>
+      {!isGoogle && (
+        <MenuItem
+          onClick={() => {
+            handleClose();
+            onChangePassword();
+          }}
+        >
+          <ListItemText>Change password</ListItemText>
+        </MenuItem>
+      )}
 
-      <MenuItem onClick={handleClose}>
-        <ListItemText>Verify email</ListItemText>
-      </MenuItem>
+      {!isEmailVerified && (
+        <MenuItem onClick={authService.sendVerificationEmail}>
+          <ListItemText>Send verification email</ListItemText>
+        </MenuItem>
+      )}
 
-      <Divider />
+      {!isGoogle && !isEmailVerified && <Divider />}
 
       <MenuItem onClick={handleLogout}>
         <ListItemText>Log out</ListItemText>

@@ -73,14 +73,18 @@ export const authService = {
     await deleteUser(user);
   },
 
-  async sendEmailVerification() {
+  async sendVerificationEmail() {
     const user = auth.currentUser;
 
     if (!user) {
+      throw new Error("No authenticated user");
+    }
+
+    if (user.emailVerified) {
       return;
     }
 
-    return await sendEmailVerification(user);
+    return sendEmailVerification(user);
   },
 
   async changePassword(oldPassword: string, newPassword: string) {
