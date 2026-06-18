@@ -47,7 +47,6 @@ export const LoginPage = () => {
     }
   }, [mode, setFocus]);
 
-  // ================= LOGIN =================
   const onSubmit = async (data: LoginFormData) => {
     try {
       await authService.login(data.email, data.password);
@@ -61,7 +60,6 @@ export const LoginPage = () => {
     }
   };
 
-  // ================= GOOGLE =================
   const handleGoogleLogin = async () => {
     try {
       await authService.loginWithGoogle();
@@ -75,7 +73,6 @@ export const LoginPage = () => {
     }
   };
 
-  // ================= FORGOT PASSWORD =================
   const handleForgotPasswordClick = () => {
     setMode("reset");
   };
@@ -115,7 +112,6 @@ export const LoginPage = () => {
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={2}>
-              {/* EMAIL */}
               <TextField
                 label="Email"
                 {...register("email")}
@@ -123,7 +119,6 @@ export const LoginPage = () => {
                 helperText={errors.email?.message}
               />
 
-              {/* PASSWORD */}
               {mode === "login" && (
                 <TextField
                   label="Password"
@@ -134,14 +129,12 @@ export const LoginPage = () => {
                 />
               )}
 
-              {/* RESET INFO */}
               {mode === "reset" && (
                 <Typography variant="body2" color="text.secondary">
                   Enter your email and we will send you a password reset link.
                 </Typography>
               )}
 
-              {/* FORGOT PASSWORD */}
               {mode === "login" && (
                 <Box sx={{ textAlign: "right" }}>
                   <Button size="small" onClick={handleForgotPasswordClick}>
@@ -150,7 +143,6 @@ export const LoginPage = () => {
                 </Box>
               )}
 
-              {/* ACTION */}
               {mode === "login" ? (
                 <Button
                   type="submit"
@@ -175,16 +167,18 @@ export const LoginPage = () => {
                 </Button>
               )}
 
-              <Divider>OR</Divider>
-
               {mode === "login" && (
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  onClick={handleGoogleLogin}
-                >
-                  Continue with Google
-                </Button>
+                <>
+                  <Divider>OR</Divider>
+
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={handleGoogleLogin}
+                  >
+                    Continue with Google
+                  </Button>
+                </>
               )}
 
               {mode === "login" && (

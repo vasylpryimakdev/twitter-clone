@@ -9,33 +9,48 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  getAdditionalUserInfo,
   updatePassword,
 } from "firebase/auth";
 
 import { auth } from "../firebase/firebase";
 import { usersService } from "./users.service";
+import { AUTH_ERRORS } from "../constants/errors";
 
 export const authService = {
   async signUp(email: string, password: string) {
-    const credential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password,
-    );
+    try {
+      const credential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
 
-    await sendEmailVerification(credential.user);
-
-    return credential;
+      await sendEmailVerification(credential.user);
+      return credential;
+    } catch {
+      throw new Error(AUTH_ERRORS.MAIL_ALREADY_IN_USE);
+    }
   },
 
-  signInWithGoogle() {
+  async signInWithGoogle() {
     const googleProvider = new GoogleAuthProvider();
 
     googleProvider.setCustomParameters({
       prompt: "select_account",
     });
 
-    return signInWithPopup(auth, googleProvider);
+    const result = await signInWithPopup(auth, googleProvider);
+
+    const isNewUser = getAdditionalUserInfo(result)?.isNewUser;
+
+    if (!isNewUser) {
+      await signOut(auth);
+
+      throw new Error(AUTH_ERRORS.GOOGLE_ALREADY_REGISTERED);
+    }
+
+    return result;
   },
 
   login(email: string, password: string) {

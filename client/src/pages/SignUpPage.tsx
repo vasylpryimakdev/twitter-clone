@@ -7,22 +7,35 @@ import {
   Button,
   TextField,
   Link,
+  Divider,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { AxiosError } from "axios";
+import { useState } from "react";
+
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import GoogleIcon from "@mui/icons-material/Google";
 
 import { authService } from "../services/auth.service";
 import { usersService } from "../services/users.service";
 import { signUpSchema, type SignUpFormData } from "../schemas/signup.schema";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/auth.store";
-import GoogleIcon from "@mui/icons-material/Google";
 import type { ApiError } from "../types/api-error.type";
+import { useToastStore } from "../stores/toast.store";
+import axios from "axios";
+import { AUTH_ERRORS } from "../constants/errors";
 
 export const SignUpPage = () => {
   const navigate = useNavigate();
   const setUser = useAuthStore((s) => s.setUser);
+  const showToast = useToastStore((state) => state.showToast);
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const {
     register,
@@ -47,13 +60,28 @@ export const SignUpPage = () => {
         emailVerified: credential.user.emailVerified,
       });
 
+      showToast(
+        "Account created successfully. Please verify your email 📧",
+        "success",
+      );
+
       navigate("/", { replace: true });
     } catch (err) {
-      const error = err as AxiosError<ApiError>;
+      if (axios.isAxiosError<ApiError>(err)) {
+        showToast(
+          err.response?.data?.message ?? "Something went wrong",
+          "error",
+        );
+      } else if (
+        err instanceof Error &&
+        err.message === AUTH_ERRORS.MAIL_ALREADY_IN_USE
+      ) {
+        showToast("Email is already in use", "error");
+      } else {
+        showToast("Something went wrong", "error");
+      }
 
-      const message = error.response?.data?.message;
-
-      console.error("BACKEND MESSAGE:", message);
+      console.error(err);
     }
   };
 
@@ -85,9 +113,29 @@ export const SignUpPage = () => {
       });
 
       setUser(createdUser);
+      showToast("Signed up with Google 🎉", "success");
+
       navigate("/", { replace: true });
     } catch (err) {
-      console.error("Google auth error:", err);
+      if (axios.isAxiosError<ApiError>(err)) {
+        console.log("hi");
+
+        showToast(
+          err.response?.data?.message ?? "Something went wrong!",
+          "error",
+        );
+      } else if (err instanceof Error) {
+        if (err.message === AUTH_ERRORS.GOOGLE_ALREADY_REGISTERED) {
+          showToast(
+            "This account already exists. Please login instead.",
+            "error",
+          );
+
+          return;
+        } else {
+          showToast("Something went wrong!", "error");
+        }
+      }
     }
   };
 
@@ -110,10 +158,46 @@ export const SignUpPage = () => {
 
               <TextField
                 label="Password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 {...register("password")}
                 error={!!errors.password}
                 helperText={errors.password?.message}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword((p) => !p)}
+                          edge="end"
+                        >
+                          {!showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+
+              <TextField
+                label="Confirm password"
+                type={showConfirm ? "text" : "password"}
+                {...register("confirmPassword")}
+                error={!!errors.confirmPassword}
+                helperText={errors.confirmPassword?.message}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowConfirm((p) => !p)}
+                          edge="end"
+                        >
+                          {!showConfirm ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
               />
 
               <TextField
@@ -141,6 +225,8 @@ export const SignUpPage = () => {
                 {isSubmitting ? "Creating..." : "Sign Up"}
               </Button>
 
+              <Divider sx={{ my: 1 }}>OR</Divider>
+
               <Button
                 fullWidth
                 variant="outlined"
@@ -150,12 +236,7 @@ export const SignUpPage = () => {
                 Continue with Google
               </Button>
 
-              <Box
-                sx={{
-                  mt: 2,
-                  textAlign: "center",
-                }}
-              >
+              <Box sx={{ textAlign: "center", mt: 2 }}>
                 <Typography variant="body2" color="text.secondary">
                   Already have an account?{" "}
                   <Link

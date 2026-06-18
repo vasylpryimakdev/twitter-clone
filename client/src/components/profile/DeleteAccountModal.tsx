@@ -8,7 +8,6 @@ import {
   Button,
   TextField,
 } from "@mui/material";
-import LoadingButton from "@mui/lab/LoadingButton";
 import { authService } from "../../services/auth.service";
 import { useNavigate } from "react-router-dom";
 import { GoogleAuthProvider, reauthenticateWithPopup } from "firebase/auth";
@@ -130,7 +129,7 @@ export const DeleteAccountModal = ({ open, onClose }: Props) => {
             Cancel
           </Button>
 
-          <LoadingButton
+          <Button
             type="submit"
             variant="contained"
             color="error"
@@ -138,7 +137,7 @@ export const DeleteAccountModal = ({ open, onClose }: Props) => {
             disabled={isPassword && !password}
           >
             Delete
-          </LoadingButton>
+          </Button>
         </DialogActions>
       </form>
     </Dialog>

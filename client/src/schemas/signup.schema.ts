@@ -1,18 +1,25 @@
 import { z } from "zod";
 
-export const signUpSchema = z.object({
-  email: z.string().email("Invalid email"),
+export const signUpSchema = z
+  .object({
+    email: z.string().email("Invalid email"),
 
-  password: z.string().min(6, "Min 6 characters"),
+    password: z.string().min(6, "Min 6 characters"),
 
-  name: z.string().min(2, "First name too short"),
+    confirmPassword: z.string().min(6, "Min 6 characters"),
 
-  surname: z.string().min(2, "Last name too short"),
+    name: z.string().min(2, "First name too short"),
 
-  username: z
-    .string()
-    .min(3, "Min 3 characters")
-    .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, _"),
-});
+    surname: z.string().min(2, "Last name too short"),
+
+    username: z
+      .string()
+      .min(3, "Min 3 characters")
+      .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, _"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 export type SignUpFormData = z.infer<typeof signUpSchema>;
