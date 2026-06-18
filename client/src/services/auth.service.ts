@@ -1,6 +1,9 @@
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
+  EmailAuthProvider,
   GoogleAuthProvider,
+  reauthenticateWithCredential,
   sendEmailVerification,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -8,6 +11,7 @@ import {
 } from "firebase/auth";
 
 import { auth } from "../firebase/firebase";
+import { usersService } from "./users.service";
 
 export const authService = {
   async signUp(email: string, password: string) {
@@ -40,6 +44,24 @@ export const authService = {
     return signOut(auth);
   },
 
+  async deleteAccount(password: string) {
+    const user = auth.currentUser;
+
+    if (!user) {
+      throw new Error("No authenticated user");
+    }
+
+    if (user.email && password) {
+      const credential = EmailAuthProvider.credential(user.email, password);
+
+      await reauthenticateWithCredential(user, credential);
+    }
+
+    await usersService.deleteProfile();
+    
+    await deleteUser(user);
+  },
+
   async sendEmailVerification() {
     const user = auth.currentUser;
 
@@ -48,5 +70,17 @@ export const authService = {
     }
 
     return await sendEmailVerification(user);
+  },
+
+  async reauthenticate(password: string) {
+    const user = auth.currentUser;
+
+    if (!user || !user.email) {
+      throw new Error("No authenticated email user");
+    }
+
+    const credential = EmailAuthProvider.credential(user.email, password);
+
+    return reauthenticateWithCredential(user, credential);
   },
 };

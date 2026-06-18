@@ -17,4 +17,9 @@ export const usersService = {
 
     return res.data;
   },
+
+  deleteProfile: async () => {
+    const res = await api.delete("/users/me");
+    return res.data;
+  },
 };

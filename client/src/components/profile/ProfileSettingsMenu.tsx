@@ -5,9 +5,14 @@ import { useNavigate } from "react-router-dom";
 type Props = {
   anchorEl: HTMLElement | null;
   setAnchorEl: (value: HTMLElement | null) => void;
+  onDeleteAccount: () => void;
 };
 
-const ProfileSettingsMenu = ({ anchorEl, setAnchorEl }: Props) => {
+const ProfileSettingsMenu = ({
+  anchorEl,
+  setAnchorEl,
+  onDeleteAccount,
+}: Props) => {
   const navigate = useNavigate();
   const open = Boolean(anchorEl);
 
@@ -46,7 +51,7 @@ const ProfileSettingsMenu = ({ anchorEl, setAnchorEl }: Props) => {
         <ListItemText>Log out</ListItemText>
       </MenuItem>
 
-      <MenuItem onClick={handleClose} sx={{ color: "error.main" }}>
+      <MenuItem onClick={onDeleteAccount} sx={{ color: "error.main" }}>
         Delete account
       </MenuItem>
     </Menu>

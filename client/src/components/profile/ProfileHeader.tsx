@@ -15,9 +15,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import ProfileSettingsMenu from "./ProfileSettingsMenu";
 import { usersService } from "../../services/users.service";
 import { useAuthStore } from "../../stores/auth.store";
+import { DeleteAccountModal } from "./DeleteAccountModal";
 
 export const ProfileHeader = ({ user }: { user: UserProfile }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const openDeleteModal = () => setIsDeleteModalOpen(true);
+  const closeDeleteModal = () => setIsDeleteModalOpen(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   const setUser = useAuthStore((s) => s.setUser);
@@ -46,7 +50,7 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
     );
   };
 
-  const onSubmit = async (data: ProfileEditForm) => {
+  const onUpdateUser = async (data: ProfileEditForm) => {
     if (!hasChanges(data)) {
       setIsEditing(false);
       reset(user);
@@ -98,7 +102,7 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
               <ProfileEdit
                 register={register}
                 errors={formState.errors}
-                onSave={handleSubmit(onSubmit)}
+                onSave={handleSubmit(onUpdateUser)}
                 onCancel={handleCancel}
                 isSaving={formState.isSubmitting}
               />
@@ -112,6 +116,11 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
             <ProfileSettingsMenu
               anchorEl={anchorEl}
               setAnchorEl={setAnchorEl}
+              onDeleteAccount={openDeleteModal}
+            />
+            <DeleteAccountModal
+              open={isDeleteModalOpen}
+              onClose={closeDeleteModal}
             />
           </Stack>
         </Stack>
