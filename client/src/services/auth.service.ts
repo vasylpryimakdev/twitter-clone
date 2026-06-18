@@ -5,6 +5,7 @@ import {
   GoogleAuthProvider,
   reauthenticateWithCredential,
   sendEmailVerification,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
@@ -100,5 +101,13 @@ export const authService = {
 
     await updatePassword(user, newPassword);
     await signInWithEmailAndPassword(auth, user.email!, newPassword);
+  },
+
+  async sendPasswordReset(email: string) {
+    if (!email) {
+      throw new Error("Email is required");
+    }
+
+    return sendPasswordResetEmail(auth, email);
   },
 };

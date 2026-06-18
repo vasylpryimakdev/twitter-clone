@@ -1,17 +1,37 @@
-import { Box, Typography, Tabs, Tab, Paper } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  Paper,
+  CircularProgress,
+} from "@mui/material";
 import { useState } from "react";
 import { useAuthStore } from "../stores/auth.store";
 import { ProfileHeader } from "../components/profile/ProfileHeader";
+import { Navigate } from "react-router-dom";
 
 export const ProfilePage = () => {
   const user = useAuthStore((s) => s.user);
+  const status = useAuthStore((s) => s.status);
 
   const [tab, setTab] = useState(0);
 
   if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (status === "loading") {
     return (
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h6">Loading profile...</Typography>
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <CircularProgress />
       </Box>
     );
   }
