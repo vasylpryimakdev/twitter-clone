@@ -8,6 +8,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updatePassword,
 } from "firebase/auth";
 
 import { auth } from "../firebase/firebase";
@@ -80,5 +81,20 @@ export const authService = {
     }
 
     return await sendEmailVerification(user);
+  },
+
+  async changePassword(oldPassword: string, newPassword: string) {
+    const user = auth.currentUser;
+
+    if (!user || !user.email) {
+      throw new Error("No authenticated user");
+    }
+
+    const credential = EmailAuthProvider.credential(user.email, oldPassword);
+
+    await reauthenticateWithCredential(user, credential);
+
+    await updatePassword(user, newPassword);
+    await signInWithEmailAndPassword(auth, user.email!, newPassword);
   },
 };

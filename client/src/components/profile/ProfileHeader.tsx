@@ -16,10 +16,12 @@ import ProfileSettingsMenu from "./ProfileSettingsMenu";
 import { usersService } from "../../services/users.service";
 import { useAuthStore } from "../../stores/auth.store";
 import { DeleteAccountModal } from "./DeleteAccountModal";
+import { ChangePasswordModal } from "./ChangePasswordModal";
 
 export const ProfileHeader = ({ user }: { user: UserProfile }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const openDeleteModal = () => setIsDeleteModalOpen(true);
   const closeDeleteModal = () => setIsDeleteModalOpen(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -117,10 +119,15 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
               anchorEl={anchorEl}
               setAnchorEl={setAnchorEl}
               onDeleteAccount={openDeleteModal}
+              onChangePassword={() => setIsChangePasswordOpen(true)}
             />
             <DeleteAccountModal
               open={isDeleteModalOpen}
               onClose={closeDeleteModal}
+            />
+            <ChangePasswordModal
+              open={isChangePasswordOpen}
+              onClose={() => setIsChangePasswordOpen(false)}
             />
           </Stack>
         </Stack>

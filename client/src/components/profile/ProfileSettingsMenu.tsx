@@ -6,12 +6,14 @@ type Props = {
   anchorEl: HTMLElement | null;
   setAnchorEl: (value: HTMLElement | null) => void;
   onDeleteAccount: () => void;
+  onChangePassword: () => void;
 };
 
 const ProfileSettingsMenu = ({
   anchorEl,
   setAnchorEl,
   onDeleteAccount,
+  onChangePassword,
 }: Props) => {
   const navigate = useNavigate();
   const open = Boolean(anchorEl);
@@ -37,7 +39,12 @@ const ProfileSettingsMenu = ({
         horizontal: "right",
       }}
     >
-      <MenuItem onClick={handleClose}>
+      <MenuItem
+        onClick={() => {
+          handleClose();
+          onChangePassword();
+        }}
+      >
         <ListItemText>Change password</ListItemText>
       </MenuItem>
 
