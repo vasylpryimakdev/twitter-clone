@@ -10,8 +10,9 @@ export type UserProfile = {
   name: string;
   surname: string;
   username: string;
-  avatar: string;
+  email: string;
   emailVerified: boolean;
+  avatar: string;
 
   followersCount: number;
   followingCount: number;

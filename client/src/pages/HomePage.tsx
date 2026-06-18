@@ -1,4 +1,4 @@
-import { Post } from "../components/Post/Post";
+import { Post } from "../components/post/Post";
 import type { Post as PostType } from "../types/post.types";
 
 const mockPosts: PostType[] = [

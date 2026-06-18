@@ -55,7 +55,9 @@ export const Header = () => {
 
         <Box sx={{ display: "flex", alignItems: "center" }}>
           {status === "loading" && (
-            <Skeleton variant="rectangular" width={80} height={34} />
+            <IconButton>
+              <Skeleton variant="circular" width={34} height={34} />
+            </IconButton>
           )}
           {status === "unauthenticated" && (
             <Stack direction="row" spacing={1}>

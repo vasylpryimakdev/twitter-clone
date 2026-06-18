@@ -22,17 +22,7 @@ export const authService = {
     return credential;
   },
 
-  async sendEmailVerification() {
-    const user = auth.currentUser;
-
-    if (!user) {
-      return;
-    }
-
-    return await sendEmailVerification(user);
-  },
-
-  loginWithGoogle() {
+  signInWithGoogle() {
     const provider = new GoogleAuthProvider();
 
     provider.setCustomParameters({
@@ -48,5 +38,15 @@ export const authService = {
 
   logout() {
     return signOut(auth);
+  },
+
+  async sendEmailVerification() {
+    const user = auth.currentUser;
+
+    if (!user) {
+      return;
+    }
+
+    return await sendEmailVerification(user);
   },
 };

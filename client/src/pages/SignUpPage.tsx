@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { AxiosError } from "axios";
 
 import { authService } from "../services/auth.service";
 import { usersService } from "../services/users.service";
@@ -17,6 +18,7 @@ import { signUpSchema, type SignUpFormData } from "../schemas/signup.schema";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/auth.store";
 import GoogleIcon from "@mui/icons-material/Google";
+import type { ApiError } from "../types/api-error.type";
 
 export const SignUpPage = () => {
   const navigate = useNavigate();
@@ -33,7 +35,6 @@ export const SignUpPage = () => {
   const onSubmit = async (data: SignUpFormData) => {
     try {
       const credential = await authService.signUp(data.email, data.password);
-
       const user = await usersService.createProfile({
         name: data.name,
         surname: data.surname,
@@ -48,13 +49,17 @@ export const SignUpPage = () => {
 
       navigate("/", { replace: true });
     } catch (err) {
-      console.error(err);
+      const error = err as AxiosError<ApiError>;
+
+      const message = error.response?.data?.message;
+
+      console.error("BACKEND MESSAGE:", message);
     }
   };
 
   const handleRegisterWithGoogle = async () => {
     try {
-      const googleUser = await authService.loginWithGoogle();
+      const googleUser = await authService.signInWithGoogle();
 
       const user = googleUser.user;
 
@@ -78,8 +83,6 @@ export const SignUpPage = () => {
         surname,
         username,
       });
-
-      console.log(createdUser);
 
       setUser(createdUser);
       navigate("/", { replace: true });

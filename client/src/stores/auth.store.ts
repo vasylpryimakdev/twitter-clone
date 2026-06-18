@@ -8,7 +8,7 @@ type AuthState = {
   status: AuthStatus;
   isInitialized: boolean;
 
-  setUser: (u: UserProfile | null) => void;
+  setUser: (u: Partial<UserProfile> | null) => void;
   setStatus: (s: AuthStatus) => void;
   setInitialized: (v: boolean) => void;
 
@@ -20,7 +20,19 @@ export const useAuthStore = create<AuthState>((set) => ({
   status: "loading",
   isInitialized: false,
 
-  setUser: (user) => set({ user }),
+  setUser: (updateData) => {
+    set((state) => {
+      if (!updateData) {
+        return { user: null };
+      }
+
+      return {
+        user: state.user
+          ? { ...state.user, ...updateData }
+          : (updateData as UserProfile),
+      };
+    });
+  },
 
   setStatus: (status) => set({ status }),
 
