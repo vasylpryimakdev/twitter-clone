@@ -25,7 +25,10 @@ import type { User } from "firebase/auth";
 
 import { authService } from "../services/auth.service";
 import { usersService } from "../services/users.service";
-import { signUpSchema, type SignUpFormData } from "../schemas/signup.schema";
+import {
+  signUpSchema,
+  type SignUpFormData,
+} from "../shared/schemas/signup.schema";
 
 import { useAuthStore } from "../stores/auth.store";
 import { useToastStore } from "../stores/toast.store";

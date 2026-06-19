@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import {
   profileEditSchema,
   type ProfileEditForm,
-} from "../../schemas/profileEdit.schema";
+} from "../../shared/schemas/profileEdit.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ProfileSettingsMenu from "./ProfileSettingsMenu";
 import { usersService } from "../../services/users.service";

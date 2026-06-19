@@ -4,8 +4,6 @@ import { AppError } from "./AppError";
 
 export const normalizeError = (error: unknown): AppError => {
   if (axios.isAxiosError(error)) {
-    
-
     return new AppError(
       error.response?.data?.message || "Network error",
       "network",

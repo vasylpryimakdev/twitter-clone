@@ -15,7 +15,10 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { authService } from "../services/auth.service";
-import { loginSchema, type LoginFormData } from "../schemas/login.schema";
+import {
+  loginSchema,
+  type LoginFormData,
+} from "../shared/schemas/login.schema";
 import { useToastStore } from "../stores/toast.store";
 import { handleError } from "../shared/errors/handleError";
 

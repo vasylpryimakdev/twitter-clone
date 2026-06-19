@@ -15,24 +15,43 @@ import ThumbUpOffAlt from "@mui/icons-material/ThumbUpOffAlt";
 import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
 
 import type { Post as PostType } from "../../types/post.types";
+import { formatDate } from "../../shared/utils/formatDate";
 
 export type PostProps = {
   post: PostType;
 };
 
 export const Post = ({ post }: PostProps) => {
-  const { user, title, text, image, likesCount, dislikesCount, commentsCount } =
-    post;
+  const {
+    title,
+    text,
+    image,
+    likesCount,
+    dislikesCount,
+    commentsCount,
+    createdAt,
+  } = post;
+
+  const user = {
+    id: 1,
+    avatar: "https://i.pravatar.cc/150?img=45",
+    name: "Name",
+    surname: "Surname",
+    username: "username",
+  };
 
   return (
     <Card
       elevation={0}
       sx={{
-        borderBottom: "1px solid",
-        borderColor: "divider",
-        borderRadius: 0,
+        borderRadius: 3,
         px: 2,
         py: 2,
+        mb: 2,
+
+        backgroundColor: "background.paper",
+        border: "1px solid",
+        borderColor: "divider",
       }}
     >
       <Box
@@ -49,11 +68,11 @@ export const Post = ({ post }: PostProps) => {
 
         <Box>
           <Link
-            to={`/user/${user.id}`}
+            to={`/user/${1}`}
             style={{ textDecoration: "none", color: "inherit" }}
           >
             <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
-              {user.name}
+              {user.name} {user.surname}
             </Typography>
           </Link>
 
@@ -61,6 +80,14 @@ export const Post = ({ post }: PostProps) => {
             @{user.username}
           </Typography>
         </Box>
+
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ alignSelf: "start", ml: "auto" }}
+        >
+          {formatDate(createdAt)}
+        </Typography>
       </Box>
 
       {image && (

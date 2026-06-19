@@ -1,5 +1,5 @@
 import { api } from "../api/api";
-import type { ProfileEditForm } from "../schemas/profileEdit.schema";
+import type { ProfileEditForm } from "../shared/schemas/profileEdit.schema";
 
 export const usersService = {
   createProfile: async (data: {

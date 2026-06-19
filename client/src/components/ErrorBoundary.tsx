@@ -19,9 +19,13 @@ export class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true };
   }
 
+  resetError = () => {
+    this.setState({ hasError: false });
+  };
+
   render() {
     if (this.state.hasError) {
-      return <ErrorPage />;
+      return <ErrorPage onReset={this.resetError} />;
     }
 
     return this.props.children;

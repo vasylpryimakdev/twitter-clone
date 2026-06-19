@@ -1,7 +1,7 @@
 import CloseIcon from "@mui/icons-material/Close";
 import CheckIcon from "@mui/icons-material/Check";
 import { Box, TextField, IconButton } from "@mui/material";
-import type { ProfileEditForm } from "../../schemas/profileEdit.schema";
+import type { ProfileEditForm } from "../../shared/schemas/profileEdit.schema";
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import CircularProgress from "@mui/material/CircularProgress";
 

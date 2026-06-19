@@ -1,8 +1,17 @@
 import { Box, Typography, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-export const ErrorPage = () => {
+type Props = {
+  onReset?: () => void;
+};
+
+export const ErrorPage = ({ onReset }: Props) => {
   const navigate = useNavigate();
+
+  const handleGoHome = () => {
+    onReset?.();
+    navigate("/");
+  };
 
   return (
     <Box
@@ -23,7 +32,7 @@ export const ErrorPage = () => {
         An unexpected error occurred. Please try again later.
       </Typography>
 
-      <Button variant="contained" onClick={() => navigate("/")}>
+      <Button variant="contained" onClick={handleGoHome}>
         Go to Home
       </Button>
     </Box>
