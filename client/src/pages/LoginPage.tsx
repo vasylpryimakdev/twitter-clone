@@ -97,84 +97,94 @@ export const LoginPage = () => {
           </Typography>
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Stack spacing={2}>
-              <TextField
-                label="Email"
-                {...register("email")}
-                error={!!errors.email}
-                helperText={errors.email?.message}
-              />
-
-              {mode === "login" && (
+            <fieldset
+              disabled={isSubmitting || googleLoading}
+              style={{
+                border: 0,
+                padding: 0,
+                margin: 0,
+                minWidth: 0,
+              }}
+            >
+              <Stack spacing={2}>
                 <TextField
-                  label="Password"
-                  type="password"
-                  {...register("password")}
-                  error={!!errors.password}
-                  helperText={errors.password?.message}
+                  label="Email"
+                  {...register("email")}
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
                 />
-              )}
 
-              {mode === "reset" && (
-                <Typography variant="body2" color="text.secondary">
-                  Enter your email and we will send you a password reset link.
-                </Typography>
-              )}
+                {mode === "login" && (
+                  <TextField
+                    label="Password"
+                    type="password"
+                    {...register("password")}
+                    error={!!errors.password}
+                    helperText={errors.password?.message}
+                  />
+                )}
 
-              {mode === "login" && (
-                <Box sx={{ textAlign: "right" }}>
-                  <Button size="small" onClick={() => setMode("reset")}>
-                    Forgot password?
-                  </Button>
-                </Box>
-              )}
-
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={isSubmitting}
-                loading={isSubmitting}
-              >
-                {mode === "login" ? "Login" : "Send reset link"}
-              </Button>
-
-              {mode === "reset" && (
-                <Button size="small" onClick={() => setMode("login")}>
-                  Back to login
-                </Button>
-              )}
-
-              {mode === "login" && (
-                <>
-                  <Divider>OR</Divider>
-
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={handleGoogleLogin}
-                    loading={googleLoading}
-                  >
-                    Continue with Google
-                  </Button>
-                </>
-              )}
-
-              {mode === "login" && (
-                <Box sx={{ textAlign: "center" }}>
+                {mode === "reset" && (
                   <Typography variant="body2" color="text.secondary">
-                    Don’t have an account?{" "}
-                    <Link
-                      component={RouterLink}
-                      to="/signup"
-                      underline="hover"
-                      sx={{ fontWeight: 500 }}
-                    >
-                      Sign up
-                    </Link>
+                    Enter your email and we will send you a password reset link.
                   </Typography>
-                </Box>
-              )}
-            </Stack>
+                )}
+
+                {mode === "login" && (
+                  <Box sx={{ textAlign: "right" }}>
+                    <Button size="small" onClick={() => setMode("reset")}>
+                      Forgot password?
+                    </Button>
+                  </Box>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isSubmitting}
+                  loading={isSubmitting}
+                >
+                  {mode === "login" ? "Login" : "Send reset link"}
+                </Button>
+
+                {mode === "reset" && (
+                  <Button size="small" onClick={() => setMode("login")}>
+                    Back to login
+                  </Button>
+                )}
+
+                {mode === "login" && (
+                  <>
+                    <Divider>OR</Divider>
+
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      onClick={handleGoogleLogin}
+                      loading={googleLoading}
+                    >
+                      Continue with Google
+                    </Button>
+                  </>
+                )}
+
+                {mode === "login" && (
+                  <Box sx={{ textAlign: "center" }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Don’t have an account?{" "}
+                      <Link
+                        component={RouterLink}
+                        to="/signup"
+                        underline="hover"
+                        sx={{ fontWeight: 500 }}
+                      >
+                        Sign up
+                      </Link>
+                    </Typography>
+                  </Box>
+                )}
+              </Stack>
+            </fieldset>
           </form>
         </CardContent>
       </Card>

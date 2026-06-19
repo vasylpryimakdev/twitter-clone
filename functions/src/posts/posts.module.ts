@@ -7,12 +7,14 @@ import { AuthModule } from "../auth/auth.module";
 import FirebaseModule from "../common/firestore/firestore.module";
 import { CommentsModule } from "../comments/comments.module";
 import { PostDeletionService } from "./post-deletion.service";
+import { UsersModule } from "../users/users.module";
 @Module({
   imports: [
     FirebaseModule,
     ReactionsModule,
     AuthModule,
     forwardRef(() => CommentsModule),
+    forwardRef(() => UsersModule),
   ],
   controllers: [PostsController],
   providers: [PostsService, PostsRepository, PostDeletionService],

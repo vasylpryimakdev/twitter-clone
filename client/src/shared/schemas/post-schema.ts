@@ -8,4 +8,4 @@ export const createPostSchema = z.object({
   imageUrl: z.string().url("Must be valid URL").optional().or(z.literal("")),
 });
 
-export type CreatePostFormData = z.infer<typeof createPostSchema>;
+export type PostFormData = z.infer<typeof createPostSchema>;

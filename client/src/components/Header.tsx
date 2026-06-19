@@ -30,7 +30,7 @@ export const Header = () => {
   const handleCloseMenu = () => {
     setAnchorEl(null);
   };
-  
+
   return (
     <AppBar
       position="sticky"
@@ -87,9 +87,7 @@ export const Header = () => {
           {status === "authenticated" && user && (
             <IconButton onClick={handleOpenMenu}>
               <Avatar
-                src={
-                  "https://lh3.googleusercontent.com/a/ACg8ocLq6nA8hQzwI23jEbLle7B5hy2cVrzRukyNaz-dkckmu-Fr=s96-c"
-                }
+                src={user.avatar || undefined}
                 slotProps={{
                   img: {
                     referrerPolicy: "no-referrer",

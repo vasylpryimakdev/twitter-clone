@@ -7,6 +7,7 @@ import {
   IconButton,
   Avatar,
   Box,
+  CircularProgress,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 
@@ -16,6 +17,12 @@ import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutl
 
 import type { Post as PostType } from "../../types/post.types";
 import { formatDate } from "../../shared/utils/formatDate";
+import PostMenu from "./PostMenu";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { postsService } from "../../services/posts.service";
+import { useToastStore } from "../../stores/toast.store";
+import { handleError } from "../../shared/errors/handleError";
+import { useAuthStore } from "../../stores/auth.store";
 
 export type PostProps = {
   post: PostType;
@@ -23,21 +30,39 @@ export type PostProps = {
 
 export const Post = ({ post }: PostProps) => {
   const {
+    id,
     title,
     text,
-    image,
+    imageUrl,
+    authorId,
+    author,
     likesCount,
     dislikesCount,
     commentsCount,
     createdAt,
   } = post;
 
-  const user = {
-    id: 1,
-    avatar: "https://i.pravatar.cc/150?img=45",
-    name: "Name",
-    surname: "Surname",
-    username: "username",
+  const showToast = useToastStore((s) => s.showToast);
+  const user = useAuthStore((s) => s.user);
+
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: postsService.deletePost,
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
+
+      showToast("Post deleted", "success");
+    },
+
+    onError: handleError,
+  });
+
+  const handleDelete = (postId: string) => {
+    deleteMutation.mutate(postId);
   };
 
   return (
@@ -48,10 +73,12 @@ export const Post = ({ post }: PostProps) => {
         px: 2,
         py: 2,
         mb: 2,
-
         backgroundColor: "background.paper",
         border: "1px solid",
         borderColor: "divider",
+        opacity: deleteMutation.isPending ? 0.6 : 1,
+        filter: deleteMutation.isPending ? "grayscale(1)" : "none",
+        transition: "0.2s ease",
       }}
     >
       <Box
@@ -62,38 +89,36 @@ export const Post = ({ post }: PostProps) => {
           mb: 1.5,
         }}
       >
-        <Link to={`/user/${user.id}`} style={{ display: "flex" }}>
-          <Avatar src={user.avatar} sx={{ width: 36, height: 36 }} />
+        <Link to={`/user/${authorId}`} style={{ display: "flex" }}>
+          <Avatar src={author.avatar} sx={{ width: 36, height: 36 }} />
         </Link>
 
         <Box>
           <Link
-            to={`/user/${1}`}
+            to={`/user/${authorId}`}
             style={{ textDecoration: "none", color: "inherit" }}
           >
             <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
-              {user.name} {user.surname}
+              {author.name} {author.surname}
             </Typography>
           </Link>
 
           <Typography variant="caption" color="text.secondary">
-            @{user.username}
+            @{author.username}
           </Typography>
         </Box>
 
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ alignSelf: "start", ml: "auto" }}
-        >
-          {formatDate(createdAt)}
-        </Typography>
+        <PostMenu
+          postId={id}
+          isOwner={authorId === user?.id}
+          onDelete={handleDelete}
+        />
       </Box>
 
-      {image && (
+      {imageUrl && (
         <CardMedia
           component="img"
-          image={image}
+          image={imageUrl}
           alt={title}
           sx={{
             borderRadius: 2,
@@ -113,7 +138,11 @@ export const Post = ({ post }: PostProps) => {
           {text}
         </Typography>
 
-        <Stack direction="row" spacing={3} sx={{ alignItems: "center" }}>
+        <Stack
+          direction="row"
+          spacing={3}
+          sx={{ alignItems: "center", width: "100%" }}
+        >
           <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
             <IconButton size="small">
               <ThumbUpOffAlt fontSize="small" />
@@ -134,8 +163,31 @@ export const Post = ({ post }: PostProps) => {
             </IconButton>
             <Typography variant="caption">{commentsCount}</Typography>
           </Stack>
+
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ alignSelf: "end", textAlign: "end", ml: "auto", flex: 1 }}
+          >
+            {formatDate(createdAt)}
+          </Typography>
         </Stack>
       </CardContent>
+
+      {deleteMutation.isPending && (
+        <CircularProgress
+          size={42}
+          thickness={5}
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            opacity: 0.9,
+            zIndex: 2,
+          }}
+        />
+      )}
     </Card>
   );
 };

@@ -136,137 +136,147 @@ export const SignUpPage = () => {
           </Typography>
 
           <form onSubmit={handleSubmit(registerWithMail)}>
-            <Stack spacing={2}>
-              <TextField
-                label="Email"
-                {...register("email")}
-                error={!!errors.email}
-                helperText={errors.email?.message}
-              />
+            <fieldset
+              disabled={isSubmitting || googleLoading}
+              style={{
+                border: 0,
+                padding: 0,
+                margin: 0,
+                minWidth: 0,
+              }}
+            >
+              <Stack spacing={2}>
+                <TextField
+                  label="Email"
+                  {...register("email")}
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                />
 
-              <TextField
-                label="Password"
-                type={showPasswords.password ? "text" : "password"}
-                {...register("password")}
-                error={!!errors.password}
-                helperText={errors.password?.message}
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          edge="end"
-                          onClick={() => togglePassword("password")}
-                        >
-                          {showPasswords.password ? (
-                            <Visibility />
-                          ) : (
-                            <VisibilityOff />
-                          )}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
+                <TextField
+                  label="Password"
+                  type={showPasswords.password ? "text" : "password"}
+                  {...register("password")}
+                  error={!!errors.password}
+                  helperText={errors.password?.message}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            edge="end"
+                            onClick={() => togglePassword("password")}
+                          >
+                            {showPasswords.password ? (
+                              <Visibility />
+                            ) : (
+                              <VisibilityOff />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
 
-              <TextField
-                label="Confirm password"
-                type={showPasswords.confirm ? "text" : "password"}
-                {...register("confirmPassword")}
-                error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword?.message}
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          edge="end"
-                          onClick={() => togglePassword("confirm")}
-                        >
-                          {showPasswords.confirm ? (
-                            <Visibility />
-                          ) : (
-                            <VisibilityOff />
-                          )}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
+                <TextField
+                  label="Confirm password"
+                  type={showPasswords.confirm ? "text" : "password"}
+                  {...register("confirmPassword")}
+                  error={!!errors.confirmPassword}
+                  helperText={errors.confirmPassword?.message}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            edge="end"
+                            onClick={() => togglePassword("confirm")}
+                          >
+                            {showPasswords.confirm ? (
+                              <Visibility />
+                            ) : (
+                              <VisibilityOff />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
 
-              <TextField
-                label="First name"
-                {...register("name")}
-                error={!!errors.name}
-                helperText={errors.name?.message}
-              />
+                <TextField
+                  label="First name"
+                  {...register("name")}
+                  error={!!errors.name}
+                  helperText={errors.name?.message}
+                />
 
-              <TextField
-                label="Last name"
-                {...register("surname")}
-                error={!!errors.surname}
-                helperText={errors.surname?.message}
-              />
+                <TextField
+                  label="Last name"
+                  {...register("surname")}
+                  error={!!errors.surname}
+                  helperText={errors.surname?.message}
+                />
 
-              <TextField
-                label="Username"
-                {...register("username")}
-                error={!!errors.username}
-                helperText={errors.username?.message}
-              />
+                <TextField
+                  label="Username"
+                  {...register("username")}
+                  error={!!errors.username}
+                  helperText={errors.username?.message}
+                />
 
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={isSubmitting}
-                sx={{ height: 40 }}
-              >
-                {isSubmitting ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  "Sign Up"
-                )}
-              </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isSubmitting}
+                  sx={{ height: 40 }}
+                >
+                  {isSubmitting ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    "Sign Up"
+                  )}
+                </Button>
 
-              <Divider sx={{ my: 1 }}>OR</Divider>
+                <Divider sx={{ my: 1 }}>OR</Divider>
 
-              <Button
-                type="button"
-                fullWidth
-                variant="outlined"
-                onClick={handleRegisterWithGoogle}
-                disabled={googleLoading}
-                startIcon={!googleLoading && <GoogleIcon />}
-                sx={{ height: 40 }}
-              >
-                {googleLoading ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  "Continue with Google"
-                )}
-              </Button>
+                <Button
+                  type="button"
+                  fullWidth
+                  variant="outlined"
+                  onClick={handleRegisterWithGoogle}
+                  disabled={googleLoading}
+                  startIcon={!googleLoading && <GoogleIcon />}
+                  sx={{ height: 40 }}
+                >
+                  {googleLoading ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    "Continue with Google"
+                  )}
+                </Button>
 
-              <Box
-                sx={{
-                  textAlign: "center",
-                  mt: 2,
-                }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  Already have an account?{" "}
-                  <Link
-                    component={RouterLink}
-                    to="/login"
-                    underline="hover"
-                    sx={{ fontWeight: 500 }}
-                  >
-                    Log in
-                  </Link>
-                </Typography>
-              </Box>
-            </Stack>
+                <Box
+                  sx={{
+                    textAlign: "center",
+                    mt: 2,
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    Already have an account?{" "}
+                    <Link
+                      component={RouterLink}
+                      to="/login"
+                      underline="hover"
+                      sx={{ fontWeight: 500 }}
+                    >
+                      Log in
+                    </Link>
+                  </Typography>
+                </Box>
+              </Stack>
+            </fieldset>
           </form>
         </CardContent>
       </Card>

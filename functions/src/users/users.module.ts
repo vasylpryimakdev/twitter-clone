@@ -19,5 +19,6 @@ import { ReactionsModule } from "../reactions/reactions.module";
   ],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository, UserDeletionService],
+  exports: [UsersService],
 })
 export class UsersModule {}

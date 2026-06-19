@@ -9,7 +9,7 @@ export class User {
 
   username!: string;
 
-  avatar?: string;
+  avatar!: string | null;
 
   createdAt!: Timestamp;
   updatedAt!: Timestamp;

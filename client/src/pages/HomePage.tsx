@@ -27,7 +27,7 @@ export const HomePage = () => {
         width: "100%",
         display: "flex",
         flexDirection: "column",
-        gap: 2,
+        gap: 1,
         py: 2,
       }}
     >

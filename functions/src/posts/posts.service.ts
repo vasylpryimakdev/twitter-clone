@@ -17,6 +17,7 @@ import { FIRESTORE } from "../common/firestore/firestore.provider";
 import { ReactionType, ReactionTypes } from "../reactions/reaction.entity";
 import { PostCounterFields } from "./types/post-counter-field";
 import { ReactionsRepository } from "../reactions/reactions.repository";
+import { UsersService } from "../users/users.service";
 @Injectable()
 export class PostsService {
   constructor(
@@ -24,12 +25,28 @@ export class PostsService {
     private readonly postsRepository: PostsRepository,
     private readonly postDeletionService: PostDeletionService,
     private readonly reactionsRepository: ReactionsRepository,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(authorId: string, dto: CreatePostDto): Promise<Post> {
+    const user = await this.usersService.getById(authorId);
+
+    if (!user) {
+      throw new NotFoundException(
+        "Unable to create post. User does not exist.",
+      );
+    }
+
     const post: WritePostModel = {
       id: this.postsRepository.createId(),
       authorId,
+      author: {
+        id: user.id,
+        name: user.name,
+        surname: user.surname,
+        username: user.username,
+        ...(user.avatar ? { avatar: user.avatar } : {}),
+      },
 
       title: dto.title,
       text: dto.text,

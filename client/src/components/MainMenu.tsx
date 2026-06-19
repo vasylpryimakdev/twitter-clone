@@ -34,7 +34,7 @@ const MainMenu = ({ anchorEl, open, handleClose }: Props) => {
         Profile
       </MenuItem>
 
-      <MenuItem component={Link} to="/create-post" onClick={handleClose}>
+      <MenuItem component={Link} to="/posts/new" onClick={handleClose}>
         <ListItemIcon>
           <AddIcon fontSize="small" />
         </ListItemIcon>
