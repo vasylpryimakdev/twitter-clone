@@ -8,10 +8,12 @@ import {
   Button,
   TextField,
 } from "@mui/material";
-import { authService } from "../../services/auth.service";
-import { useNavigate } from "react-router-dom";
 import { GoogleAuthProvider, reauthenticateWithPopup } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+
 import { auth } from "../../firebase/firebase";
+import { authService } from "../../services/auth.service";
+import { handleError } from "../../shared/errors/handleError";
 
 type Props = {
   open: boolean;
@@ -30,45 +32,51 @@ export const DeleteAccountModal = ({ open, onClose }: Props) => {
   const isGoogle = provider === "google.com";
   const isPassword = provider === "password";
 
-  const handleClose = () => {
-    if (loading) return;
-
+  const resetState = () => {
     setPassword("");
+  };
+
+  const closeModal = () => {
+    if (loading) return;
+    resetState();
     onClose();
   };
 
+  const handleDeleteSuccess = () => {
+    resetState();
+    onClose();
+    navigate("/");
+  };
+
   const handlePasswordDelete = async () => {
+    if (!password) return;
+
     setLoading(true);
 
     try {
       await authService.deleteAccount(password);
-
-      setPassword("");
-      onClose();
-      navigate("/");
-    } catch (error) {
-      console.error(error);
+      handleDeleteSuccess();
+    } catch (err) {
+      handleError(err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleDelete = async () => {
+    if (!user) return;
+
     setLoading(true);
 
     try {
-      if (!user) return;
-
       const provider = new GoogleAuthProvider();
 
       await reauthenticateWithPopup(user, provider);
-
       await authService.deleteAccount();
 
-      onClose();
-      navigate("/");
-    } catch (error) {
-      console.error(error);
+      handleDeleteSuccess();
+    } catch (err) {
+      handleError(err);
     } finally {
       setLoading(false);
     }
@@ -80,8 +88,8 @@ export const DeleteAccountModal = ({ open, onClose }: Props) => {
     if (loading) return;
 
     if (isPassword) {
-      if (!password) return;
       handlePasswordDelete();
+      return;
     }
 
     if (isGoogle) {
@@ -92,7 +100,7 @@ export const DeleteAccountModal = ({ open, onClose }: Props) => {
   return (
     <Dialog
       open={open}
-      onClose={loading ? undefined : handleClose}
+      onClose={loading ? undefined : closeModal}
       maxWidth="xs"
       fullWidth
     >
@@ -118,14 +126,14 @@ export const DeleteAccountModal = ({ open, onClose }: Props) => {
 
           {isGoogle && (
             <DialogContentText sx={{ mt: 2 }}>
-              You are signed in with Google. Click delete to continue with
-              Google authentication.
+              You are signed in with Google. We will re-authenticate with Google
+              before deleting your account.
             </DialogContentText>
           )}
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={handleClose} disabled={loading}>
+          <Button onClick={closeModal} disabled={loading}>
             Cancel
           </Button>
 
@@ -133,8 +141,7 @@ export const DeleteAccountModal = ({ open, onClose }: Props) => {
             type="submit"
             variant="contained"
             color="error"
-            loading={loading}
-            disabled={isPassword && !password}
+            disabled={loading || (isPassword && !password)}
           >
             Delete
           </Button>

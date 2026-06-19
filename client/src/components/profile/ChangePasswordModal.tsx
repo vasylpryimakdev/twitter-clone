@@ -8,8 +8,10 @@ import {
   Button,
   DialogContentText,
 } from "@mui/material";
+
 import { authService } from "../../services/auth.service";
 import { useToastStore } from "../../stores/toast.store";
+import { handleError } from "../../shared/errors/handleError";
 
 type Props = {
   open: boolean;
@@ -20,13 +22,23 @@ export const ChangePasswordModal = ({ open, onClose }: Props) => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
   const showToast = useToastStore((s) => s.showToast);
+
+  const resetState = () => {
+    setOldPassword("");
+    setNewPassword("");
+  };
 
   const handleClose = () => {
     if (loading) return;
+    resetState();
+    onClose();
+  };
 
-    setOldPassword("");
-    setNewPassword("");
+  const handleSuccess = () => {
+    showToast("Password updated successfully", "success");
+    resetState();
     onClose();
   };
 
@@ -35,24 +47,13 @@ export const ChangePasswordModal = ({ open, onClose }: Props) => {
 
     if (!oldPassword || !newPassword) return;
 
+    setLoading(true);
+
     try {
-      setLoading(true);
-
       await authService.changePassword(oldPassword, newPassword);
-
-      showToast("Password updated successfully", "success");
-
-      setOldPassword("");
-      setNewPassword("");
-      onClose();
-    } catch (error) {
-      if (error instanceof Error) {
-        showToast(error.message, "error");
-      } else {
-        showToast("Something went wrong", "error");
-      }
-
-      console.error(error);
+      handleSuccess();
+    } catch (err) {
+      handleError(err);
     } finally {
       setLoading(false);
     }
@@ -97,10 +98,9 @@ export const ChangePasswordModal = ({ open, onClose }: Props) => {
           <Button
             type="submit"
             variant="contained"
-            loading={loading}
-            disabled={!oldPassword || !newPassword}
+            disabled={loading || !oldPassword || !newPassword}
           >
-            Change
+            {loading ? "Changing..." : "Change"}
           </Button>
         </DialogActions>
       </form>
