@@ -18,11 +18,11 @@ import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutl
 import type { Post as PostType } from "../../types/post.types";
 import { formatDate } from "../../shared/utils/formatDate";
 import PostMenu from "./PostMenu";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { postsService } from "../../services/posts.service";
+
 import { useToastStore } from "../../stores/toast.store";
 import { handleError } from "../../shared/errors/handleError";
 import { useAuthStore } from "../../stores/auth.store";
+import { useDeletePost } from "../../hooks/usePosts";
 
 export type PostProps = {
   post: PostType;
@@ -42,27 +42,17 @@ export const Post = ({ post }: PostProps) => {
     createdAt,
   } = post;
 
-  const showToast = useToastStore((s) => s.showToast);
   const user = useAuthStore((s) => s.user);
+  const showToast = useToastStore((s) => s.showToast);
 
-  const queryClient = useQueryClient();
-
-  const deleteMutation = useMutation({
-    mutationFn: postsService.deletePost,
-
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["posts"],
-      });
-
-      showToast("Post deleted", "success");
-    },
-
-    onError: handleError,
-  });
-
+  const deletePost = useDeletePost();
   const handleDelete = (postId: string) => {
-    deleteMutation.mutate(postId);
+    deletePost.mutate(postId, {
+      onSuccess: () => {
+        showToast("Post deleted", "success");
+      },
+      onError: handleError,
+    });
   };
 
   return (
@@ -76,8 +66,8 @@ export const Post = ({ post }: PostProps) => {
         backgroundColor: "background.paper",
         border: "1px solid",
         borderColor: "divider",
-        opacity: deleteMutation.isPending ? 0.6 : 1,
-        filter: deleteMutation.isPending ? "grayscale(1)" : "none",
+        opacity: deletePost.isPending ? 0.6 : 1,
+        filter: deletePost.isPending ? "grayscale(1)" : "none",
         transition: "0.2s ease",
       }}
     >
@@ -174,7 +164,7 @@ export const Post = ({ post }: PostProps) => {
         </Stack>
       </CardContent>
 
-      {deleteMutation.isPending && (
+      {deletePost.isPending && (
         <CircularProgress
           size={42}
           thickness={5}

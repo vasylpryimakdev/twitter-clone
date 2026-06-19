@@ -8,22 +8,15 @@ import {
 } from "@mui/material";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { postsService } from "../services/posts.service";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   createPostSchema,
   type PostFormData,
 } from "../shared/schemas/post-schema";
 import { useEffect } from "react";
-import { useToastStore } from "../stores/toast.store";
-import { handleError } from "../shared/errors/handleError";
+import { useCreatePost, usePost, useUpdatePost } from "../hooks/usePosts";
 
 const PostFormPage = () => {
-  const showToast = useToastStore((s) => s.showToast);
-
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { id } = useParams();
 
   const isEditMode = !!id;
@@ -44,12 +37,11 @@ const PostFormPage = () => {
     name: "imageUrl",
   });
 
-  const { data: post, isLoading: isPostLoading } = useQuery({
-    queryKey: ["post", id],
-    queryFn: () => postsService.getPostById(id!),
-    enabled: isEditMode,
-    retry: false,
-  });
+  const { data: post, isLoading: isPostLoading } = usePost(id);
+
+  const createPost = useCreatePost();
+  const updatePost = useUpdatePost(id!);
+  const mutation = isEditMode ? updatePost : createPost;
 
   useEffect(() => {
     if (post) {
@@ -60,30 +52,6 @@ const PostFormPage = () => {
       });
     }
   }, [post, reset]);
-
-  const mutation = useMutation({
-    mutationFn: (data: PostFormData) => {
-      if (isEditMode) {
-        return postsService.updatePost(id!, data);
-      }
-
-      return postsService.createPost(data);
-    },
-
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["posts"],
-      });
-
-      showToast(
-        isEditMode ? "Post updated successfully" : "Post created successfully",
-      );
-
-      navigate("/");
-    },
-
-    onError: handleError,
-  });
 
   const onSubmit = (data: PostFormData) => {
     mutation.mutate(data);
@@ -106,7 +74,9 @@ const PostFormPage = () => {
   }
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+    <Box
+      sx={{ display: "flex", justifyContent: "center", mt: 4, height: "100%" }}
+    >
       <Paper sx={{ width: 600, p: 3 }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
           {isEditMode ? "Edit post" : "Create post"}

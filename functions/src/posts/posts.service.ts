@@ -28,8 +28,8 @@ export class PostsService {
     private readonly usersService: UsersService,
   ) {}
 
-  async create(authorId: string, dto: CreatePostDto): Promise<Post> {
-    const user = await this.usersService.getById(authorId);
+  async create(userId: string, dto: CreatePostDto): Promise<Post> {
+    const user = await this.usersService.getById(userId);
 
     if (!user) {
       throw new NotFoundException(
@@ -39,7 +39,7 @@ export class PostsService {
 
     const post: WritePostModel = {
       id: this.postsRepository.createId(),
-      authorId,
+      authorId: userId,
       author: {
         id: user.id,
         name: user.name,
@@ -92,6 +92,14 @@ export class PostsService {
       throw new BadRequestException("At least one field required");
     }
 
+    const user = await this.usersService.getById(userId);
+
+    if (!user) {
+      throw new NotFoundException(
+        "Unable to create post. User does not exist.",
+      );
+    }
+
     const post = await this.postsRepository.findById(postId);
 
     if (!post) {
@@ -102,15 +110,24 @@ export class PostsService {
       throw new ForbiddenException("You cannot edit this post");
     }
 
-    await this.postsRepository.update(postId, { ...dto });
+    await this.postsRepository.update(postId, {
+      ...dto,
+      author: {
+        id: user.id,
+        name: user.name,
+        surname: user.surname,
+        username: user.username,
+        ...(user.avatar ? { avatar: user.avatar } : {}),
+      },
+    });
 
     return await this.postsRepository.findByIdOrThrow(post.id);
   }
 
-  async delete(authorId: string, postId: string): Promise<void> {
+  async delete(userId: string, postId: string): Promise<void> {
     const post = await this.postsRepository.findByIdOrThrow(postId);
 
-    if (post.authorId !== authorId) {
+    if (post.authorId !== userId) {
       throw new ForbiddenException("You cannot delete this post");
     }
 

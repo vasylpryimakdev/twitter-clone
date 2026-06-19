@@ -1,22 +1,18 @@
-import {
-  Box,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
-  CircularProgress,
-} from "@mui/material";
-import { useState } from "react";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import { useAuthStore } from "../stores/auth.store";
 import { ProfileHeader } from "../components/profile/ProfileHeader";
 import { Navigate } from "react-router-dom";
+import PostsList from "../components/post/PostsList";
+import { useMyPosts } from "../hooks/usePosts";
 
 export const ProfilePage = () => {
   const user = useAuthStore((s) => s.user);
   const status = useAuthStore((s) => s.status);
   const isInitialized = useAuthStore((s) => s.isInitialized);
 
-  const [tab, setTab] = useState(0);
+  const { data, isLoading } = useMyPosts();
+
+  const userPosts = data?.pages.flatMap((page) => page.data) ?? [];
 
   if (!isInitialized || status === "loading") {
     return (
@@ -42,19 +38,19 @@ export const ProfilePage = () => {
   return (
     <Box sx={{ width: "100%" }}>
       <ProfileHeader user={user} />
-      <Box sx={{ mt: 3 }}>
-        <Paper elevation={0}>
-          <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth">
-            <Tab label="Posts" />
-            <Tab label="Replies" />
-          </Tabs>
-        </Paper>
 
-        <Box sx={{ p: 2 }}>
-          {tab === 0 && <Typography>Here will be user posts...</Typography>}
+      <Box sx={{ mt: 3, px: 2 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          My Posts
+        </Typography>
 
-          {tab === 1 && <Typography>Here will be replies...</Typography>}
-        </Box>
+        {isLoading && <CircularProgress />}
+
+        {!isLoading && userPosts.length === 0 && (
+          <Typography color="text.secondary">No posts yet</Typography>
+        )}
+
+        {!isLoading && userPosts.length > 0 && <PostsList posts={userPosts} />}
       </Box>
     </Box>
   );

@@ -1,9 +1,11 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { usePosts } from "../hooks/usePosts";
-import { Post } from "../components/post/Post";
+import PostsList from "../components/post/PostsList";
 
 export const HomePage = () => {
   const { data, isLoading, error } = usePosts();
+
+  const posts = data?.pages.flatMap((page) => page.data) ?? [];
 
   if (isLoading) {
     return (
@@ -17,23 +19,9 @@ export const HomePage = () => {
     return <Typography>Error loading posts</Typography>;
   }
 
-  if (data?.length === 0) {
-    return <div>No Posts</div>;
+  if (posts.length === 0) {
+    return <Typography>No Posts</Typography>;
   }
 
-  return (
-    <Box
-      sx={{
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        gap: 1,
-        py: 2,
-      }}
-    >
-      {data?.map((post) => (
-        <Post post={post} key={post.id} />
-      ))}
-    </Box>
-  );
+  return <PostsList posts={posts} />;
 };

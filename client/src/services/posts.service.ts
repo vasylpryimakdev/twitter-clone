@@ -2,14 +2,40 @@ import { api } from "../api/api";
 import type { PostFormData } from "../shared/schemas/post-schema";
 import type { Post } from "../types/post.types";
 
-type PostsResponse = {
+export type PostsFeedResponse = {
   data: Post[];
   nextCursor: string | null;
 };
 
 export const postsService = {
-  getPosts: async (): Promise<PostsResponse> => {
-    const res = await api.get("/posts");
+  getPosts: async (params?: {
+    cursor?: string | null;
+  }): Promise<PostsFeedResponse> => {
+    const res = await api.get<PostsFeedResponse>("/posts", {
+      params: {
+        cursor: params?.cursor ?? null,
+      },
+    });
+
+    return res.data;
+  },
+
+  getPostsByUser: async (
+    userId: string,
+    cursor?: string,
+  ): Promise<PostsFeedResponse> => {
+    const res = await api.get<PostsFeedResponse>(`/posts/user/${userId}`, {
+      params: { cursor },
+    });
+
+    return res.data;
+  },
+
+  getMyPosts: async (cursor?: string): Promise<PostsFeedResponse> => {
+    const res = await api.get<PostsFeedResponse>("/posts/me", {
+      params: { cursor },
+    });
+
     return res.data;
   },
 
