@@ -35,9 +35,7 @@ export class UsersService {
       const userData: WriteUserModel = {
         id,
         email,
-        name: dto.name,
-        surname: dto.surname,
-        username: dto.username,
+        ...dto,
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       };

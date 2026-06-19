@@ -76,7 +76,7 @@ export const SignUpPage = () => {
     }
   };
 
-  const onSubmit = async (data: SignUpFormData) => {
+  const registerWithMail = async (data: SignUpFormData) => {
     let firebaseUser: User | null = null;
 
     try {
@@ -132,7 +132,7 @@ export const SignUpPage = () => {
             Create account
           </Typography>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(registerWithMail)}>
             <Stack spacing={2}>
               <TextField
                 label="Email"

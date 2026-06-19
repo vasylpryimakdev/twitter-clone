@@ -5,6 +5,8 @@ import {
   Matches,
   MaxLength,
   MinLength,
+  IsOptional,
+  IsUrl,
 } from "class-validator";
 import { Transform } from "class-transformer";
 
@@ -37,4 +39,9 @@ export class CreateUserDto {
       .replace(/[^a-z0-9_]/g, ""),
   )
   username!: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUrl({}, { message: "Avatar must be a valid URL" })
+  avatar?: string;
 }

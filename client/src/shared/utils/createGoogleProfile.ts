@@ -21,5 +21,6 @@ export const createGoogleProfile = (user: User) => {
     name,
     surname,
     username,
+    avatar: user.photoURL ?? null,
   };
 };

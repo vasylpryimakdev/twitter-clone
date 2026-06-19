@@ -6,6 +6,7 @@ export const usersService = {
     name: string;
     surname: string;
     username: string;
+    avatar?: string | null;
   }) => {
     const res = await api.post("/users/me", data);
 

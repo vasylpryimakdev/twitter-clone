@@ -9,6 +9,7 @@ import { SignUpPage } from "../pages/SignUpPage";
 import { ProfilePage } from "../pages/ProfilePage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { ProtectedRoute } from "./ProtectedRoute";
+import CreatePostPage from "../pages/CreatePostPage";
 
 export const AppRouter = () => {
   return (
@@ -22,6 +23,7 @@ export const AppRouter = () => {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/create-post" element={<CreatePostPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

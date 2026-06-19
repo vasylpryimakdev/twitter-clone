@@ -1,4 +1,4 @@
-import { Avatar, Stack, Box, IconButton } from "@mui/material";
+import { Stack, Box, IconButton } from "@mui/material";
 
 import type { UserProfile } from "../../types/user.types";
 import { useState } from "react";
@@ -17,6 +17,7 @@ import { usersService } from "../../services/users.service";
 import { useAuthStore } from "../../stores/auth.store";
 import { DeleteAccountModal } from "./DeleteAccountModal";
 import { ChangePasswordModal } from "./ChangePasswordModal";
+import { EditableAvatar } from "./EditableAvatar";
 
 export const ProfileHeader = ({ user }: { user: UserProfile }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -90,13 +91,10 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
               alignItems: "flex-start",
             }}
           >
-            <Avatar
+            <EditableAvatar
               src={user.avatar}
-              sx={{
-                width: 120,
-                height: 120,
-                border: "4px solid white",
-                mt: -7.5,
+              onChange={(file) => {
+                console.log("selected file:", file);
               }}
             />
 
