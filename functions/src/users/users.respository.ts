@@ -34,6 +34,7 @@ export class UsersRepository extends BaseRepository<User, WriteUserModel> {
   }
 
   async assertUsernameAvailable(
+    userId: string,
     username: string,
     tx: FirebaseFirestore.Transaction,
   ) {
@@ -45,7 +46,11 @@ export class UsersRepository extends BaseRepository<User, WriteUserModel> {
     const snap = await tx.get(usernameQuery);
 
     if (!snap.empty) {
-      throw new BadRequestException("Username already taken");
+      const doc = snap.docs[0];
+
+      if (doc.id !== userId) {
+        throw new BadRequestException("Username already taken");
+      }
     }
   }
 }

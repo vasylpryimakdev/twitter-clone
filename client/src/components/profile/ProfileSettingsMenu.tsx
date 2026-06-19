@@ -1,7 +1,15 @@
-import { Menu, MenuItem, ListItemText, Divider } from "@mui/material";
+import {
+  Menu,
+  MenuItem,
+  ListItemText,
+  Divider,
+  Tooltip,
+  CircularProgress,
+} from "@mui/material";
 import { authService } from "../../services/auth.service";
-import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebase/firebase";
+import { useState } from "react";
+import { useToastStore } from "../../stores/toast.store";
 
 type Props = {
   anchorEl: HTMLElement | null;
@@ -16,6 +24,9 @@ const ProfileSettingsMenu = ({
   onDeleteAccount,
   onChangePassword,
 }: Props) => {
+  const [sending, setSending] = useState(false);
+  const showToast = useToastStore((s) => s.showToast);
+
   const user = auth.currentUser;
 
   const provider = user?.providerData[0]?.providerId;
@@ -23,18 +34,25 @@ const ProfileSettingsMenu = ({
   const isGoogle = provider === "google.com";
   const isEmailVerified = user?.emailVerified;
 
-  const navigate = useNavigate();
   const open = Boolean(anchorEl);
 
   const handleClose = () => setAnchorEl(null);
 
-  const handleLogout = () => {
-    authService.logout();
-    navigate("/", { replace: true });
+  const handleSendVerification = async () => {
+    try {
+      setSending(true);
+      await authService.sendVerificationEmail();
+      showToast("Verification email sent", "success");
+    } catch {
+      showToast("Failed to send verification email",'error');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
     <Menu
+      disableScrollLock
       anchorEl={anchorEl}
       open={open}
       onClose={handleClose}
@@ -47,28 +65,42 @@ const ProfileSettingsMenu = ({
         horizontal: "right",
       }}
     >
-      {!isGoogle && (
-        <MenuItem
-          onClick={() => {
-            handleClose();
-            onChangePassword();
-          }}
-        >
-          <ListItemText>Change password</ListItemText>
-        </MenuItem>
-      )}
+      <Tooltip
+        title={
+          isGoogle
+            ? "You signed in with Google. Manage your password in Google Account"
+            : ""
+        }
+        arrow
+      >
+        <span>
+          <MenuItem
+            onClick={() => {
+              if (isGoogle) return;
+              handleClose();
+              onChangePassword();
+            }}
+            sx={{
+              opacity: isGoogle ? 0.5 : 1,
+              pointerEvents: isGoogle ? "none" : "auto",
+            }}
+          >
+            <ListItemText>Change password</ListItemText>
+          </MenuItem>
+        </span>
+      </Tooltip>
 
       {!isEmailVerified && (
-        <MenuItem onClick={authService.sendVerificationEmail}>
-          <ListItemText>Send verification email</ListItemText>
+        <MenuItem onClick={handleSendVerification} disabled={sending}>
+          <ListItemText>
+            {sending ? "Sending..." : "Send verification email"}
+          </ListItemText>
+
+          {sending && <CircularProgress size={16} sx={{ ml: 1 }} />}
         </MenuItem>
       )}
 
       {!isGoogle && !isEmailVerified && <Divider />}
-
-      <MenuItem onClick={handleLogout}>
-        <ListItemText>Log out</ListItemText>
-      </MenuItem>
 
       <MenuItem onClick={onDeleteAccount} sx={{ color: "error.main" }}>
         Delete account

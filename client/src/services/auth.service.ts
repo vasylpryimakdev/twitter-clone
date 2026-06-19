@@ -9,28 +9,22 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
-  getAdditionalUserInfo,
   updatePassword,
 } from "firebase/auth";
 
 import { auth } from "../firebase/firebase";
 import { usersService } from "./users.service";
-import { AUTH_ERRORS } from "../constants/errors";
 
 export const authService = {
   async signUp(email: string, password: string) {
-    try {
-      const credential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password,
-      );
+    const credential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password,
+    );
 
-      await sendEmailVerification(credential.user);
-      return credential;
-    } catch {
-      throw new Error(AUTH_ERRORS.MAIL_ALREADY_IN_USE);
-    }
+    await sendEmailVerification(credential.user);
+    return credential;
   },
 
   async signInWithGoogle() {
@@ -40,17 +34,7 @@ export const authService = {
       prompt: "select_account",
     });
 
-    const result = await signInWithPopup(auth, googleProvider);
-
-    const isNewUser = getAdditionalUserInfo(result)?.isNewUser;
-
-    if (!isNewUser) {
-      await signOut(auth);
-
-      throw new Error(AUTH_ERRORS.GOOGLE_ALREADY_REGISTERED);
-    }
-
-    return result;
+    return await signInWithPopup(auth, googleProvider);
   },
 
   login(email: string, password: string) {

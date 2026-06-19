@@ -10,32 +10,41 @@ import {
   Divider,
   InputAdornment,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import GoogleIcon from "@mui/icons-material/Google";
 
+import type { User } from "firebase/auth";
+
 import { authService } from "../services/auth.service";
 import { usersService } from "../services/users.service";
 import { signUpSchema, type SignUpFormData } from "../schemas/signup.schema";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+
 import { useAuthStore } from "../stores/auth.store";
-import type { ApiError } from "../types/api-error.type";
 import { useToastStore } from "../stores/toast.store";
-import axios from "axios";
-import { AUTH_ERRORS } from "../constants/errors";
+
+import { handleError } from "../shared/errors/handleError";
+import { createGoogleProfile } from "../shared/utils/createGoogleProfile";
 
 export const SignUpPage = () => {
   const navigate = useNavigate();
-  const setUser = useAuthStore((s) => s.setUser);
-  const showToast = useToastStore((state) => state.showToast);
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const setUser = useAuthStore((s) => s.setUser);
+  const showToast = useToastStore((s) => s.showToast);
+
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const [showPasswords, setShowPasswords] = useState({
+    password: false,
+    confirm: false,
+  });
 
   const {
     register,
@@ -45,9 +54,36 @@ export const SignUpPage = () => {
     resolver: zodResolver(signUpSchema),
   });
 
+  const togglePassword = (field: "password" | "confirm") => {
+    setShowPasswords((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
+
+  const finishAuth = (message: string) => {
+    showToast(message, "success");
+    navigate("/", { replace: true });
+  };
+
+  const rollbackFirebaseUser = async (firebaseUser: User | null) => {
+    if (!firebaseUser) return;
+
+    try {
+      await firebaseUser.delete();
+    } catch (err) {
+      console.error("Failed to rollback auth user", err);
+    }
+  };
+
   const onSubmit = async (data: SignUpFormData) => {
+    let firebaseUser: User | null = null;
+
     try {
       const credential = await authService.signUp(data.email, data.password);
+
+      firebaseUser = credential.user;
+
       const user = await usersService.createProfile({
         name: data.name,
         surname: data.surname,
@@ -56,86 +92,35 @@ export const SignUpPage = () => {
 
       setUser({
         ...user,
-        id: credential.user.uid,
-        emailVerified: credential.user.emailVerified,
+        id: firebaseUser.uid,
+        emailVerified: firebaseUser.emailVerified,
       });
 
-      showToast(
-        "Account created successfully. Please verify your email 📧",
-        "success",
-      );
-
-      navigate("/", { replace: true });
+      finishAuth("Account created successfully. Please verify your email 📧");
     } catch (err) {
-      if (axios.isAxiosError<ApiError>(err)) {
-        showToast(
-          err.response?.data?.message ?? "Something went wrong",
-          "error",
-        );
-      } else if (
-        err instanceof Error &&
-        err.message === AUTH_ERRORS.MAIL_ALREADY_IN_USE
-      ) {
-        showToast("Email is already in use", "error");
-      } else {
-        showToast("Something went wrong", "error");
-      }
+      await rollbackFirebaseUser(firebaseUser);
 
-      console.error(err);
+      handleError(err);
     }
   };
 
   const handleRegisterWithGoogle = async () => {
     try {
+      setGoogleLoading(true);
+
       const googleUser = await authService.signInWithGoogle();
 
-      const user = googleUser.user;
+      const profile = createGoogleProfile(googleUser.user);
 
-      const displayName = user.displayName?.trim() || "";
-      const email = user.email || "";
-      const uidPart = user.uid.slice(0, 6).toLowerCase();
-
-      const [name = "", surname = ""] = displayName.split(" ");
-
-      const base = displayName || email.split("@")[0] || "user";
-
-      const cleanBase = base
-        .toLowerCase()
-        .replace(/\s+/g, "")
-        .replace(/[^a-z0-9_]/g, "");
-
-      const username = `${cleanBase || "user"}_${uidPart}`;
-
-      const createdUser = await usersService.createProfile({
-        name,
-        surname,
-        username,
-      });
+      const createdUser = await usersService.createProfile(profile);
 
       setUser(createdUser);
-      showToast("Signed up with Google 🎉", "success");
 
-      navigate("/", { replace: true });
+      finishAuth("Signed up with Google 🎉");
     } catch (err) {
-      if (axios.isAxiosError<ApiError>(err)) {
-        console.log("hi");
-
-        showToast(
-          err.response?.data?.message ?? "Something went wrong!",
-          "error",
-        );
-      } else if (err instanceof Error) {
-        if (err.message === AUTH_ERRORS.GOOGLE_ALREADY_REGISTERED) {
-          showToast(
-            "This account already exists. Please login instead.",
-            "error",
-          );
-
-          return;
-        } else {
-          showToast("Something went wrong!", "error");
-        }
-      }
+      handleError(err);
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -158,7 +143,7 @@ export const SignUpPage = () => {
 
               <TextField
                 label="Password"
-                type={showPassword ? "text" : "password"}
+                type={showPasswords.password ? "text" : "password"}
                 {...register("password")}
                 error={!!errors.password}
                 helperText={errors.password?.message}
@@ -167,10 +152,14 @@ export const SignUpPage = () => {
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
-                          onClick={() => setShowPassword((p) => !p)}
                           edge="end"
+                          onClick={() => togglePassword("password")}
                         >
-                          {!showPassword ? <VisibilityOff /> : <Visibility />}
+                          {showPasswords.password ? (
+                            <Visibility />
+                          ) : (
+                            <VisibilityOff />
+                          )}
                         </IconButton>
                       </InputAdornment>
                     ),
@@ -180,7 +169,7 @@ export const SignUpPage = () => {
 
               <TextField
                 label="Confirm password"
-                type={showConfirm ? "text" : "password"}
+                type={showPasswords.confirm ? "text" : "password"}
                 {...register("confirmPassword")}
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword?.message}
@@ -189,10 +178,14 @@ export const SignUpPage = () => {
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
-                          onClick={() => setShowConfirm((p) => !p)}
                           edge="end"
+                          onClick={() => togglePassword("confirm")}
                         >
-                          {!showConfirm ? <VisibilityOff /> : <Visibility />}
+                          {showPasswords.confirm ? (
+                            <Visibility />
+                          ) : (
+                            <VisibilityOff />
+                          )}
                         </IconButton>
                       </InputAdornment>
                     ),
@@ -221,22 +214,43 @@ export const SignUpPage = () => {
                 helperText={errors.username?.message}
               />
 
-              <Button type="submit" variant="contained" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Sign Up"}
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={isSubmitting}
+                sx={{ height: 40 }}
+              >
+                {isSubmitting ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  "Sign Up"
+                )}
               </Button>
 
               <Divider sx={{ my: 1 }}>OR</Divider>
 
               <Button
+                type="button"
                 fullWidth
                 variant="outlined"
-                startIcon={<GoogleIcon />}
                 onClick={handleRegisterWithGoogle}
+                disabled={googleLoading}
+                startIcon={!googleLoading && <GoogleIcon />}
+                sx={{ height: 40 }}
               >
-                Continue with Google
+                {googleLoading ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  "Continue with Google"
+                )}
               </Button>
 
-              <Box sx={{ textAlign: "center", mt: 2 }}>
+              <Box
+                sx={{
+                  textAlign: "center",
+                  mt: 2,
+                }}
+              >
                 <Typography variant="body2" color="text.secondary">
                   Already have an account?{" "}
                   <Link

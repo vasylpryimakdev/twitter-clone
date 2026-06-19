@@ -30,7 +30,7 @@ export class UsersService {
     const userRef = this.usersRepository.getRef(id);
 
     await this.firestore.runTransaction(async (tx) => {
-      await this.usersRepository.assertUsernameAvailable(dto.username, tx);
+      await this.usersRepository.assertUsernameAvailable(id, dto.username, tx);
 
       const userData: WriteUserModel = {
         id,
@@ -65,7 +65,11 @@ export class UsersService {
       }
 
       if (dto.username) {
-        await this.usersRepository.assertUsernameAvailable(dto.username, tx);
+        await this.usersRepository.assertUsernameAvailable(
+          id,
+          dto.username,
+          tx,
+        );
       }
 
       const updateData: any = {

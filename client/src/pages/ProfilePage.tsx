@@ -14,14 +14,11 @@ import { Navigate } from "react-router-dom";
 export const ProfilePage = () => {
   const user = useAuthStore((s) => s.user);
   const status = useAuthStore((s) => s.status);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
 
   const [tab, setTab] = useState(0);
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (status === "loading") {
+  if (!isInitialized || status === "loading") {
     return (
       <Box
         sx={{
@@ -35,6 +32,12 @@ export const ProfilePage = () => {
       </Box>
     );
   }
+
+  if (status === "unauthenticated") {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!user) return null;
 
   return (
     <Box sx={{ width: "100%" }}>

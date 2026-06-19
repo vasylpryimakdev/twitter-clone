@@ -9,7 +9,7 @@ import {
   Link,
   Divider,
 } from "@mui/material";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -17,10 +17,13 @@ import { useEffect, useState } from "react";
 import { authService } from "../services/auth.service";
 import { loginSchema, type LoginFormData } from "../schemas/login.schema";
 import { useToastStore } from "../stores/toast.store";
+import { handleError } from "../shared/errors/handleError";
+
+type AuthMode = "login" | "reset";
 
 export const LoginPage = () => {
-  const [mode, setMode] = useState<"login" | "reset">("login");
-  const [resetLoading, setResetLoading] = useState(false);
+  const [mode, setMode] = useState<AuthMode>("login");
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const navigate = useNavigate();
   const showToast = useToastStore((s) => s.showToast);
@@ -28,7 +31,6 @@ export const LoginPage = () => {
   const {
     register,
     handleSubmit,
-    control,
     setFocus,
     reset,
     formState: { errors, isSubmitting },
@@ -36,69 +38,50 @@ export const LoginPage = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  const emailValue = useWatch({
-    control,
-    name: "email",
-  });
-
   useEffect(() => {
-    if (mode === "reset") {
-      setFocus("email");
-    }
+    setFocus("email");
   }, [mode, setFocus]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await authService.login(data.email, data.password);
+      if (mode === "login") {
+        await authService.login(data.email, data.password);
 
-      showToast("Welcome back 👋", "success");
+        showToast("Welcome back 👋", "success");
 
-      navigate("/", { replace: true });
+        navigate("/", { replace: true });
+
+        return;
+      }
+
+      await authService.sendPasswordReset(data.email);
+
+      showToast("If an account exists, a reset email was sent.", "success");
+
+      setMode("login");
+
+      reset({
+        email: data.email,
+        password: "",
+      });
     } catch (err) {
-      showToast("Invalid email or password", "error");
-      console.error(err);
+      handleError(err);
     }
   };
 
   const handleGoogleLogin = async () => {
     try {
+      setGoogleLoading(true);
+
       await authService.loginWithGoogle();
 
       showToast("Signed in with Google", "success");
 
       navigate("/", { replace: true });
     } catch (err) {
-      showToast("Google login failed", "error");
-      console.error(err);
-    }
-  };
-
-  const handleForgotPasswordClick = () => {
-    setMode("reset");
-  };
-
-  const handleBackToLogin = () => {
-    setMode("login");
-  };
-
-  const handleForgotPassword = async () => {
-    if (!emailValue) return;
-
-    try {
-      setResetLoading(true);
-
-      await authService.sendPasswordReset(emailValue);
-
-      showToast("If an account exists, a reset email was sent.", "success");
-
-      setMode("login");
-
-      reset({ email: emailValue, password: "" });
-    } catch (err) {
-      showToast("Failed to send reset email", "error");
-      console.error(err);
+      handleError(err);
     } finally {
-      setResetLoading(false);
+      setGoogleLoading(false);
     }
   };
 
@@ -137,32 +120,23 @@ export const LoginPage = () => {
 
               {mode === "login" && (
                 <Box sx={{ textAlign: "right" }}>
-                  <Button size="small" onClick={handleForgotPasswordClick}>
+                  <Button size="small" onClick={() => setMode("reset")}>
                     Forgot password?
                   </Button>
                 </Box>
               )}
 
-              {mode === "login" ? (
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Logging in..." : "Login"}
-                </Button>
-              ) : (
-                <Button
-                  variant="contained"
-                  onClick={handleForgotPassword}
-                  disabled={!emailValue || resetLoading}
-                >
-                  {resetLoading ? "Sending..." : "Send reset link"}
-                </Button>
-              )}
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={isSubmitting}
+                loading={isSubmitting}
+              >
+                {mode === "login" ? "Login" : "Send reset link"}
+              </Button>
 
               {mode === "reset" && (
-                <Button size="small" onClick={handleBackToLogin}>
+                <Button size="small" onClick={() => setMode("login")}>
                   Back to login
                 </Button>
               )}
@@ -175,6 +149,7 @@ export const LoginPage = () => {
                     variant="outlined"
                     fullWidth
                     onClick={handleGoogleLogin}
+                    loading={googleLoading}
                   >
                     Continue with Google
                   </Button>

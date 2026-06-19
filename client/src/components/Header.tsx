@@ -12,10 +12,24 @@ import {
 import { Link as RouterLink } from "react-router-dom";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import { useAuthStore } from "../stores/auth.store";
+import { useState } from "react";
+import MainMenu from "./MainMenu";
 
 export const Header = () => {
   const status = useAuthStore((state) => state.status);
   const user = useAuthStore((state) => state.user);
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const open = Boolean(anchorEl);
+
+  const handleOpenMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
 
   return (
     <AppBar
@@ -71,10 +85,16 @@ export const Header = () => {
             </Stack>
           )}
           {status === "authenticated" && user && (
-            <IconButton component={RouterLink} to={"/profile"}>
+            <IconButton onClick={handleOpenMenu}>
               <Avatar src={user.avatar} sx={{ width: 34, height: 34 }} />
             </IconButton>
           )}
+
+          <MainMenu
+            handleClose={handleCloseMenu}
+            anchorEl={anchorEl}
+            open={open}
+          />
         </Box>
       </Toolbar>
     </AppBar>

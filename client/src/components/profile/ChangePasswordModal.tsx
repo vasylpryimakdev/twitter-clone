@@ -8,8 +8,8 @@ import {
   Button,
   DialogContentText,
 } from "@mui/material";
-import LoadingButton from "@mui/lab/LoadingButton";
 import { authService } from "../../services/auth.service";
+import { useToastStore } from "../../stores/toast.store";
 
 type Props = {
   open: boolean;
@@ -20,6 +20,7 @@ export const ChangePasswordModal = ({ open, onClose }: Props) => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const showToast = useToastStore((s) => s.showToast);
 
   const handleClose = () => {
     if (loading) return;
@@ -39,10 +40,18 @@ export const ChangePasswordModal = ({ open, onClose }: Props) => {
 
       await authService.changePassword(oldPassword, newPassword);
 
+      showToast("Password updated successfully", "success");
+
       setOldPassword("");
       setNewPassword("");
       onClose();
     } catch (error) {
+      if (error instanceof Error) {
+        showToast(error.message, "error");
+      } else {
+        showToast("Something went wrong", "error");
+      }
+
       console.error(error);
     } finally {
       setLoading(false);
@@ -85,14 +94,14 @@ export const ChangePasswordModal = ({ open, onClose }: Props) => {
             Cancel
           </Button>
 
-          <LoadingButton
+          <Button
             type="submit"
             variant="contained"
             loading={loading}
             disabled={!oldPassword || !newPassword}
           >
             Change
-          </LoadingButton>
+          </Button>
         </DialogActions>
       </form>
     </Dialog>
