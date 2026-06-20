@@ -10,8 +10,7 @@ import {
   postsService,
   type PostsFeedResponse,
 } from "../services/posts.service";
-import type { Post } from "../types/post.types";
-import type { PostFormData } from "../shared/schemas/post-schema";
+import type { PostDTO, Post } from "../types/post.types";
 import { useToastStore } from "../stores/toast.store";
 import { handleError } from "../shared/errors/handleError";
 import { useNavigate } from "react-router-dom";
@@ -99,7 +98,7 @@ export const useCreatePost = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  return useMutation<Post, unknown, PostFormData>({
+  return useMutation<Post, unknown, PostDTO>({
     mutationFn: postsService.createPost,
 
     onSuccess: async () => {
@@ -120,7 +119,7 @@ export const useUpdatePost = (id: string) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  return useMutation<Post, unknown, PostFormData>({
+  return useMutation<Post, unknown, PostDTO>({
     mutationFn: (data) => postsService.updatePost(id, data),
 
     onSuccess: async () => {

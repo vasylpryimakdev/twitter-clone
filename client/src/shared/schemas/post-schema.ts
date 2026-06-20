@@ -6,12 +6,7 @@ export const createPostSchema = z.object({
   text: z.string().min(1, "Text is required").max(5000),
 
   imageUrl: z
-    .union([
-      z.instanceof(File),
-      z.string().url().optional(),
-      z.literal(""),
-      z.null(),
-    ])
+    .union([z.instanceof(File), z.string().url(), z.null()])
     .optional(),
 });
 

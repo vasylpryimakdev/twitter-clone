@@ -11,8 +11,7 @@ import {
 } from "@nestjs/common";
 
 import { PostsService } from "./posts.service";
-import { CreatePostDto } from "./dto/create-post.dto";
-import { UpdatePostDto } from "./dto/update-post.dto";
+import { PostDto } from "./dto/post-dto";
 import { AuthGuard } from "../auth/guards/firebase-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { AuthUser } from "../auth/types/auth-user.type";
@@ -24,7 +23,7 @@ export class PostsController {
 
   @Post()
   @UseGuards(AuthGuard)
-  create(@CurrentUser() user: AuthUser, @Body() dto: CreatePostDto) {
+  create(@CurrentUser() user: AuthUser, @Body() dto: PostDto) {
     return this.postsService.create(user.id, dto);
   }
 
@@ -62,7 +61,7 @@ export class PostsController {
   update(
     @CurrentUser() user: AuthUser,
     @Param("id") postId: string,
-    @Body() dto: UpdatePostDto,
+    @Body() dto: PostDto,
   ) {
     return this.postsService.update(user.id, postId, dto);
   }

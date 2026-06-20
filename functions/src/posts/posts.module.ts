@@ -8,11 +8,13 @@ import FirebaseModule from "../common/firestore/firestore.module";
 import { CommentsModule } from "../comments/comments.module";
 import { PostDeletionService } from "./post-deletion.service";
 import { UsersModule } from "../users/users.module";
+import { StorageModule } from "../storage/storage.module";
 @Module({
   imports: [
     FirebaseModule,
     ReactionsModule,
     AuthModule,
+    StorageModule,
     forwardRef(() => CommentsModule),
     forwardRef(() => UsersModule),
   ],

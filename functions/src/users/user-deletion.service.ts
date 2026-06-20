@@ -35,7 +35,7 @@ export class UserDeletionService {
 
       const userPosts = await this.postsRepository.findByUser(userId, 1000);
 
-      for (const p of userPosts.data) {
+      for (const p of userPosts.docs) {
         await this.postsRepository.delete(p.id, tx);
       }
 

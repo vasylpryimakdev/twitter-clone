@@ -40,7 +40,7 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
         : null;
 
     return {
-      data: snapshot.docs.map((doc) => mapDoc<Post>(doc)),
+      docs: snapshot.docs.map((doc) => mapDoc<Post>(doc)),
       lastDoc: lastDoc,
     };
   }
@@ -60,10 +60,14 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
     }
 
     const snapshot = await query.get();
+    const lastDoc =
+      snapshot.docs.length > 0
+        ? snapshot.docs[snapshot.docs.length - 1].id
+        : null;
 
     return {
-      docs: snapshot.docs,
-      lastDoc: snapshot.docs[snapshot.docs.length - 1] ?? null,
+      docs: snapshot.docs.map((doc) => mapDoc<Post>(doc)),
+      lastDoc,
     };
   }
 

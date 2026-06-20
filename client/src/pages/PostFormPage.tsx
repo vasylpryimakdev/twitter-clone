@@ -19,6 +19,7 @@ import { deleteImage, uploadImage } from "../services/storage.service";
 import { handleError } from "../shared/errors/handleError";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
+import type { PostImage } from "../types/post.types";
 
 const PostFormPage = () => {
   const [submitting, setSubmitting] = useState(false);
@@ -45,35 +46,47 @@ const PostFormPage = () => {
   const mutation = isEditMode ? updatePost : createPost;
 
   useEffect(() => {
-    if (post) {
+    if (isEditMode && post) {
       reset({
         title: post.title,
         text: post.text,
         imageUrl: post.imageUrl ?? "",
       });
     }
-  }, [post, reset]);
+
+    if (!isEditMode) {
+      reset({
+        title: "",
+        text: "",
+        imageUrl: "",
+      });
+    }
+  }, [post, isEditMode, reset]);
 
   const onSubmit = async (data: PostFormData) => {
-    let uploadedImageUrl: string | null = null;
+    let uploadedImage: PostImage | null = null;
+    let imagePayload: PostImage | null | undefined = undefined;
 
     setSubmitting(true);
 
     try {
       if (data.imageUrl instanceof File) {
-        uploadedImageUrl = await uploadImage(data.imageUrl);
+        uploadedImage = await uploadImage(data.imageUrl);
+        imagePayload = uploadedImage;
+      }
+
+      if (data.imageUrl === null) {
+        imagePayload = null;
       }
 
       await mutation.mutateAsync({
         title: data.title,
         text: data.text,
-        imageUrl:
-          uploadedImageUrl ??
-          (typeof data.imageUrl === "string" ? data.imageUrl : null),
+        ...(imagePayload !== undefined && { image: imagePayload }),
       });
     } catch (err) {
-      if (uploadedImageUrl) {
-        await deleteImage(uploadedImageUrl);
+      if (uploadedImage) {
+        await deleteImage(uploadedImage.path);
       }
 
       handleError(err);

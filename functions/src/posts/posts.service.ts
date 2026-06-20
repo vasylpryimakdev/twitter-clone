@@ -5,11 +5,9 @@ import {
   BadRequestException,
   Inject,
 } from "@nestjs/common";
-import { CreatePostDto } from "./dto/create-post.dto";
-import { UpdatePostDto } from "./dto/update-post.dto";
+import { PostDto } from "./dto/post-dto";
 import { Post } from "./types/post.entity";
 import { PostsRepository } from "./posts.repository";
-import { mapDoc } from "../common/firestore/firestore.mapper";
 import { WritePostModel } from "./types/write-post.model";
 import { FieldValue, Firestore } from "firebase-admin/firestore";
 import { PostDeletionService } from "./post-deletion.service";
@@ -18,6 +16,8 @@ import { ReactionType, ReactionTypes } from "../reactions/reaction.entity";
 import { PostCounterFields } from "./types/post-counter-field";
 import { ReactionsRepository } from "../reactions/reactions.repository";
 import { UsersService } from "../users/users.service";
+import { StorageService } from "../storage/storage.service";
+import { toPostResponse } from "./mappers/post.response.mapper";
 @Injectable()
 export class PostsService {
   constructor(
@@ -26,9 +26,10 @@ export class PostsService {
     private readonly postDeletionService: PostDeletionService,
     private readonly reactionsRepository: ReactionsRepository,
     private readonly usersService: UsersService,
+    private readonly storageService: StorageService,
   ) {}
 
-  async create(userId: string, dto: CreatePostDto): Promise<Post> {
+  async create(userId: string, dto: PostDto): Promise<Post> {
     const user = await this.usersService.getById(userId);
 
     if (!user) {
@@ -50,7 +51,9 @@ export class PostsService {
 
       title: dto.title,
       text: dto.text,
-      imageUrl: dto.imageUrl ?? null,
+
+      image: dto.image ? { ...dto.image } : null,
+
       likesCount: 0,
       dislikesCount: 0,
       commentsCount: 0,
@@ -61,31 +64,30 @@ export class PostsService {
 
     await this.postsRepository.create(post.id, post);
 
-    return await this.postsRepository.findByIdOrThrow(post.id);
+    const createdPost = await this.postsRepository.findByIdOrThrow(post.id);
+
+    return toPostResponse(createdPost);
   }
 
   async findOne(id: string): Promise<Post> {
-    return await this.postsRepository.findByIdOrThrow(id);
+    const post = await this.postsRepository.findByIdOrThrow(id);
+    return toPostResponse(post);
   }
 
   async findByUser(userId: string, limit = 10, cursor?: string) {
-    const { data, lastDoc } = await this.postsRepository.findByUser(
+    const { docs, lastDoc } = await this.postsRepository.findByUser(
       userId,
       limit,
       cursor,
     );
 
     return {
-      data,
+      data: docs.map((post) => toPostResponse(post)),
       nextCursor: lastDoc,
     };
   }
 
-  async update(
-    userId: string,
-    postId: string,
-    dto: UpdatePostDto,
-  ): Promise<Post> {
+  async update(userId: string, postId: string, dto: PostDto): Promise<Post> {
     const hasAtLeastOneField = Object.values(dto).some((v) => v !== undefined);
 
     if (!hasAtLeastOneField) {
@@ -96,7 +98,7 @@ export class PostsService {
 
     if (!user) {
       throw new NotFoundException(
-        "Unable to create post. User does not exist.",
+        "Unable to update post. User does not exist.",
       );
     }
 
@@ -110,8 +112,26 @@ export class PostsService {
       throw new ForbiddenException("You cannot edit this post");
     }
 
-    await this.postsRepository.update(postId, {
+    let image = post.image;
+
+    if (dto.image === null) {
+      if (post.image) {
+        await this.storageService.deleteFile(post.image.path);
+      }
+
+      image = null;
+    }
+
+    if (dto.image) {
+      if (post.image) {
+        await this.storageService.deleteFile(post.image.path);
+      }
+      image = { ...dto.image };
+    }
+
+    const updateData: Partial<WritePostModel> = {
       ...dto,
+      image,
       author: {
         id: user.id,
         name: user.name,
@@ -119,9 +139,15 @@ export class PostsService {
         username: user.username,
         ...(user.avatar ? { avatar: user.avatar } : {}),
       },
-    });
 
-    return await this.postsRepository.findByIdOrThrow(post.id);
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+
+    await this.postsRepository.update(postId, updateData);
+
+    const updatedPost = await this.postsRepository.findByIdOrThrow(postId);
+
+    return toPostResponse(updatedPost);
   }
 
   async delete(userId: string, postId: string): Promise<void> {
@@ -129,6 +155,10 @@ export class PostsService {
 
     if (post.authorId !== userId) {
       throw new ForbiddenException("You cannot delete this post");
+    }
+
+    if (post.image) {
+      await this.storageService.deleteFile(post.image.path);
     }
 
     await this.postDeletionService.deletePost(postId);
@@ -141,8 +171,8 @@ export class PostsService {
     );
 
     return {
-      data: docs.map((doc) => mapDoc<Post>(doc)),
-      nextCursor: lastDoc ? lastDoc.id : null,
+      data: docs.map((post) => toPostResponse(post)),
+      nextCursor: lastDoc,
     };
   }
 

@@ -1,12 +1,6 @@
 import { FieldValue } from "firebase-admin/firestore";
-
-export interface PostAuthorSnapshot {
-  id: string;
-  name: string;
-  surname: string;
-  username: string;
-  avatar?: string;
-}
+import { PostImageDto } from "../dto/post-dto";
+import { PostAuthorSnapshot } from "./post.entity";
 
 export type WritePostModel = {
   id: string;
@@ -17,7 +11,7 @@ export type WritePostModel = {
   title: string;
   text: string;
 
-  imageUrl?: string | null;
+  image: PostImageDto | null;
 
   likesCount: number;
   dislikesCount: number;

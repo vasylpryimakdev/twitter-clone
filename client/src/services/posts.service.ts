@@ -1,6 +1,5 @@
 import { api } from "../api/api";
-import type { PostFormData } from "../shared/schemas/post-schema";
-import type { Post } from "../types/post.types";
+import type { Post, PostDTO } from "../types/post.types";
 
 export type PostsFeedResponse = {
   data: Post[];
@@ -44,29 +43,15 @@ export const postsService = {
     return res.data;
   },
 
-  createPost: async (data: PostFormData) => {
-    const payload = {
-      ...data,
-      imageUrl:
-        typeof data.imageUrl === "string" && data.imageUrl.length > 0
-          ? data.imageUrl
-          : null,
-    };
+  createPost: async (data: PostDTO) => {
+    const res = await api.post("/posts", data);
 
-    const res = await api.post("/posts", payload);
     return res.data;
   },
 
-  updatePost: async (id: string, data: PostFormData) => {
-    const payload = {
-      ...data,
-      imageUrl:
-        typeof data.imageUrl === "string" && data.imageUrl.length > 0
-          ? data.imageUrl
-          : null,
-    };
+  updatePost: async (id: string, data: PostDTO) => {
+    const res = await api.patch(`/posts/${id}`, data);
 
-    const res = await api.patch(`/posts/${id}`, payload);
     return res.data;
   },
 
