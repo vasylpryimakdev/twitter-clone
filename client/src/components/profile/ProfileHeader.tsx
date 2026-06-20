@@ -18,14 +18,17 @@ import { useAuthStore } from "../../stores/auth.store";
 import { DeleteAccountModal } from "./DeleteAccountModal";
 import { ChangePasswordModal } from "./ChangePasswordModal";
 import { EditableAvatar } from "./EditableAvatar";
+import { handleError } from "../../shared/errors/handleError";
 
 export const ProfileHeader = ({ user }: { user: UserProfile }) => {
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+
   const openDeleteModal = () => setIsDeleteModalOpen(true);
   const closeDeleteModal = () => setIsDeleteModalOpen(false);
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   const setUser = useAuthStore((s) => s.setUser);
 
@@ -66,8 +69,9 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
 
       setUser(updatedUser);
       setIsEditing(false);
-    } catch (error) {
-      console.error("Update failed:", error);
+    } catch (e) {
+      handleError(e);
+      console.error("Update failed:", e);
     }
   };
 

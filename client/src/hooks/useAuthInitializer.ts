@@ -4,6 +4,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 import { useAuthStore } from "../stores/auth.store";
 import { api } from "../api/api";
+import { handleError } from "../shared/errors/handleError";
 
 export const useAuthInitializer = () => {
   const setUser = useAuthStore((s) => s.setUser);
@@ -14,25 +15,33 @@ export const useAuthInitializer = () => {
     setStatus("loading");
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (!firebaseUser) {
+      try {
+        if (!firebaseUser) {
+          setUser(null);
+          setStatus("unauthenticated");
+          setInitialized(true);
+          return;
+        }
+
+        await firebaseUser.reload();
+
+        const res = await api.get("/users/me");
+
+        setUser({
+          ...res.data,
+          id: firebaseUser.uid,
+          emailVerified: firebaseUser.emailVerified,
+        });
+
+        setStatus("authenticated");
+      } catch (error) {
+        handleError(error);
+
         setUser(null);
         setStatus("unauthenticated");
+      } finally {
         setInitialized(true);
-        return;
       }
-
-      await firebaseUser.reload();
-
-      const res = await api.get("/users/me");
-
-      setUser({
-        ...res.data,
-        id: firebaseUser.uid,
-        emailVerified: firebaseUser.emailVerified,
-      });
-
-      setStatus("authenticated");
-      setInitialized(true);
     });
 
     return unsubscribe;

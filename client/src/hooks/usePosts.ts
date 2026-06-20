@@ -15,13 +15,14 @@ import type { PostFormData } from "../shared/schemas/post-schema";
 import { useToastStore } from "../stores/toast.store";
 import { handleError } from "../shared/errors/handleError";
 import { useNavigate } from "react-router-dom";
+import { useQueryErrorHandler } from "./useQueryErrorHandler";
 
 type Cursor = string | undefined;
 
 const showToast = useToastStore.getState().showToast;
 
 export const usePosts = () => {
-  return useInfiniteQuery<PostsFeedResponse>({
+  const query = useInfiniteQuery<PostsFeedResponse>({
     queryKey: ["posts", "feed"],
     queryFn: ({ pageParam }) =>
       postsService.getPosts({ cursor: pageParam as string | null }),
@@ -30,18 +31,26 @@ export const usePosts = () => {
 
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
+
+  useQueryErrorHandler(query.error, query.isError);
+
+  return query;
 };
 
 export const usePost = (id?: string) => {
-  return useQuery<Post>({
+  const query = useQuery<Post>({
     queryKey: ["post", id],
     queryFn: () => postsService.getPostById(id!),
     enabled: !!id,
   });
+
+  useQueryErrorHandler(query.error, query.isError);
+
+  return query;
 };
 
 export const useMyPosts = () => {
-  return useInfiniteQuery<
+  const query = useInfiniteQuery<
     PostsFeedResponse,
     Error,
     InfiniteData<PostsFeedResponse>,
@@ -56,10 +65,14 @@ export const useMyPosts = () => {
 
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
+
+  useQueryErrorHandler(query.error, query.isError);
+
+  return query;
 };
 
 export const useUserPosts = (userId?: string) => {
-  return useInfiniteQuery<
+  const query = useInfiniteQuery<
     PostsFeedResponse,
     Error,
     InfiniteData<PostsFeedResponse>,
@@ -76,6 +89,10 @@ export const useUserPosts = (userId?: string) => {
 
     enabled: !!userId,
   });
+
+  useQueryErrorHandler(query.error, query.isError);
+
+  return query;
 };
 
 export const useCreatePost = () => {

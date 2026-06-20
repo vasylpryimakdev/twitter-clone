@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebase/firebase";
 import { authService } from "../../services/auth.service";
 import { handleError } from "../../shared/errors/handleError";
+import { useToastStore } from "../../stores/toast.store";
 
 type Props = {
   open: boolean;
@@ -23,6 +24,7 @@ type Props = {
 export const DeleteAccountModal = ({ open, onClose }: Props) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const showToast = useToastStore((s) => s.showToast);
 
   const navigate = useNavigate();
 
@@ -46,6 +48,7 @@ export const DeleteAccountModal = ({ open, onClose }: Props) => {
     resetState();
     onClose();
     navigate("/");
+    showToast("User was deleted successfully!");
   };
 
   const handlePasswordDelete = async () => {

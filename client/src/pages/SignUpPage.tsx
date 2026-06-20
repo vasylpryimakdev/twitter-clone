@@ -76,6 +76,7 @@ export const SignUpPage = () => {
       await firebaseUser.delete();
     } catch (err) {
       console.error("Failed to rollback auth user", err);
+      handleError(err);
     }
   };
 
@@ -112,13 +113,10 @@ export const SignUpPage = () => {
       setGoogleLoading(true);
 
       const googleUser = await authService.signInWithGoogle();
-
       const profile = createGoogleProfile(googleUser.user);
-
       const createdUser = await usersService.createProfile(profile);
 
       setUser(createdUser);
-
       finishAuth("Signed up with Google 🎉");
     } catch (err) {
       handleError(err);

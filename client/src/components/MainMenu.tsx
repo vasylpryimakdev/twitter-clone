@@ -42,9 +42,9 @@ const MainMenu = ({ anchorEl, open, handleClose }: Props) => {
       </MenuItem>
 
       <MenuItem
-        onClick={() => {
+        onClick={async () => {
+          await authService.logout();
           handleClose();
-          authService.logout();
         }}
       >
         <ListItemIcon>
