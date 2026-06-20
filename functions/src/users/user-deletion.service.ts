@@ -6,6 +6,7 @@ import { PostsRepository } from "../posts/posts.repository";
 import { CommentsRepository } from "../comments/comments.repository";
 import { ReactionsRepository } from "../reactions/reactions.repository";
 import { FIRESTORE } from "../common/firestore/firestore.provider";
+import { StorageService } from "../storage/storage.service";
 
 @Injectable()
 export class UserDeletionService {
@@ -15,6 +16,7 @@ export class UserDeletionService {
     private readonly postsRepository: PostsRepository,
     private readonly commentsRepository: CommentsRepository,
     private readonly reactionsRepository: ReactionsRepository,
+    private readonly storageService: StorageService,
   ) {}
 
   async deleteUser(userId: string) {
@@ -36,6 +38,10 @@ export class UserDeletionService {
       const userPosts = await this.postsRepository.findByUser(userId, 1000);
 
       for (const p of userPosts.docs) {
+        if (p.image) {
+          await this.storageService.deleteFile(p.image.path);
+        }
+
         await this.postsRepository.delete(p.id, tx);
       }
 

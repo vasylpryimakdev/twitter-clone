@@ -8,6 +8,7 @@ import { UserDeletionService } from "./user-deletion.service";
 import { CommentsModule } from "../comments/comments.module";
 import { PostsModule } from "../posts/posts.module";
 import { ReactionsModule } from "../reactions/reactions.module";
+import { StorageModule } from "../storage/storage.module";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ReactionsModule } from "../reactions/reactions.module";
     PostsModule,
     CommentsModule,
     ReactionsModule,
+    StorageModule,
   ],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository, UserDeletionService],

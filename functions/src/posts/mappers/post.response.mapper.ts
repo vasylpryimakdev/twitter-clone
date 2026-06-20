@@ -1,8 +1,10 @@
 import { Post } from "../types/post.entity";
 
 export function toPostResponse(post: Post) {
+  const { image, ...rest } = post;
+
   return {
-    ...post,
-    imageUrl: post.image?.url ?? null,
+    ...rest,
+    imageUrl: image?.url ?? null,
   };
 }
