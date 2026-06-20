@@ -47,9 +47,10 @@ export const postsService = {
   createPost: async (data: PostFormData) => {
     const payload = {
       ...data,
-      imageUrl: data.imageUrl
-        ? data.imageUrl
-        : "https://i.pravatar.cc/150?img=1",
+      imageUrl:
+        typeof data.imageUrl === "string" && data.imageUrl.length > 0
+          ? data.imageUrl
+          : null,
     };
 
     const res = await api.post("/posts", payload);
@@ -59,7 +60,10 @@ export const postsService = {
   updatePost: async (id: string, data: PostFormData) => {
     const payload = {
       ...data,
-      imageUrl: data.imageUrl ? data.imageUrl : null,
+      imageUrl:
+        typeof data.imageUrl === "string" && data.imageUrl.length > 0
+          ? data.imageUrl
+          : null,
     };
 
     const res = await api.patch(`/posts/${id}`, payload);
