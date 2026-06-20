@@ -1,13 +1,14 @@
-import { Avatar, IconButton, Box } from "@mui/material";
+import { Avatar, IconButton, Box, CircularProgress } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { useRef } from "react";
 
 type Props = {
   src?: string;
   onAvatarChange: (file: File) => void;
+  loading: boolean;
 };
 
-export const EditableAvatar = ({ src, onAvatarChange }: Props) => {
+export const EditableAvatar = ({ src, onAvatarChange, loading }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
@@ -38,22 +39,23 @@ export const EditableAvatar = ({ src, onAvatarChange }: Props) => {
           position: "absolute",
           bottom: 6,
           right: 6,
-
           width: 34,
           height: 34,
-
           backgroundColor: "rgba(0,0,0,0.45)",
           color: "white",
-
           border: "2px solid white",
-
+          opacity: loading ? 0.6 : 1,
+          cursor: loading ? "not-allowed" : "pointer",
           "&:hover": {
             backgroundColor: "rgba(0,0,0,0.6)",
           },
-          transition: "0.2s ease",
         }}
       >
-        <EditIcon fontSize="small" />
+        {loading ? (
+          <CircularProgress size={16} sx={{ color: "white" }} />
+        ) : (
+          <EditIcon fontSize="small" />
+        )}
       </IconButton>
 
       <input

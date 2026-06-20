@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { UserDto } from "./dto/user.dto";
+import { CreateUserDto } from "./dto/create-user.dto";
 import { AuthUser } from "../auth/types/auth-user.type";
 import { UsersRepository } from "./users.respository";
 import { WriteUserModel } from "./types/write-user.model";
@@ -13,6 +13,7 @@ import { UserDeletionService } from "./user-deletion.service";
 import { FIRESTORE } from "../common/firestore/firestore.provider";
 import { User } from "./types/users.entity";
 import { StorageService } from "../storage/storage.service";
+import { UpdateUserDto } from "./dto/update-user.dto";
 
 @Injectable()
 export class UsersService {
@@ -28,7 +29,7 @@ export class UsersService {
     return await this.usersRepository.findById(id);
   }
 
-  async createUserProfile({ id, email }: AuthUser, dto: UserDto) {
+  async createUserProfile({ id, email }: AuthUser, dto: CreateUserDto) {
     const userRef = this.usersRepository.getRef(id);
 
     await this.firestore.runTransaction(async (tx) => {
@@ -59,7 +60,7 @@ export class UsersService {
     return this.usersRepository.findById(id);
   }
 
-  async updateUser(id: string, dto: Partial<UserDto>) {
+  async updateUser(id: string, dto: Partial<UpdateUserDto>) {
     const hasAtLeastOneField = Object.values(dto).some((v) => v !== undefined);
 
     if (!hasAtLeastOneField) {

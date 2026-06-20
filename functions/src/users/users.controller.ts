@@ -10,10 +10,11 @@ import {
 } from "@nestjs/common";
 
 import { UsersService } from "./users.service";
-import { UserDto } from "./dto/user.dto";
+import { CreateUserDto } from "./dto/create-user.dto";
 import { AuthGuard } from "../auth/guards/firebase-auth.guard";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { AuthUser } from "../auth/types/auth-user.type";
+import { UpdateUserDto } from "./dto/update-user.dto";
 
 @Controller("users")
 @UseGuards(AuthGuard)
@@ -26,12 +27,12 @@ export class UsersController {
   }
 
   @Post("me")
-  createMe(@CurrentUser() user: AuthUser, @Body() body: UserDto) {
+  createMe(@CurrentUser() user: AuthUser, @Body() body: CreateUserDto) {
     return this.usersService.createUserProfile(user, body);
   }
 
   @Patch("me")
-  updateMe(@CurrentUser() user: AuthUser, @Body() body: UserDto) {
+  updateMe(@CurrentUser() user: AuthUser, @Body() body: UpdateUserDto) {
     return this.usersService.updateUser(user.id, body);
   }
 

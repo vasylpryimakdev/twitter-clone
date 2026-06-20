@@ -1,12 +1,19 @@
+export type UpdateUserDto = {
+  name?: string;
+  surname?: string;
+  username?: string;
+  avatar?: UserAvatar | string | null;
+};
+
 export type PostUser = {
   id: string;
   name: string;
   surname: string;
   username: string;
-  avatar: Avatar;
+  avatar: UserAvatar;
 };
 
-export type Avatar = {
+export type UserAvatar = {
   url: string;
   path?: string;
   type: "google" | "upload";
@@ -19,7 +26,7 @@ export type UserProfile = {
   username: string;
   email: string;
   emailVerified: boolean;
-  avatar: Avatar;
+  avatar: UserAvatar;
 
   createdAt: string;
 };

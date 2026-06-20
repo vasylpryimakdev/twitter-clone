@@ -1,5 +1,5 @@
 import { api } from "../api/api";
-import type { ProfileEditForm } from "../shared/schemas/profileEdit.schema";
+import type { UpdateUserDto } from "../types/user.types";
 
 export const usersService = {
   createProfile: async (data: {
@@ -17,7 +17,7 @@ export const usersService = {
     return res.data;
   },
 
-  updateProfile: async (data: ProfileEditForm) => {
+  updateProfile: async (data: UpdateUserDto) => {
     const res = await api.patch("/users/me", data);
 
     return res.data;

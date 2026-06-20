@@ -19,10 +19,12 @@ import { DeleteAccountModal } from "./DeleteAccountModal";
 import { ChangePasswordModal } from "./ChangePasswordModal";
 import { EditableAvatar } from "./EditableAvatar";
 import { handleError } from "../../shared/errors/handleError";
+import { uploadImage } from "../../services/storage.service";
 
 export const ProfileHeader = ({ user }: { user: UserProfile }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
@@ -51,9 +53,10 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
 
   const hasChanges = (data: ProfileEditForm) => {
     return (
-      data.name.trim() !== user.name.trim() ||
-      data.surname.trim() !== user.surname.trim() ||
-      data.username.trim().toLowerCase() !== user.username.trim().toLowerCase()
+      (data.name ?? "").trim() !== user.name.trim() ||
+      (data.surname ?? "").trim() !== user.surname.trim() ||
+      (data.username ?? "").trim().toLowerCase() !==
+        user.username.trim().toLowerCase()
     );
   };
 
@@ -73,6 +76,30 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
     } catch (e) {
       handleError(e);
       console.error("Update failed:", e);
+    }
+  };
+
+  const handleAvatarChange = async (file: File) => {
+    if (avatarLoading) return;
+
+    try {
+      setAvatarLoading(true);
+
+      const uploaded = await uploadImage(file);
+
+      const updatedUser = await usersService.updateProfile({
+        avatar: {
+          url: uploaded.url,
+          path: uploaded.path,
+          type: "upload",
+        },
+      });
+
+      setUser(updatedUser);
+    } catch (e) {
+      handleError(e);
+    } finally {
+      setAvatarLoading(false);
     }
   };
 
@@ -96,7 +123,11 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
               alignItems: "flex-start",
             }}
           >
-            <EditableAvatar src={user.avatar?.url} onChange={onUpdateUser} />
+            <EditableAvatar
+              src={user.avatar?.url}
+              onAvatarChange={handleAvatarChange}
+              loading={avatarLoading}
+            />
 
             {isEditing ? (
               <ProfileEdit

@@ -26,7 +26,7 @@ export class UserAvatarDto {
   type!: "google" | "upload";
 }
 
-export class UserDto {
+export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   @Length(2, 30)
