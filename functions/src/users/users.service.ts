@@ -4,20 +4,22 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { UpdateUserDto } from "./dto/update-user.dto";
-import { CreateUserDto } from "./dto/create-user.dto";
+import { UserDto } from "./dto/user.dto";
 import { AuthUser } from "../auth/types/auth-user.type";
 import { UsersRepository } from "./users.respository";
 import { WriteUserModel } from "./types/write-user.model";
 import { FieldValue, Firestore } from "firebase-admin/firestore";
 import { UserDeletionService } from "./user-deletion.service";
 import { FIRESTORE } from "../common/firestore/firestore.provider";
+import { User } from "./types/users.entity";
+import { StorageService } from "../storage/storage.service";
 
 @Injectable()
 export class UsersService {
   constructor(
     private usersRepository: UsersRepository,
     private readonly userDeletionService: UserDeletionService,
+    private readonly storageService: StorageService,
     @Inject(FIRESTORE)
     private readonly firestore: Firestore,
   ) {}
@@ -26,7 +28,7 @@ export class UsersService {
     return await this.usersRepository.findById(id);
   }
 
-  async createUserProfile({ id, email }: AuthUser, dto: CreateUserDto) {
+  async createUserProfile({ id, email }: AuthUser, dto: UserDto) {
     const userRef = this.usersRepository.getRef(id);
 
     await this.firestore.runTransaction(async (tx) => {
@@ -35,7 +37,18 @@ export class UsersService {
       const userData: WriteUserModel = {
         id,
         email,
-        ...dto,
+        name: dto.name,
+        surname: dto.surname,
+        username: dto.username,
+
+        avatar: dto.avatar
+          ? {
+              url: dto.avatar.url,
+              ...(dto.avatar.path ? { path: dto.avatar.path } : {}),
+              type: dto.avatar.type,
+            }
+          : null,
+
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       };
@@ -46,7 +59,7 @@ export class UsersService {
     return this.usersRepository.findById(id);
   }
 
-  async updateUser(id: string, dto: Partial<UpdateUserDto>) {
+  async updateUser(id: string, dto: Partial<UserDto>) {
     const hasAtLeastOneField = Object.values(dto).some((v) => v !== undefined);
 
     if (!hasAtLeastOneField) {
@@ -62,6 +75,8 @@ export class UsersService {
         throw new NotFoundException("User not found");
       }
 
+      const user = userSnap.data() as User;
+
       if (dto.username) {
         await this.usersRepository.assertUsernameAvailable(
           id,
@@ -70,10 +85,41 @@ export class UsersService {
         );
       }
 
-      const updateData: any = {
-        ...dto,
+      const updateData: Partial<WriteUserModel> = {
         updatedAt: FieldValue.serverTimestamp(),
       };
+
+      if (dto.name !== undefined) {
+        updateData.name = dto.name;
+      }
+
+      if (dto.surname !== undefined) {
+        updateData.surname = dto.surname;
+      }
+
+      if (dto.username !== undefined) {
+        updateData.username = dto.username;
+      }
+
+      if (dto.avatar !== undefined) {
+        if (dto.avatar === null) {
+          if (user.avatar?.type === "upload") {
+            await this.storageService.deleteFile(user.avatar.path!);
+          }
+
+          updateData.avatar = null;
+        } else {
+          if (user.avatar?.type === "upload") {
+            await this.storageService.deleteFile(user.avatar.path!);
+          }
+
+          updateData.avatar = {
+            url: dto.avatar.url,
+            path: dto.avatar.path,
+            type: dto.avatar.type,
+          };
+        }
+      }
 
       tx.update(userRef, updateData);
     });

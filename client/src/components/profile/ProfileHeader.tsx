@@ -39,6 +39,7 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
         name: user.name,
         surname: user.surname,
         username: user.username,
+        avatar: user.avatar ?? null,
       },
     },
   );
@@ -95,12 +96,7 @@ export const ProfileHeader = ({ user }: { user: UserProfile }) => {
               alignItems: "flex-start",
             }}
           >
-            <EditableAvatar
-              src={user.avatar}
-              onChange={(file) => {
-                console.log("selected file:", file);
-              }}
-            />
+            <EditableAvatar src={user.avatar?.url} onChange={onUpdateUser} />
 
             {isEditing ? (
               <ProfileEdit

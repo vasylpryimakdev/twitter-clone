@@ -6,7 +6,11 @@ export const usersService = {
     name: string;
     surname: string;
     username: string;
-    avatar?: string | null;
+    avatar?: {
+      url: string;
+      path?: string;
+      type: "google" | "upload";
+    } | null;
   }) => {
     const res = await api.post("/users/me", data);
 

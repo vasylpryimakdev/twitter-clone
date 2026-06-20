@@ -8,6 +8,14 @@ export const profileEditSchema = z.object({
     .min(3, "Username too short")
     .regex(/^[a-zA-Z0-9_]+$/, "Invalid username")
     .transform((val) => val.toLowerCase()),
+
+  avatar: z
+    .object({
+      url: z.string().url(),
+      path: z.string(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export type ProfileEditForm = z.infer<typeof profileEditSchema>;

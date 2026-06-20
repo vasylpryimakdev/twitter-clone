@@ -6,11 +6,27 @@ import {
   MaxLength,
   MinLength,
   IsOptional,
+  ValidateNested,
   IsUrl,
+  IsEnum,
 } from "class-validator";
-import { Transform } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 
-export class CreateUserDto {
+export class UserAvatarDto {
+  @IsUrl({}, { message: "Avatar URL must be valid" })
+  url!: string;
+
+  @IsOptional()
+  @IsString()
+  path?: string;
+
+  @IsEnum(["google", "upload"], {
+    message: "type must be google or upload",
+  })
+  type!: "google" | "upload";
+}
+
+export class UserDto {
   @IsString()
   @IsNotEmpty()
   @Length(2, 30)
@@ -41,7 +57,7 @@ export class CreateUserDto {
   username!: string;
 
   @IsOptional()
-  @IsString()
-  @IsUrl({}, { message: "Avatar must be a valid URL" })
-  avatar?: string;
+  @ValidateNested()
+  @Type(() => UserAvatarDto)
+  avatar?: UserAvatarDto;
 }

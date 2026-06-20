@@ -11,19 +11,10 @@ export type PostDTO = {
   image?: PostImage | null;
 };
 
-export interface PostAuthorSnapshot {
-  id: string;
-  name: string;
-  surname: string;
-  username: string;
-  avatar?: string;
-}
-
 export type Post = {
   id: string;
-  user: PostUser;
   authorId: string;
-  author: PostAuthorSnapshot;
+  author: PostUser;
   title: string;
   text: string;
   imageUrl: string | null;

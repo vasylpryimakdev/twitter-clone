@@ -1,12 +1,13 @@
 import { Timestamp } from "firebase-admin/firestore";
 import { PostImageDto } from "../dto/post-dto";
+import { UserAvatar } from "../../users/types/users.entity";
 
 export interface PostAuthorSnapshot {
   id: string;
   name: string;
   surname: string;
   username: string;
-  avatar?: string;
+  avatar?: UserAvatar;
 }
 
 export class Post {

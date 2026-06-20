@@ -109,16 +109,21 @@ export const SignUpPage = () => {
   };
 
   const handleRegisterWithGoogle = async () => {
+    let firebaseUser: User | null = null;
+
     try {
       setGoogleLoading(true);
 
-      const googleUser = await authService.signInWithGoogle();
-      const profile = createGoogleProfile(googleUser.user);
+      const credential = await authService.signInWithGoogle();
+      firebaseUser = credential.user;
+
+      const profile = createGoogleProfile(firebaseUser);
       const createdUser = await usersService.createProfile(profile);
 
       setUser(createdUser);
       finishAuth("Signed up with Google 🎉");
     } catch (err) {
+      await rollbackFirebaseUser(firebaseUser);
       handleError(err);
     } finally {
       setGoogleLoading(false);

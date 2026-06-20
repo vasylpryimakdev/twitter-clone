@@ -1,4 +1,5 @@
 import { FieldValue } from "firebase-admin/firestore";
+import { UserAvatar } from "./users.entity";
 
 export class WriteUserModel {
   id!: string;
@@ -6,7 +7,7 @@ export class WriteUserModel {
   name!: string;
   surname!: string;
   username!: string;
-  avatar?: string;
+  avatar?: UserAvatar;
   createdAt!: FieldValue;
   updatedAt!: FieldValue;
 }

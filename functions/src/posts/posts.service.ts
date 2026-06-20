@@ -30,7 +30,7 @@ export class PostsService {
     private readonly storageService: StorageService,
   ) {}
 
-  async create(userId: string, dto: PostDto): Promise<Post> {
+  async create(userId: string, dto: PostDto): Promise<Omit<Post, "image">> {
     const user = await this.usersService.getById(userId);
 
     if (!user) {
@@ -70,7 +70,7 @@ export class PostsService {
     return toPostResponse(createdPost);
   }
 
-  async findOne(id: string): Promise<Post> {
+  async findOne(id: string): Promise<Omit<Post, "image">> {
     const post = await this.postsRepository.findByIdOrThrow(id);
     return toPostResponse(post);
   }
@@ -88,7 +88,11 @@ export class PostsService {
     };
   }
 
-  async update(userId: string, postId: string, dto: PostDto): Promise<Post> {
+  async update(
+    userId: string,
+    postId: string,
+    dto: PostDto,
+  ): Promise<Omit<Post, "image">> {
     const hasAtLeastOneField = Object.values(dto).some((v) => v !== undefined);
 
     if (!hasAtLeastOneField) {

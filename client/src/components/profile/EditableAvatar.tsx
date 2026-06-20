@@ -4,10 +4,10 @@ import { useRef } from "react";
 
 type Props = {
   src?: string;
-  onChange: (file: File) => void;
+  onAvatarChange: (file: File) => void;
 };
 
-export const EditableAvatar = ({ src, onChange }: Props) => {
+export const EditableAvatar = ({ src, onAvatarChange }: Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
@@ -18,11 +18,11 @@ export const EditableAvatar = ({ src, onChange }: Props) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    onChange(file);
+    onAvatarChange?.(file);
   };
 
   return (
-    <Box sx={{ position: "relative", width: 120, height: 120 }}>
+    <Box sx={{ position: "relative", width: 120, height: 120, mt: -7.5 }}>
       <Avatar
         src={src}
         sx={{

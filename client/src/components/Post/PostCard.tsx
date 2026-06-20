@@ -80,7 +80,7 @@ export const Post = ({ post }: PostProps) => {
         }}
       >
         <Link to={`/user/${authorId}`} style={{ display: "flex" }}>
-          <Avatar src={author.avatar} sx={{ width: 36, height: 36 }} />
+          <Avatar src={author.avatar?.url} sx={{ width: 36, height: 36 }} />
         </Link>
 
         <Box>

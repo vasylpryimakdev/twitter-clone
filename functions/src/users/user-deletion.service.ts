@@ -21,7 +21,11 @@ export class UserDeletionService {
 
   async deleteUser(userId: string) {
     await this.firestore.runTransaction(async (tx) => {
-      await this.usersRepository.getDataOrThrow(userId, tx);
+      const user = await this.usersRepository.getDataOrThrow(userId, tx);
+
+      if (user.avatar?.type === "upload") {
+        await this.storageService.deleteFile(user.avatar.path!);
+      }
 
       const userReactions = await this.reactionsRepository.findByUser(userId);
 

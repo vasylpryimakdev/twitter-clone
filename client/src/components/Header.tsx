@@ -87,7 +87,7 @@ export const Header = () => {
           {status === "authenticated" && user && (
             <IconButton onClick={handleOpenMenu}>
               <Avatar
-                src={user.avatar || undefined}
+                src={user.avatar?.url || undefined}
                 slotProps={{
                   img: {
                     referrerPolicy: "no-referrer",
