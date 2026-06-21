@@ -100,7 +100,7 @@ export const SignUpPage = () => {
         emailVerified: firebaseUser.emailVerified,
       });
 
-      finishAuth("Account created successfully. Please verify your email 📧");
+      finishAuth("Account created successfully. Please verify your email");
     } catch (err) {
       await rollbackFirebaseUser(firebaseUser);
 
@@ -109,21 +109,24 @@ export const SignUpPage = () => {
   };
 
   const handleRegisterWithGoogle = async () => {
-    let firebaseUser: User | null = null;
-
     try {
       setGoogleLoading(true);
 
       const credential = await authService.signInWithGoogle();
-      firebaseUser = credential.user;
+      const firebaseUser = credential.user;
+
+      if (!firebaseUser.email) {
+        throw new Error("Google account has no email");
+      }
 
       const profile = createGoogleProfile(firebaseUser);
-      const createdUser = await usersService.createProfile(profile);
 
-      setUser(createdUser);
-      finishAuth("Signed up with Google 🎉");
+      const user = await usersService.createProfile(profile);
+
+      setUser(user);
+
+      finishAuth(`Welcome ${profile.name}!`);
     } catch (err) {
-      await rollbackFirebaseUser(firebaseUser);
       handleError(err);
     } finally {
       setGoogleLoading(false);

@@ -1,7 +1,12 @@
 import { api } from "../api/api";
-import type { UpdateUserDto } from "../types/user.types";
+import type { UpdateUserDto, UserProfile } from "../types/user.types";
 
 export const usersService = {
+  getMe: async (): Promise<UserProfile> => {
+    const res = await api.get("/users/me");
+    return res.data;
+  },
+
   createProfile: async (data: {
     name: string;
     surname: string;

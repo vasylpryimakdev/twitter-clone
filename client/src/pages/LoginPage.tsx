@@ -21,6 +21,7 @@ import {
 } from "../shared/schemas/login.schema";
 import { useToastStore } from "../stores/toast.store";
 import { handleError } from "../shared/errors/handleError";
+import { usersService } from "../services/users.service";
 
 type AuthMode = "login" | "reset";
 
@@ -50,7 +51,9 @@ export const LoginPage = () => {
       if (mode === "login") {
         await authService.login(data.email, data.password);
 
-        showToast("Welcome back 👋", "success");
+        const user = await usersService.getMe();
+
+        showToast(`Welcome back ${user.name} 👋`, "success");
 
         navigate("/", { replace: true });
 
@@ -77,8 +80,9 @@ export const LoginPage = () => {
       setGoogleLoading(true);
 
       await authService.loginWithGoogle();
+      const user = await usersService.getMe();
 
-      showToast("Signed in with Google", "success");
+      showToast(`Welcome ${user.name} 👋`, "success");
 
       navigate("/", { replace: true });
     } catch (err) {

@@ -32,7 +32,16 @@ export class UsersService {
   async createUserProfile({ id, email }: AuthUser, dto: CreateUserDto) {
     const userRef = this.usersRepository.getRef(id);
 
+    let resultUser: any;
+
     await this.firestore.runTransaction(async (tx) => {
+      const userSnap = await tx.get(userRef);
+
+      if (userSnap.exists) {
+        resultUser = userSnap.data();
+        return;
+      }
+
       await this.usersRepository.assertUsernameAvailable(id, dto.username, tx);
 
       const userData: WriteUserModel = {
@@ -41,7 +50,6 @@ export class UsersService {
         name: dto.name,
         surname: dto.surname,
         username: dto.username,
-
         avatar: dto.avatar
           ? {
               url: dto.avatar.url,
@@ -49,15 +57,16 @@ export class UsersService {
               type: dto.avatar.type,
             }
           : null,
-
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       };
 
-      tx.set(userRef, userData);
+      tx.create(userRef, userData);
+
+      resultUser = userData;
     });
 
-    return this.usersRepository.findById(id);
+    return resultUser;
   }
 
   async updateUser(id: string, dto: Partial<UpdateUserDto>) {
