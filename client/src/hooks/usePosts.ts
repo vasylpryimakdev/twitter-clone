@@ -48,28 +48,6 @@ export const usePost = (id?: string) => {
   return query;
 };
 
-export const useMyPosts = () => {
-  const query = useInfiniteQuery<
-    PostsFeedResponse,
-    Error,
-    InfiniteData<PostsFeedResponse>,
-    [string, string],
-    Cursor
-  >({
-    queryKey: ["posts", "me"],
-
-    queryFn: ({ pageParam }) => postsService.getMyPosts(pageParam),
-
-    initialPageParam: undefined,
-
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-  });
-
-  useQueryErrorHandler(query.error, query.isError);
-
-  return query;
-};
-
 export const useUserPosts = (userId?: string) => {
   const query = useInfiniteQuery<
     PostsFeedResponse,

@@ -2,6 +2,7 @@ import { Box, CircularProgress, Typography, Stack } from "@mui/material";
 import { useComments } from "../../hooks/useComments";
 import { CommentCard } from "./Comment";
 import { CommentForm } from "./CommentForm";
+import { useAuthStore } from "../../stores/auth.store";
 
 type Props = {
   postId: string;
@@ -9,6 +10,7 @@ type Props = {
 
 const CommentsList = ({ postId }: Props) => {
   const { comments, isLoading, error } = useComments(postId);
+  const user = useAuthStore((s) => s.user);
 
   if (isLoading) {
     return (
@@ -38,7 +40,12 @@ const CommentsList = ({ postId }: Props) => {
         ))}
 
       {comments.map((comment) => (
-        <CommentCard key={comment.id} comment={comment} />
+        <CommentCard
+          postId={postId}
+          key={comment.id}
+          comment={comment}
+          isOwner={user?.id === comment.authorId}
+        />
       ))}
     </Stack>
   );

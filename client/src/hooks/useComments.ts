@@ -1,9 +1,16 @@
-import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import {
   commentsService,
   type CommentsResponse,
 } from "../services/comments.service";
 import { useQueryErrorHandler } from "./useQueryErrorHandler";
+import { handleError } from "../shared/errors/handleError";
+import type { PostsFeedResponse } from "../services/posts.service";
 
 type Cursor = string | undefined;
 
@@ -35,4 +42,97 @@ export const useComments = (postId?: string) => {
     ...query,
     comments,
   };
+};
+
+export const useCreateComment = (postId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (text: string) => commentsService.create(postId, { text }),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["comments", postId],
+      });
+
+      queryClient.setQueryData<InfiniteData<PostsFeedResponse>>(
+        ["posts", "feed"],
+        (old) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              data: page.data.map((post) =>
+                post.id === postId
+                  ? {
+                      ...post,
+                      commentsCount: Math.max(0, (post.commentsCount ?? 0) + 1),
+                    }
+                  : post,
+              ),
+            })),
+          };
+        },
+      );
+    },
+
+    onError: handleError,
+  });
+};
+
+export const useUpdateComment = (postId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ commentId, text }: { commentId: string; text: string }) =>
+      commentsService.update(commentId, text),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["comments", postId],
+      });
+    },
+
+    onError: handleError,
+  });
+};
+
+export const useDeleteComment = (postId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (commentId: string) => commentsService.delete(commentId),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["comments", postId],
+      });
+
+      queryClient.setQueryData<InfiniteData<PostsFeedResponse>>(
+        ["posts", "feed"],
+        (old) => {
+          if (!old) return old;
+
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              data: page.data.map((post) =>
+                post.id === postId
+                  ? {
+                      ...post,
+                      commentsCount: Math.max(0, (post.commentsCount ?? 0) - 1),
+                    }
+                  : post,
+              ),
+            })),
+          };
+        },
+      );
+    },
+
+    onError: handleError,
+  });
 };

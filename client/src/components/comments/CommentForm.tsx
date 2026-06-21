@@ -8,8 +8,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useAuthStore } from "../../stores/auth.store";
-import { useQueryClient } from "@tanstack/react-query";
-import { commentsService } from "../../services/comments.service";
+
+import { useCreateComment } from "../../hooks/useComments";
 
 type Props = {
   postId: string;
@@ -17,36 +17,32 @@ type Props = {
 
 export const CommentForm = ({ postId }: Props) => {
   const user = useAuthStore((s) => s.user);
-  const queryClient = useQueryClient();
 
   const [text, setText] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!text.trim() || !user) return;
+  const createComment = useCreateComment(postId);
+  const loading = createComment.isPending;
 
-    try {
-      setLoading(true);
+  const handleSubmit = () => {
+    if (!text.trim()) return;
 
-      await commentsService.create(postId, { text });
-
-      setText("");
-
-      queryClient.invalidateQueries({
-        queryKey: ["comments", postId],
-      });
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
+    createComment.mutate(text, {
+      onSuccess: () => setText(""),
+    });
   };
 
   return (
     <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
       <Avatar src={user?.avatar?.url} sx={{ width: 32, height: 32 }} />
 
-      <Box sx={{ flex: 1 }}>
+      <Box
+        component="form"
+        sx={{ flex: 1 }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+      >
         <TextField
           fullWidth
           size="small"
@@ -57,6 +53,8 @@ export const CommentForm = ({ postId }: Props) => {
       </Box>
 
       <Button
+        type="submit"
+        form=""
         variant="contained"
         disabled={!text.trim() || loading}
         onClick={handleSubmit}
