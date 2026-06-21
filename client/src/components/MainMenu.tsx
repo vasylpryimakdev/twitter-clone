@@ -27,7 +27,7 @@ const MainMenu = ({ anchorEl, open, handleClose }: Props) => {
         Home
       </MenuItem>
 
-      <MenuItem component={Link} to="/profile" onClick={handleClose}>
+      <MenuItem component={Link} to="/profile/me" onClick={handleClose}>
         <ListItemIcon>
           <PersonIcon fontSize="small" />
         </ListItemIcon>

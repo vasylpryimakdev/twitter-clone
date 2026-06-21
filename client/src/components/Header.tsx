@@ -14,10 +14,15 @@ import TwitterIcon from "@mui/icons-material/Twitter";
 import { useAuthStore } from "../stores/auth.store";
 import { useState } from "react";
 import MainMenu from "./MainMenu";
+import { useUser } from "../hooks/useUser";
 
 export const Header = () => {
   const status = useAuthStore((state) => state.status);
-  const user = useAuthStore((state) => state.user);
+  const authUser = useAuthStore((state) => state.user);
+
+  const userId = authUser?.id;
+
+  const { data: user } = useUser(userId);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 

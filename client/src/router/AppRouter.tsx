@@ -10,6 +10,7 @@ import { ProfilePage } from "../pages/ProfilePage";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { ProtectedRoute } from "./ProtectedRoute";
 import PostFormPage from "../pages/PostFormPage";
+import { ProfileMeRedirect } from "../components/profile/ProfileMeRedirect";
 
 export const AppRouter = () => {
   return (
@@ -20,9 +21,10 @@ export const AppRouter = () => {
 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/profile/:userId" element={<ProfilePage />} />
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/me" element={<ProfileMeRedirect />} />
           <Route path="/posts/new" element={<PostFormPage />} />
           <Route path="/posts/edit/:id" element={<PostFormPage />} />
         </Route>

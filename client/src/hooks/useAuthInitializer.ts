@@ -25,6 +25,15 @@ export const useAuthInitializer = () => {
 
         await firebaseUser.reload();
 
+        const token = await firebaseUser.getIdToken();
+
+        if (!token) {
+          setUser(null);
+          setStatus("unauthenticated");
+          setInitialized(true);
+          return;
+        }
+
         const res = await api.get("/users/me");
 
         setUser({

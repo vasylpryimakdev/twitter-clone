@@ -7,6 +7,11 @@ export const usersService = {
     return res.data;
   },
 
+  getById: async (userId: string): Promise<UserProfile> => {
+    const res = await api.get(`/users/${userId}`);
+    return res.data;
+  },
+
   createProfile: async (data: {
     name: string;
     surname: string;

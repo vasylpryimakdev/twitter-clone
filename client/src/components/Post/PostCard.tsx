@@ -85,7 +85,7 @@ export const Post = ({ post }: PostProps) => {
 
         <Box>
           <Link
-            to={`/user/${authorId}`}
+            to={`/profile/${authorId}`}
             style={{ textDecoration: "none", color: "inherit" }}
           >
             <Typography sx={{ fontWeight: 600, fontSize: 14 }}>

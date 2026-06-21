@@ -17,26 +17,29 @@ import { AuthUser } from "../auth/types/auth-user.type";
 import { UpdateUserDto } from "./dto/update-user.dto";
 
 @Controller("users")
-@UseGuards(AuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get("me")
+  @UseGuards(AuthGuard)
   getMe(@CurrentUser() user: AuthUser) {
     return this.usersService.getById(user.id);
   }
 
   @Post("me")
+  @UseGuards(AuthGuard)
   createMe(@CurrentUser() user: AuthUser, @Body() body: CreateUserDto) {
     return this.usersService.createUserProfile(user, body);
   }
 
   @Patch("me")
+  @UseGuards(AuthGuard)
   updateMe(@CurrentUser() user: AuthUser, @Body() body: UpdateUserDto) {
     return this.usersService.updateUser(user.id, body);
   }
 
   @Delete("me")
+  @UseGuards(AuthGuard)
   deleteMe(@CurrentUser() user: AuthUser) {
     return this.usersService.deleteUser(user.id);
   }

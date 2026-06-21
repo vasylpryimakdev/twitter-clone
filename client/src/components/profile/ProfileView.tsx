@@ -11,18 +11,24 @@ import MailOutlineOutlined from "@mui/icons-material/MailOutlineOutlined";
 import CheckCircle from "@mui/icons-material/CheckCircle";
 import Cancel from "@mui/icons-material/Cancel";
 
-import type { UserProfile } from "../../types/user.types";
-import { useEmailVerificationWatcher } from "../../hooks/useEmailVerificationWkatcher";
-
 type Props = {
-  user: UserProfile;
-  onEdit: () => void;
+  name: string;
+  surname: string;
+  username: string;
+  emailVerified?: boolean | null;
+  isOwner: boolean;
+  onEdit?: () => void;
 };
 
-export const ProfileView = ({ user, onEdit }: Props) => {
-  const { name, surname, emailVerified } = user;
-
-  useEmailVerificationWatcher();
+export const ProfileView = ({
+  name,
+  surname,
+  username,
+  isOwner,
+  emailVerified,
+  onEdit,
+}: Props) => {
+  const showEmailStatus = isOwner && typeof emailVerified === "boolean";
 
   return (
     <Box sx={{ flex: 1, py: 1 }}>
@@ -44,9 +50,11 @@ export const ProfileView = ({ user, onEdit }: Props) => {
             {name} {surname}
           </Typography>
 
-          <IconButton onClick={onEdit}>
-            <EditIcon />
-          </IconButton>
+          {isOwner && (
+            <IconButton onClick={onEdit}>
+              <EditIcon />
+            </IconButton>
+          )}
         </Stack>
       </Stack>
 
@@ -59,45 +67,49 @@ export const ProfileView = ({ user, onEdit }: Props) => {
         }}
       >
         <Typography variant="body2" color="text.secondary">
-          @{user.username}
+          @{username}
         </Typography>
 
-        <Tooltip
-          title={emailVerified ? "Email verified" : "Email not verified"}
-          arrow
-        >
-          <Badge
-            overlap="circular"
-            anchorOrigin={{ vertical: "top", horizontal: "left" }}
-            badgeContent={
-              emailVerified ? (
-                <CheckCircle sx={{ fontSize: 10, color: "white" }} />
-              ) : (
-                <Cancel sx={{ fontSize: 10, color: "white" }} />
-              )
-            }
-            sx={{
-              "& .MuiBadge-badge": {
-                backgroundColor: emailVerified ? "success.main" : "error.main",
-                width: 10,
-                height: 10,
-                minWidth: 10,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 0,
-              },
-            }}
+        {showEmailStatus && (
+          <Tooltip
+            title={emailVerified ? "Email verified" : "Email not verified"}
+            arrow
           >
-            <MailOutlineOutlined
+            <Badge
+              overlap="circular"
+              anchorOrigin={{ vertical: "top", horizontal: "left" }}
+              badgeContent={
+                emailVerified ? (
+                  <CheckCircle sx={{ fontSize: 10, color: "white" }} />
+                ) : (
+                  <Cancel sx={{ fontSize: 10, color: "white" }} />
+                )
+              }
               sx={{
-                fontSize: 18,
-                color: emailVerified ? "success.main" : "error.main",
+                "& .MuiBadge-badge": {
+                  backgroundColor: emailVerified
+                    ? "success.main"
+                    : "error.main",
+                  width: 10,
+                  height: 10,
+                  minWidth: 10,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 0,
+                },
               }}
-            />
-          </Badge>
-        </Tooltip>
+            >
+              <MailOutlineOutlined
+                sx={{
+                  fontSize: 18,
+                  color: emailVerified ? "success.main" : "error.main",
+                }}
+              />
+            </Badge>
+          </Tooltip>
+        )}
       </Box>
     </Box>
   );
