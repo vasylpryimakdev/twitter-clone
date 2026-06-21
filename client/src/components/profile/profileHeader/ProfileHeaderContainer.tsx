@@ -34,7 +34,6 @@ export const ProfileHeaderContainer = ({ user, isOwner }: Props) => {
             isOwner={isOwner}
           />
 
-          {/* PROFILE BODY */}
           {state.isEditing ? (
             <ProfileEdit
               register={register}

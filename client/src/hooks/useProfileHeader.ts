@@ -12,6 +12,58 @@ import { uploadImage } from "../services/storage.service";
 import { useUser } from "./useUser";
 
 export const useProfileHeader = (user: UserProfile) => {
+  // const hasChanges = (data: ProfileEditForm) => {
+  //   return (
+  //     (data.name ?? "").trim() !== user.name.trim() ||
+  //     (data.surname ?? "").trim() !== user.surname.trim() ||
+  //     (data.username ?? "").trim().toLowerCase() !==
+  //       user.username.trim().toLowerCase()
+  //   );
+  // };
+
+  // const onUpdateUser = async (data: ProfileEditForm) => {
+  //   if (!hasChanges(data)) {
+  //     setIsEditing(false);
+  //     reset(user);
+
+  //     return;
+  //   }
+
+  //   try {
+  //     const updatedUser = await usersService.updateProfile(data);
+
+  //     setUser(updatedUser);
+  //     setIsEditing(false);
+  //   } catch (e) {
+  //     handleError(e);
+  //     console.error("Update failed:", e);
+  //   }
+  // };
+
+  // const handleAvatarChange = async (file: File) => {
+  //   if (avatarLoading) return;
+
+  //   try {
+  //     setAvatarLoading(true);
+
+  //     const uploaded = await uploadImage(file);
+
+  //     const updatedUser = await usersService.updateProfile({
+  //       avatar: {
+  //         url: uploaded.url,
+  //         path: uploaded.path,
+  //         type: "upload",
+  //       },
+  //     });
+
+  //     setUser(updatedUser);
+  //   } catch (e) {
+  //     handleError(e);
+  //   } finally {
+  //     setAvatarLoading(false);
+  //   }
+  // };
+
   const { invalidateUser } = useUser(user.id);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -31,23 +83,34 @@ export const useProfileHeader = (user: UserProfile) => {
     },
   });
 
-  const hasChanges = (data: ProfileEditForm) => {
-    return (
-      data.name?.trim() !== user.name.trim() ||
-      data.surname?.trim() !== user.surname.trim() ||
-      data.username?.trim().toLowerCase() !== user.username.trim().toLowerCase()
-    );
+  const getChangedFields = (data: ProfileEditForm) => {
+    const changes: Partial<ProfileEditForm> = {};
+
+    if (data.name?.trim() !== user.name) {
+      changes.name = data.name;
+    }
+
+    if (data.surname?.trim() !== user.surname) {
+      changes.surname = data.surname;
+    }
+
+    if (data.username?.trim() !== user.username) {
+      changes.username = data.username;
+    }
+
+    return changes;
   };
 
   const onUpdateUser = async (data: ProfileEditForm) => {
-    if (!hasChanges(data)) {
+    const changes = getChangedFields(data);
+
+    if (Object.keys(changes).length === 0) {
       setIsEditing(false);
-      form.reset(user);
       return;
     }
 
     try {
-      await usersService.updateProfile(data);
+      await usersService.updateProfile(changes);
 
       invalidateUser();
       setIsEditing(false);
