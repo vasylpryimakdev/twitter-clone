@@ -150,6 +150,8 @@ export class CommentsService {
         tx,
       );
 
+      let decrement = 1;
+
       if (comment.parentId) {
         await this.commentsRepository.adjustCounter(
           comment.parentId,
@@ -157,22 +159,26 @@ export class CommentsService {
           -1,
           tx,
         );
-      } else {
+      }
+
+      else {
         const replies = await this.commentsRepository.findReplies(commentId);
 
         for (const reply of replies.data) {
-          this.commentsRepository.delete(reply.id, tx);
+          await this.commentsRepository.delete(reply.id, tx);
         }
 
-        await this.postsRepository.adjustCounter(
-          post.id,
-          PostCounterFields.COMMENTS,
-          -(1 + replies.data.length),
-          tx,
-        );
+        decrement += replies.data.length;
       }
 
-      this.commentsRepository.delete(commentId, tx);
+      await this.postsRepository.adjustCounter(
+        post.id,
+        PostCounterFields.COMMENTS,
+        -decrement,
+        tx,
+      );
+
+      await this.commentsRepository.delete(commentId, tx);
 
       return { success: true };
     });

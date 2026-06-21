@@ -5,9 +5,11 @@ import { ReplyForm } from "./ReplyForm";
 
 type Props = {
   commentId: string;
+  userId: string | undefined;
+  postId: string;
 };
 
-export const RepliesList = ({ commentId }: Props) => {
+export const RepliesList = ({ commentId, userId, postId }: Props) => {
   const { data = [], isLoading, error } = useReplies(commentId);
 
   if (isLoading) {
@@ -28,7 +30,7 @@ export const RepliesList = ({ commentId }: Props) => {
 
   return (
     <Stack spacing={1}>
-      <ReplyForm commentId={commentId} />
+      <ReplyForm commentId={commentId} postId={postId} />
 
       {!data.length && (
         <Typography variant="caption" color="text.secondary" sx={{ pl: 6 }}>
@@ -37,7 +39,13 @@ export const RepliesList = ({ commentId }: Props) => {
       )}
 
       {data.map((reply) => (
-        <ReplyCard key={reply.id} reply={reply} commentId={commentId} />
+        <ReplyCard
+          key={reply.id}
+          reply={reply}
+          commentId={commentId}
+          postId={postId}
+          isOwner={userId === reply.authorId}
+        />
       ))}
     </Stack>
   );

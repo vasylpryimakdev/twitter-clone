@@ -13,20 +13,25 @@ export type RepliesResponse = {
 class RepliesService {
   async getByCommentId(commentId: string): Promise<RepliesResponse> {
     const { data } = await api.get(`/comments/${commentId}/replies`);
+
     return data;
   }
 
   async create(commentId: string, dto: CreateReplyDto): Promise<Reply> {
-    const { data } = await api.post(`/comments/${commentId}/replies`, dto);
+    const { data } = await api.post(`/comments/${commentId}/reply`, dto);
+
     return data;
   }
 
   async delete(replyId: string): Promise<void> {
-    await api.delete(`/replies/${replyId}`);
+    await api.delete(`/comments/${replyId}`);
   }
 
   async update(replyId: string, text: string): Promise<Reply> {
-    const { data } = await api.patch(`/replies/${replyId}`, { text });
+    const { data } = await api.patch(`/comments/${replyId}`, {
+      text,
+    });
+
     return data;
   }
 }

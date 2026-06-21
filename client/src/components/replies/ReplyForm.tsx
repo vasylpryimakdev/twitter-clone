@@ -13,14 +13,15 @@ import { useCreateReply } from "../../hooks/useReplies";
 
 type Props = {
   commentId: string;
+  postId: string;
 };
 
-export const ReplyForm = ({ commentId }: Props) => {
+export const ReplyForm = ({ commentId, postId }: Props) => {
   const user = useAuthStore((s) => s.user);
 
   const [text, setText] = useState("");
 
-  const createReply = useCreateReply(commentId);
+  const createReply = useCreateReply(postId, commentId);
   const loading = createReply.isPending;
 
   const handleSubmit = () => {

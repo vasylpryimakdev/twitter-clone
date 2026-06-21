@@ -14,7 +14,7 @@ export const useReplies = (commentId: string) => {
   });
 };
 
-export const useCreateReply = (commentId: string) => {
+export const useCreateReply = (postId: string, commentId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -25,8 +25,21 @@ export const useCreateReply = (commentId: string) => {
         queryClient.invalidateQueries({
           queryKey: ["replies", commentId],
         }),
+
         queryClient.invalidateQueries({
-          queryKey: ["comments"],
+          queryKey: ["comments", postId],
+        }),
+
+        queryClient.invalidateQueries({
+          queryKey: ["post", postId],
+        }),
+
+        queryClient.invalidateQueries({
+          queryKey: ["posts", "feed"],
+        }),
+
+        queryClient.invalidateQueries({
+          queryKey: ["posts", "user"],
         }),
       ]);
     },
@@ -52,16 +65,34 @@ export const useUpdateReply = (commentId: string) => {
   });
 };
 
-export const useDeleteReply = (commentId: string) => {
+export const useDeleteReply = (postId: string, commentId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (replyId: string) => repliesService.delete(replyId),
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["replies", commentId],
-      });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["replies", commentId],
+        }),
+
+        queryClient.invalidateQueries({
+          queryKey: ["comments", postId],
+        }),
+
+        queryClient.invalidateQueries({
+          queryKey: ["post", postId],
+        }),
+
+        queryClient.invalidateQueries({
+          queryKey: ["posts", "feed"],
+        }),
+
+        queryClient.invalidateQueries({
+          queryKey: ["posts", "user"],
+        }),
+      ]);
     },
 
     onError: handleError,

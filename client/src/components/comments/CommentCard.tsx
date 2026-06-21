@@ -22,13 +22,15 @@ import { RepliesList } from "../replies/RepliesList";
 type Props = {
   comment: Comment;
   postId: string;
-  isOwner?: boolean;
+  userId: string | undefined;
 };
 
-export const CommentCard = ({ comment, postId, isOwner = false }: Props) => {
+export const CommentCard = ({ comment, postId, userId }: Props) => {
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(comment.text);
   const [showReplies, setShowReplies] = useState(false);
+
+  const isOwner = userId === comment.authorId;
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -211,7 +213,11 @@ export const CommentCard = ({ comment, postId, isOwner = false }: Props) => {
         </Stack>
         {showReplies && (
           <Box sx={{ mt: 1 }}>
-            <RepliesList commentId={comment.id} />
+            <RepliesList
+              commentId={comment.id}
+              postId={postId}
+              userId={userId}
+            />
           </Box>
         )}
       </Box>

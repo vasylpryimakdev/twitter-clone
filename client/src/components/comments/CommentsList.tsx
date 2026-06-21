@@ -1,6 +1,6 @@
 import { Box, CircularProgress, Typography, Stack } from "@mui/material";
 import { useComments } from "../../hooks/useComments";
-import { CommentCard } from "./Comment";
+import { CommentCard } from "./CommentCard";
 import { CommentForm } from "./CommentForm";
 import { useAuthStore } from "../../stores/auth.store";
 
@@ -44,7 +44,7 @@ const CommentsList = ({ postId }: Props) => {
           postId={postId}
           key={comment.id}
           comment={comment}
-          isOwner={user?.id === comment.authorId}
+          userId={user?.id}
         />
       ))}
     </Stack>
