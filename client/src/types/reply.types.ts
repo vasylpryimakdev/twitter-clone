@@ -6,6 +6,7 @@ export type Reply = {
   authorId: string;
   author: Author;
   repliesCount: number;
+  createdAt: string;
 };
 
 export type RepliesResponse = {

@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 
@@ -28,8 +29,16 @@ export class PostsController {
   }
 
   @Get()
-  findFeed(@Query("limit") limit = 10, @Query("cursor") cursor?: string) {
-    return this.postsService.findFeed(Number(limit), cursor);
+  findFeed(
+    @Req() req: any,
+    @Query("limit") limit?: string,
+    @Query("cursor") cursor?: string,
+  ) {
+    return this.postsService.findFeed(
+      Number(limit ?? 10),
+      cursor,
+      req.user?.id,
+    );
   }
 
   @Get("me")
@@ -72,7 +81,7 @@ export class PostsController {
     return this.postsService.delete(user.id, id);
   }
 
-  @Post(":id/reaction")
+  @Post(":id/reactions")
   @UseGuards(AuthGuard)
   react(
     @CurrentUser() user: AuthUser,

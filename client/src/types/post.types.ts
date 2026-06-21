@@ -1,4 +1,12 @@
+import type { InfiniteData } from "@tanstack/react-query";
 import type { Author } from "./user.types";
+
+export type PostsInfinite = InfiniteData<PostsFeedResponse>;
+
+export type PostsFeedResponse = {
+  data: Post[];
+  nextCursor: string | null;
+};
 
 export type PostImage = {
   url: string;
@@ -22,4 +30,5 @@ export type Post = {
   dislikesCount: number;
   commentsCount: number;
   createdAt: string;
+  userReaction: "like" | "dislike" | null;
 };

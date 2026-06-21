@@ -9,7 +9,6 @@ import {
   Box,
   CircularProgress,
 } from "@mui/material";
-import { Link } from "react-router-dom";
 
 import ThumbDownOffAltIcon from "@mui/icons-material/ThumbDownOffAlt";
 import ThumbUpOffAlt from "@mui/icons-material/ThumbUpOffAlt";
@@ -22,7 +21,7 @@ import PostMenu from "./PostMenu";
 import { useToastStore } from "../../stores/toast.store";
 import { handleError } from "../../shared/errors/handleError";
 import { useAuthStore } from "../../stores/auth.store";
-import { useDeletePost } from "../../hooks/usePosts";
+import { useDeletePost, useReactPost } from "../../hooks/usePosts";
 import { useState } from "react";
 import CommentsList from "../comments/CommentsList";
 
@@ -42,6 +41,7 @@ export const Post = ({ post }: PostProps) => {
     dislikesCount,
     commentsCount,
     createdAt,
+    userReaction,
   } = post;
 
   const [showComments, setShowComments] = useState(false);
@@ -50,6 +50,8 @@ export const Post = ({ post }: PostProps) => {
   const showToast = useToastStore((s) => s.showToast);
 
   const deletePost = useDeletePost();
+  const reactPost = useReactPost();
+
   const handleDelete = (postId: string) => {
     deletePost.mutate(postId, {
       onSuccess: () => {
@@ -58,6 +60,23 @@ export const Post = ({ post }: PostProps) => {
       onError: handleError,
     });
   };
+
+  const handleLike = () => {
+    reactPost.mutate({
+      postId: id,
+      type: "like",
+    });
+  };
+
+  const handleDislike = () => {
+    reactPost.mutate({
+      postId: id,
+      type: "dislike",
+    });
+  };
+
+  const isLiked = userReaction === "like";
+  const isDisliked = userReaction === "dislike";
 
   return (
     <Card
@@ -83,19 +102,17 @@ export const Post = ({ post }: PostProps) => {
           mb: 1.5,
         }}
       >
-        <Link to={`/user/${authorId}`} style={{ display: "flex" }}>
-          <Avatar src={author.avatar?.url} sx={{ width: 36, height: 36 }} />
-        </Link>
+        <Avatar
+          component="a"
+          href={`/profile/${authorId}`}
+          src={author.avatar?.url}
+          sx={{ width: 36, height: 36 }}
+        />
 
-        <Box>
-          <Link
-            to={`/profile/${authorId}`}
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
-            <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
-              {author.name} {author.surname}
-            </Typography>
-          </Link>
+        <Box component="a" href={`/profile/${authorId}`}>
+          <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
+            {author.name} {author.surname}
+          </Typography>
 
           <Typography variant="caption" color="text.secondary">
             @{author.username}
@@ -138,14 +155,38 @@ export const Post = ({ post }: PostProps) => {
           sx={{ alignItems: "center", width: "100%" }}
         >
           <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-            <IconButton size="small">
+            <IconButton
+              size="small"
+              disabled={reactPost.isPending}
+              onClick={handleLike}
+              sx={{
+                color: isLiked ? "primary.main" : "inherit",
+
+                "&.Mui-disabled": {
+                  color: isLiked ? "primary.main" : "inherit",
+                  opacity: 1,
+                },
+              }}
+            >
               <ThumbUpOffAlt fontSize="small" />
             </IconButton>
             <Typography variant="caption">{likesCount}</Typography>
           </Stack>
 
           <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-            <IconButton size="small">
+            <IconButton
+              size="small"
+              disabled={reactPost.isPending}
+              onClick={handleDislike}
+              sx={{
+                color: isDisliked ? "error.main" : "text.primary",
+
+                "&.Mui-disabled": {
+                  color: isDisliked ? "error.main" : "text.primary",
+                  opacity: 1,
+                },
+              }}
+            >
               <ThumbDownOffAltIcon fontSize="small" />
             </IconButton>
             <Typography variant="caption">{dislikesCount}</Typography>

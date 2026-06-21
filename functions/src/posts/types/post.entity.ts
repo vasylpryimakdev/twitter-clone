@@ -26,4 +26,6 @@ export class Post {
   likesCount!: number;
   dislikesCount!: number;
   commentsCount!: number;
+
+  userReaction!: "like" | "dislike" | null;
 }

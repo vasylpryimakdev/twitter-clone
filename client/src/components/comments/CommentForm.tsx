@@ -32,7 +32,7 @@ export const CommentForm = ({ postId }: Props) => {
   };
 
   return (
-    <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+    <Stack direction="row" spacing={1} sx={{ mb: 2, alignItems: "center" }}>
       <Avatar src={user?.avatar?.url} sx={{ width: 32, height: 32 }} />
 
       <Box
@@ -59,7 +59,7 @@ export const CommentForm = ({ postId }: Props) => {
         disabled={!text.trim() || loading}
         onClick={handleSubmit}
       >
-        {loading ? <CircularProgress size={18} /> : "Post"}
+        {loading ? <CircularProgress size={18} /> : "Comment"}
       </Button>
     </Stack>
   );

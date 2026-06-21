@@ -29,15 +29,8 @@ const CommentsList = ({ postId }: Props) => {
   }
 
   return (
-    <Stack spacing={1}>
+    <Stack spacing={4}>
       <CommentForm postId={postId} />
-
-      {!comments ||
-        (!comments.length && (
-          <Typography variant="body2" color="text.secondary">
-            No comments yet
-          </Typography>
-        ))}
 
       {comments.map((comment) => (
         <CommentCard

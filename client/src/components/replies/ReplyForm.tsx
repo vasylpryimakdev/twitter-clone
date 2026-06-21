@@ -33,7 +33,11 @@ export const ReplyForm = ({ commentId, postId }: Props) => {
   };
 
   return (
-    <Stack direction="row" spacing={1} sx={{ mb: 1, pl: 6 }}>
+    <Stack
+      direction="row"
+      spacing={1}
+      sx={{ mb: 1, pl: 6, alignItems: "center" }}
+    >
       <Avatar src={user?.avatar?.url} sx={{ width: 28, height: 28, mt: 0.5 }} />
 
       <Box

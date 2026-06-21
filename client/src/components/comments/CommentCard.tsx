@@ -18,6 +18,7 @@ import type { Comment } from "../../types/comment.types";
 
 import { useUpdateComment, useDeleteComment } from "../../hooks/useComments";
 import { RepliesList } from "../replies/RepliesList";
+import { formatDate } from "../../shared/utils/formatDate";
 
 type Props = {
   comment: Comment;
@@ -88,20 +89,49 @@ export const CommentCard = ({ comment, postId, userId }: Props) => {
       sx={{
         px: 2,
         py: 1.5,
-        borderBottom: "1px solid #e6ecf0",
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: 2,
+        backgroundColor: "background.paper",
+        mb: 1,
+        transition: "0.2s ease",
       }}
     >
       <Avatar
         src={comment.author?.avatar?.url}
-        sx={{ width: 40, height: 40, mt: 0.5 }}
+        component="a"
+        href={`/profile/${comment.author?.id}`}
+        sx={{
+          width: 40,
+          height: 40,
+          mt: 0.5,
+          cursor: "pointer",
+        }}
       />
-
-      <Box sx={{ flex: 1 }}>
+      <Box sx={{ flex: 1, position: "relative" }}>
         <Stack
           direction="row"
           sx={{ justifyContent: "space-between", alignItems: "center" }}
         >
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          {showReplies && (
+            <Box
+              sx={{
+                position: "absolute",
+                left: -33,
+                top: 45,
+                bottom: 0,
+                width: "2px",
+                backgroundColor: "divider",
+              }}
+            />
+          )}
+
+          <Stack
+            component="a"
+            href={`/profile/${comment.author?.id}`}
+            direction="column"
+            sx={{ mb: 2 }}
+          >
             <Typography sx={{ fontWeight: 600 }} variant="body2">
               {comment.author?.name ?? "Unknown"}{" "}
               {comment.author?.surname ?? ""}
@@ -179,6 +209,12 @@ export const CommentCard = ({ comment, postId, userId }: Props) => {
               multiline
               value={text}
               onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                  e.preventDefault();
+                  handleSave();
+                }
+              }}
               sx={{
                 "& textarea": {
                   resize: "none",
@@ -201,7 +237,13 @@ export const CommentCard = ({ comment, postId, userId }: Props) => {
         <Stack
           direction="row"
           spacing={3}
-          sx={{ mt: 1, color: "text.secondary" }}
+          sx={{
+            width: "100%",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mt: 1,
+            color: "text.secondary",
+          }}
         >
           <Stack direction="row" sx={{ alignItems: "center" }} spacing={0.5}>
             <IconButton size="small" onClick={toggleReplies}>
@@ -209,6 +251,11 @@ export const CommentCard = ({ comment, postId, userId }: Props) => {
             </IconButton>
 
             <Typography variant="caption">{comment.repliesCount}</Typography>
+          </Stack>
+          <Stack direction="row" sx={{ justifyContent: "flex-end", mt: 0.5 }}>
+            <Typography variant="caption" color="text.secondary">
+              {formatDate(comment.createdAt)}
+            </Typography>
           </Stack>
         </Stack>
         {showReplies && (

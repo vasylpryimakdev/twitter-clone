@@ -1,4 +1,7 @@
-import { forwardRef, Module } from "@nestjs/common";
+import {
+  forwardRef,
+  Module,
+} from "@nestjs/common";
 import { PostsController } from "./posts.controller";
 import { PostsService } from "./posts.service";
 import { PostsRepository } from "./posts.repository";

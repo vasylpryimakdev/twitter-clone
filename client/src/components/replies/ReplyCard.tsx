@@ -15,6 +15,7 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
 import { useUpdateReply, useDeleteReply } from "../../hooks/useReplies";
 import type { Reply } from "../../types/reply.types";
+import { formatDate } from "../../shared/utils/formatDate";
 
 type Props = {
   reply: Reply;
@@ -80,24 +81,34 @@ export const ReplyCard = ({
       direction="row"
       spacing={1.5}
       sx={{
-        pl: 6,
-        py: 1,
+        pl: 2,
+        py: 1.2,
+        pr: 1.5,
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: 2,
+        backgroundColor: "rgba(0,0,0,0.015)",
+        transition: "all 0.2s ease",
         opacity: isDeleting ? 0.5 : 1,
-        transition: "0.2s",
       }}
     >
       <Avatar
+        component="a"
+        href={`/profile/${reply.author.id}`}
         src={reply.author.avatar?.url}
         sx={{ width: 32, height: 32, mt: 0.5 }}
       />
 
       <Box sx={{ flex: 1 }}>
-        {/* HEADER */}
         <Stack
           direction="row"
           sx={{ justifyContent: "space-between", alignItems: "center" }}
         >
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Stack
+            component="a"
+            href={`/profile/${reply.author.id}`}
+            direction="column"
+          >
             <Typography sx={{ fontWeight: 600 }} variant="body2">
               {reply.author.name} {reply.author.surname}
             </Typography>
@@ -138,9 +149,22 @@ export const ReplyCard = ({
           )}
         </Stack>
 
-        {/* BODY */}
         {!isEditing ? (
-          <Typography sx={{ mt: 0.5 }}>{reply.text}</Typography>
+          <Box>
+            <Typography sx={{ mt: 0.5 }}>{reply.text}</Typography>
+
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{
+                display: "block",
+                textAlign: "right",
+                mt: 0.5,
+              }}
+            >
+              {formatDate(reply.createdAt)}
+            </Typography>
+          </Box>
         ) : (
           <Box sx={{ mt: 1 }}>
             <TextField

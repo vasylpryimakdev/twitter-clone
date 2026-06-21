@@ -9,7 +9,7 @@ import { PostDto } from "./dto/post-dto";
 import { Post } from "./types/post.entity";
 import { PostsRepository } from "./posts.repository";
 import { WritePostModel } from "./types/write-post.model";
-import { FieldValue, Firestore } from "firebase-admin/firestore";
+import { FieldValue, Firestore, Transaction } from "firebase-admin/firestore";
 import { PostDeletionService } from "./post-deletion.service";
 import { FIRESTORE } from "../common/firestore/firestore.provider";
 import { ReactionType, ReactionTypes } from "../reactions/reaction.entity";
@@ -82,8 +82,35 @@ export class PostsService {
       cursor,
     );
 
+    const postIds = docs.map((p) => p.id);
+
+    let reactionsMap = new Map<string, "like" | "dislike">();
+
+    if (postIds.length) {
+      const reactionsSnap = await this.firestore
+        .collection("reactions")
+        .where("userId", "==", userId)
+        .get();
+
+      reactionsSnap.docs.forEach((doc) => {
+        const data = doc.data() as {
+          postId: string;
+          type: "like" | "dislike";
+        };
+
+        if (postIds.includes(data.postId)) {
+          reactionsMap.set(data.postId, data.type);
+        }
+      });
+    }
+
     return {
-      data: docs.map((post) => toPostResponse(post)),
+      data: docs.map((post) =>
+        toPostResponse({
+          ...post,
+          userReaction: reactionsMap.get(post.id) ?? null,
+        }),
+      ),
       nextCursor: lastDoc,
     };
   }
@@ -169,14 +196,52 @@ export class PostsService {
     await this.postDeletionService.deletePost(postId);
   }
 
-  async findFeed(limit = 10, cursor?: string) {
+  async findFeed(limit = 10, cursor?: string, userId?: string) {
     const { docs, lastDoc } = await this.postsRepository.findFeed(
       limit,
       cursor,
     );
 
+    const postIds = docs.map((p) => p.id);
+
+    const reactionMap = new Map<string, "like" | "dislike">();
+
+    if (userId && postIds.length) {
+      const chunks: string[][] = [];
+
+      for (let i = 0; i < postIds.length; i += 10) {
+        chunks.push(postIds.slice(i, i + 10));
+      }
+
+      const snaps = await Promise.all(
+        chunks.map((chunk) =>
+          this.firestore
+            .collection("reactions")
+            .where("userId", "==", userId)
+            .where("postId", "in", chunk)
+            .get(),
+        ),
+      );
+
+      for (const snap of snaps) {
+        snap.docs.forEach((doc) => {
+          const data = doc.data() as {
+            postId: string;
+            type: "like" | "dislike";
+          };
+
+          reactionMap.set(data.postId, data.type);
+        });
+      }
+    }
+
     return {
-      data: docs.map((post) => toPostResponse(post)),
+      data: docs.map((post) =>
+        toPostResponse({
+          ...post,
+          userReaction: reactionMap.get(post.id) ?? null,
+        }),
+      ),
       nextCursor: lastDoc,
     };
   }
@@ -192,88 +257,45 @@ export class PostsService {
       if (currentType === type) {
         await this.reactionsRepository.delete(postId, userId, tx);
 
-        if (type === ReactionTypes.LIKE) {
-          await this.postsRepository.adjustCounter(
-            postId,
-            PostCounterFields.LIKES,
-            -1,
-            tx,
-          );
-        }
-
-        if (type === ReactionTypes.DISLIKE) {
-          await this.postsRepository.adjustCounter(
-            postId,
-            PostCounterFields.DISLIKES,
-            -1,
-            tx,
-          );
-        }
-
+        await this.adjust(postId, currentType, -1, tx);
         return;
       }
 
       if (!currentType) {
         await this.reactionsRepository.set(postId, userId, type, tx);
-
-        if (type === ReactionTypes.LIKE) {
-          await this.postsRepository.adjustCounter(
-            postId,
-            PostCounterFields.LIKES,
-            1,
-            tx,
-          );
-        }
-
-        if (type === ReactionTypes.DISLIKE) {
-          await this.postsRepository.adjustCounter(
-            postId,
-            PostCounterFields.DISLIKES,
-            1,
-            tx,
-          );
-        }
-
+        await this.adjust(postId, type, +1, tx);
         return;
       }
 
       await this.reactionsRepository.set(postId, userId, type, tx);
 
-      if (currentType === ReactionTypes.LIKE) {
-        await this.postsRepository.adjustCounter(
-          postId,
-          PostCounterFields.LIKES,
-          -1,
-          tx,
-        );
-      }
-
-      if (currentType === ReactionTypes.DISLIKE) {
-        await this.postsRepository.adjustCounter(
-          postId,
-          PostCounterFields.DISLIKES,
-          -1,
-          tx,
-        );
-      }
-
-      if (type === ReactionTypes.LIKE) {
-        await this.postsRepository.adjustCounter(
-          postId,
-          PostCounterFields.LIKES,
-          1,
-          tx,
-        );
-      }
-
-      if (type === ReactionTypes.DISLIKE) {
-        await this.postsRepository.adjustCounter(
-          postId,
-          PostCounterFields.DISLIKES,
-          1,
-          tx,
-        );
-      }
+      await this.adjust(postId, currentType, -1, tx);
+      await this.adjust(postId, type, +1, tx);
     });
+  }
+
+  private async adjust(
+    postId: string,
+    type: ReactionType,
+    delta: number,
+    tx: Transaction,
+  ) {
+    if (type === ReactionTypes.LIKE) {
+      await this.postsRepository.adjustCounter(
+        postId,
+        PostCounterFields.LIKES,
+        delta,
+        tx,
+      );
+    }
+
+    if (type === ReactionTypes.DISLIKE) {
+      await this.postsRepository.adjustCounter(
+        postId,
+        PostCounterFields.DISLIKES,
+        delta,
+        tx,
+      );
+    }
   }
 }

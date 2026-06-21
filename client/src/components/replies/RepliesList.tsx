@@ -10,7 +10,7 @@ type Props = {
 };
 
 export const RepliesList = ({ commentId, userId, postId }: Props) => {
-  const { data = [], isLoading, error } = useReplies(commentId);
+  const { data: comments = [], isLoading, error } = useReplies(commentId);
 
   if (isLoading) {
     return (
@@ -32,13 +32,7 @@ export const RepliesList = ({ commentId, userId, postId }: Props) => {
     <Stack spacing={1}>
       <ReplyForm commentId={commentId} postId={postId} />
 
-      {!data.length && (
-        <Typography variant="caption" color="text.secondary" sx={{ pl: 6 }}>
-          No replies yet
-        </Typography>
-      )}
-
-      {data.map((reply) => (
+      {comments.map((reply) => (
         <ReplyCard
           key={reply.id}
           reply={reply}

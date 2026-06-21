@@ -1,4 +1,9 @@
-import { Module, ValidationPipe } from "@nestjs/common";
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  ValidationPipe,
+} from "@nestjs/common";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 
 import { ConfigModule } from "@nestjs/config";
@@ -11,6 +16,7 @@ import { AuthModule } from "./auth/auth.module";
 import { ContentTypeGuard } from "./common/guards/content-type.guard";
 import FirebaseModule from "./common/firestore/firestore.module";
 import { CommentsModule } from "./comments/comments.module";
+import { AuthMiddleware } from "./middlewares/AuthMiddleware";
 
 @Module({
   imports: [
@@ -50,4 +56,8 @@ import { CommentsModule } from "./comments/comments.module";
     AppService,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthMiddleware).forRoutes("*");
+  }
+}

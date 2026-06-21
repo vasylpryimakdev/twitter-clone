@@ -1,10 +1,5 @@
 import { api } from "../api/api";
-import type { Post, PostDTO } from "../types/post.types";
-
-export type PostsFeedResponse = {
-  data: Post[];
-  nextCursor: string | null;
-};
+import type { Post, PostDTO, PostsFeedResponse } from "../types/post.types";
 
 export const postsService = {
   getPosts: async (params?: {
