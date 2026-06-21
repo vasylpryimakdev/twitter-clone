@@ -10,11 +10,13 @@ import { FIRESTORE } from "../common/firestore/firestore.provider";
 import { WriteComment } from "./types/write-comment.model";
 import { PostCounterFields } from "../posts/types/post-counter-field";
 import { CommentCounterFields } from "./types/comment-counter-field";
+import { UsersRepository } from "../users/users.respository";
 @Injectable()
 export class CommentsService {
   constructor(
     private readonly commentsRepository: CommentsRepository,
     private readonly postsRepository: PostsRepository,
+    private readonly usersRepository: UsersRepository,
     @Inject(FIRESTORE)
     private readonly firestore: Firestore,
   ) {}
@@ -22,19 +24,32 @@ export class CommentsService {
   async createForPost(userId: string, postId: string, dto: CreateCommentDto) {
     const commentId = this.commentsRepository.createId();
 
+    const user = await this.usersRepository.findByIdOrThrow(userId);
+
+    const comment: WriteComment = {
+      id: commentId,
+
+      authorId: userId,
+
+      author: {
+        id: user.id,
+        name: user.name,
+        surname: user.surname,
+        username: user.username,
+        avatar: user.avatar ?? null,
+      },
+
+      postId,
+      parentId: dto.parentId ?? null,
+      text: dto.text,
+      repliesCount: 0,
+
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+
     await this.firestore.runTransaction(async (tx) => {
       await this.postsRepository.getDataOrThrow(postId, tx);
-
-      const comment: WriteComment = {
-        id: commentId,
-        authorId: userId,
-        postId,
-        parentId: null,
-        text: dto.text,
-        repliesCount: 0,
-        createdAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
-      };
 
       await this.commentsRepository.create(comment.id, comment, tx);
 
@@ -44,8 +59,6 @@ export class CommentsService {
         1,
         tx,
       );
-
-      return comment;
     });
 
     return this.commentsRepository.findByIdOrThrow(commentId);
@@ -54,12 +67,22 @@ export class CommentsService {
   async createReply(userId: string, parentId: string, dto: CreateCommentDto) {
     const commentId = this.commentsRepository.createId();
 
+    const user = await this.usersRepository.findByIdOrThrow(userId);
+
     await this.firestore.runTransaction(async (tx) => {
       const parent = await this.commentsRepository.getDataOrThrow(parentId, tx);
 
       const reply: WriteComment = {
         id: commentId,
         authorId: userId,
+        author: {
+          id: user.id,
+          name: user.name,
+          surname: user.surname,
+          username: user.username,
+          avatar: user.avatar ?? null,
+        },
+
         postId: parent.postId,
         parentId,
         text: dto.text,

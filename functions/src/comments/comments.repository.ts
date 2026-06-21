@@ -46,7 +46,7 @@ export class CommentsRepository extends BaseRepository<Comment, WriteComment> {
 
     return {
       data: snapshot.docs.map((doc) => mapDoc<Comment>(doc)),
-      lastCursor: lastDoc,
+      nextCursor: lastDoc,
     };
   }
 
@@ -80,7 +80,7 @@ export class CommentsRepository extends BaseRepository<Comment, WriteComment> {
 
     return {
       data: snapshot.docs.map((doc) => mapDoc<Comment>(doc)),
-      lastCursor: lastDoc,
+      nextCursor: lastDoc,
     };
   }
 

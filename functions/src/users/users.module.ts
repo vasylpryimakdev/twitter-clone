@@ -21,6 +21,6 @@ import { StorageModule } from "../storage/storage.module";
   ],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository, UserDeletionService],
-  exports: [UsersService],
+  exports: [UsersService, UsersRepository],
 })
 export class UsersModule {}

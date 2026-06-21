@@ -1,11 +1,38 @@
-import { useQuery } from "@tanstack/react-query";
-import { commentsService } from "../services/comments.service";
+import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
+import {
+  commentsService,
+  type CommentsResponse,
+} from "../services/comments.service";
+import { useQueryErrorHandler } from "./useQueryErrorHandler";
 
-export const useComments = (postId: string) => {
-  return useQuery({
+type Cursor = string | undefined;
+
+export const useComments = (postId?: string) => {
+  const query = useInfiniteQuery<
+    CommentsResponse,
+    Error,
+    InfiniteData<CommentsResponse>,
+    [string, string | undefined],
+    Cursor
+  >({
     queryKey: ["comments", postId],
-    queryFn: () => commentsService.getByPostId(postId),
+
+    queryFn: ({ pageParam }) =>
+      commentsService.getByPostId(postId!, pageParam, 20),
+
+    initialPageParam: undefined,
+
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+
     enabled: !!postId,
-    staleTime: 0,
   });
+
+  useQueryErrorHandler(query.error, query.isError);
+
+  const comments = query.data?.pages.flatMap((page) => page.data) ?? [];
+
+  return {
+    ...query,
+    comments,
+  };
 };

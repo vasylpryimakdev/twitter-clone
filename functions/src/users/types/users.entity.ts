@@ -1,10 +1,5 @@
 import { Timestamp } from "firebase-admin/firestore";
-
-export type UserAvatar = {
-  url: string;
-  path?: string;
-  type: "google" | "upload";
-} | null;
+import { UserAvatar } from "../../shared/types/author-snapshot";
 
 export class User {
   id!: string;

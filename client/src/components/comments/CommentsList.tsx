@@ -1,15 +1,14 @@
 import { Box, CircularProgress, Typography, Stack } from "@mui/material";
 import { useComments } from "../../hooks/useComments";
 import { CommentCard } from "./Comment";
+import { CommentForm } from "./CommentForm";
 
 type Props = {
   postId: string;
 };
 
 const CommentsList = ({ postId }: Props) => {
-  const { data, isLoading, error } = useComments(postId);
-
-  const comments = data ?? [];
+  const { comments, isLoading, error } = useComments(postId);
 
   if (isLoading) {
     return (
@@ -27,22 +26,19 @@ const CommentsList = ({ postId }: Props) => {
     );
   }
 
-  if (!comments.length) {
-    return (
-      <Typography variant="body2" color="text.secondary">
-        No comments yet
-      </Typography>
-    );
-  }
-
   return (
     <Stack spacing={1}>
+      <CommentForm postId={postId} />
+
+      {!comments ||
+        (!comments.length && (
+          <Typography variant="body2" color="text.secondary">
+            No comments yet
+          </Typography>
+        ))}
+
       {comments.map((comment) => (
-        <CommentCard
-          key={comment.id}
-          comment={comment}
-          author={comment.author}
-        />
+        <CommentCard key={comment.id} comment={comment} />
       ))}
     </Stack>
   );
