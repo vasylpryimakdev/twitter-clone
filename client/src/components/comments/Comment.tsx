@@ -17,22 +17,18 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutlineOutlined
 import type { Comment } from "../../types/comment.types";
 
 import { useUpdateComment, useDeleteComment } from "../../hooks/useComments";
+import { RepliesList } from "../replies/RepliesList";
 
 type Props = {
   comment: Comment;
   postId: string;
   isOwner?: boolean;
-  onReply?: () => void;
 };
 
-export const CommentCard = ({
-  comment,
-  postId,
-  isOwner = false,
-  onReply,
-}: Props) => {
+export const CommentCard = ({ comment, postId, isOwner = false }: Props) => {
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(comment.text);
+  const [showReplies, setShowReplies] = useState(false);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -77,6 +73,10 @@ export const CommentCard = ({
   const handleDelete = () => {
     deleteComment.mutate(comment.id);
     handleMenuClose();
+  };
+
+  const toggleReplies = () => {
+    setShowReplies((prev) => !prev);
   };
 
   return (
@@ -202,13 +202,18 @@ export const CommentCard = ({
           sx={{ mt: 1, color: "text.secondary" }}
         >
           <Stack direction="row" sx={{ alignItems: "center" }} spacing={0.5}>
-            <IconButton size="small" onClick={onReply}>
+            <IconButton size="small" onClick={toggleReplies}>
               <ChatBubbleOutlineIcon fontSize="small" />
             </IconButton>
 
             <Typography variant="caption">{comment.repliesCount}</Typography>
           </Stack>
         </Stack>
+        {showReplies && (
+          <Box sx={{ mt: 1 }}>
+            <RepliesList commentId={comment.id} />
+          </Box>
+        )}
       </Box>
     </Stack>
   );

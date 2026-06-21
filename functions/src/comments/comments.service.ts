@@ -86,7 +86,6 @@ export class CommentsService {
         postId: parent.postId,
         parentId,
         text: dto.text,
-        repliesCount: 0,
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       };

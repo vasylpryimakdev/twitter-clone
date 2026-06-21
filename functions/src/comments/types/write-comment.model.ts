@@ -11,7 +11,7 @@ export type WriteComment = {
 
   text: string;
 
-  repliesCount: number;
+  repliesCount?: number;
 
   createdAt: FieldValue;
   updatedAt: FieldValue;
