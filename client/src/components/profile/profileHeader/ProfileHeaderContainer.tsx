@@ -14,9 +14,14 @@ import { useProfileHeader } from "../../../hooks/useProfileHeader";
 type Props = {
   user: UserProfile;
   isOwner: boolean;
+  emailVerified?: boolean;
 };
 
-export const ProfileHeaderContainer = ({ user, isOwner }: Props) => {
+export const ProfileHeaderContainer = ({
+  user,
+  isOwner,
+  emailVerified,
+}: Props) => {
   const { state, actions, form } = useProfileHeader(user);
 
   const { register, handleSubmit, formState } = form;
@@ -47,6 +52,7 @@ export const ProfileHeaderContainer = ({ user, isOwner }: Props) => {
               name={user.name}
               surname={user.surname}
               username={user.username}
+              emailVerified={emailVerified}
               isOwner={true}
               onEdit={() => actions.setIsEditing(true)}
             />

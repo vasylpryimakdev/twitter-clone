@@ -6,10 +6,10 @@ import type { UserProfile } from "../../../types/user.types";
 type Props = {
   user: UserProfile;
   isOwner: boolean;
-  emailVerified?: boolean;
 };
 
-export const ProfileHeaderView = ({ user, isOwner, emailVerified }: Props) => {
+export const ProfileHeaderView = ({ user, isOwner }: Props) => {
+
   return (
     <>
       <Box sx={{ height: 180, backgroundColor: "#cfd9de" }} />
@@ -23,7 +23,6 @@ export const ProfileHeaderView = ({ user, isOwner, emailVerified }: Props) => {
             surname={user.surname}
             username={user.username}
             isOwner={isOwner}
-            emailVerified={emailVerified}
             onEdit={() => {}}
           />
         </Stack>

@@ -10,6 +10,7 @@ import { usersService } from "../services/users.service";
 import { handleError } from "../shared/errors/handleError";
 import { uploadImage } from "../services/storage.service";
 import { useUser } from "./useUser";
+import { useAuthStore } from "../stores/auth.store";
 
 export const useProfileHeader = (user: UserProfile) => {
   const { invalidateUser } = useUser(user.id);
@@ -70,18 +71,22 @@ export const useProfileHeader = (user: UserProfile) => {
   const handleAvatarChange = async (file: File) => {
     if (avatarLoading) return;
 
+    const setUser = useAuthStore.getState().setUser;
+
     try {
       setAvatarLoading(true);
 
       const uploaded = await uploadImage(file);
 
-      await usersService.updateProfile({
+      const updatedProfile = await usersService.updateProfile({
         avatar: {
           url: uploaded.url,
           path: uploaded.path,
           type: "upload",
         },
       });
+
+      setUser(updatedProfile);
 
       invalidateUser();
     } catch (e) {

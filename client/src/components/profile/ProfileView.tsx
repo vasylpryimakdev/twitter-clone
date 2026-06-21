@@ -28,7 +28,7 @@ export const ProfileView = ({
   emailVerified,
   onEdit,
 }: Props) => {
-  const showEmailStatus = isOwner && typeof emailVerified === "boolean";
+  const showEmailStatus = isOwner;
 
   return (
     <Box sx={{ flex: 1, py: 1 }}>

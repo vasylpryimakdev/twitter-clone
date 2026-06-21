@@ -9,7 +9,7 @@ import { useUser } from "../hooks/useUser";
 export const ProfilePage = () => {
   const { userId } = useParams<{ userId: string }>();
 
-  const currentUser = useAuthStore((s) => s.user);
+  const authUser = useAuthStore((s) => s.user);
   const status = useAuthStore((s) => s.status);
   const isInitialized = useAuthStore((s) => s.isInitialized);
 
@@ -19,7 +19,7 @@ export const ProfilePage = () => {
 
   const userPosts = data?.pages.flatMap((page) => page.data) ?? [];
 
-  const isOwner = currentUser?.id === userId;
+  const isOwner = authUser?.id === userId;
 
   if (!isInitialized || status === "loading") {
     return (
@@ -61,7 +61,11 @@ export const ProfilePage = () => {
 
   return (
     <Box sx={{ width: "100%" }}>
-      <ProfileHeader user={user} isOwner={isOwner} />
+      <ProfileHeader
+        user={user}
+        emailVerified={authUser?.emailVerified}
+        isOwner={isOwner}
+      />
 
       <Box sx={{ mt: 3, px: 2 }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
