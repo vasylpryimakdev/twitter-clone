@@ -23,6 +23,8 @@ import { useToastStore } from "../../stores/toast.store";
 import { handleError } from "../../shared/errors/handleError";
 import { useAuthStore } from "../../stores/auth.store";
 import { useDeletePost } from "../../hooks/usePosts";
+import { useState } from "react";
+import CommentsList from "../comments/CommentsList";
 
 export type PostProps = {
   post: PostType;
@@ -41,6 +43,8 @@ export const Post = ({ post }: PostProps) => {
     commentsCount,
     createdAt,
   } = post;
+
+  const [showComments, setShowComments] = useState(false);
 
   const user = useAuthStore((s) => s.user);
   const showToast = useToastStore((s) => s.showToast);
@@ -148,9 +152,13 @@ export const Post = ({ post }: PostProps) => {
           </Stack>
 
           <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-            <IconButton size="small">
+            <IconButton
+              size="small"
+              onClick={() => setShowComments((prev) => !prev)}
+            >
               <ChatBubbleOutlineOutlined fontSize="small" />
             </IconButton>
+
             <Typography variant="caption">{commentsCount}</Typography>
           </Stack>
 
@@ -162,6 +170,12 @@ export const Post = ({ post }: PostProps) => {
             {formatDate(createdAt)}
           </Typography>
         </Stack>
+
+        {showComments && (
+          <Box sx={{ mt: 2 }}>
+            <CommentsList postId={id} />
+          </Box>
+        )}
       </CardContent>
 
       {deletePost.isPending && (

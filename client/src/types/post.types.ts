@@ -1,4 +1,4 @@
-import type { PostUser } from "./user.types";
+import type { Author } from "./user.types";
 
 export type PostImage = {
   url: string;
@@ -14,7 +14,7 @@ export type PostDTO = {
 export type Post = {
   id: string;
   authorId: string;
-  author: PostUser;
+  author: Author;
   title: string;
   text: string;
   imageUrl: string | null;

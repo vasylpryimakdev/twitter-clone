@@ -1,6 +1,6 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { usePosts } from "../hooks/usePosts";
-import PostsList from "../components/post/PostsList";
+import PostsList from "../components/posts/PostsList";
 
 export const HomePage = () => {
   const { data, isLoading, error } = usePosts();

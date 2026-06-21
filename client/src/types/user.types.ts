@@ -5,7 +5,7 @@ export type UpdateUserDto = {
   avatar?: UserAvatar | string | null;
 };
 
-export type PostUser = {
+export type Author = {
   id: string;
   name: string;
   surname: string;

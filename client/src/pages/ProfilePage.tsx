@@ -2,7 +2,7 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { useAuthStore } from "../stores/auth.store";
 import { ProfileHeader } from "../components/profile/ProfileHeader";
-import PostsList from "../components/post/PostsList";
+import PostsList from "../components/posts/PostsList";
 import { useUserPosts } from "../hooks/usePosts";
 import { useUser } from "../hooks/useUser";
 
