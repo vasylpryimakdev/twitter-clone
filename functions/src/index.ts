@@ -1,12 +1,14 @@
 import * as functions from "firebase-functions";
-import { createNestServer } from "./main";
+import { bootstrap } from "./bootstrap";
+import { expressApp } from "./expressApp";
 
-let server: any;
+let initialized = false;
 
 export const api = functions.https.onRequest(async (req, res) => {
-  if (!server) {
-    server = await createNestServer();
+  if (!initialized) {
+    await bootstrap();
+    initialized = true;
   }
 
-  return server(req, res);
+  return expressApp(req, res);
 });
