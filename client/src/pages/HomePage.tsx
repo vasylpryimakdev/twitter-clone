@@ -5,6 +5,7 @@ import { useAuthStore } from "../stores/auth.store";
 
 export const HomePage = () => {
   const { data, isLoading, error } = usePosts();
+
   const status = useAuthStore((s) => s.status);
 
   const posts = data?.pages.flatMap((page) => page.data) ?? [];

@@ -24,6 +24,7 @@ import { useAuthStore } from "../../stores/auth.store";
 import { useDeletePost, useReactPost } from "../../hooks/usePosts";
 import { useState } from "react";
 import CommentsList from "../comments/CommentsList";
+import { useNavigate } from "react-router-dom";
 
 export type PostProps = {
   post: PostType;
@@ -34,7 +35,7 @@ export const Post = ({ post }: PostProps) => {
     id,
     title,
     text,
-    imageUrl,
+    image,
     authorId,
     author,
     likesCount,
@@ -46,7 +47,10 @@ export const Post = ({ post }: PostProps) => {
 
   const [showComments, setShowComments] = useState(false);
 
+  const navigate = useNavigate();
+
   const user = useAuthStore((s) => s.user);
+  const status = useAuthStore((s) => s.status);
   const showToast = useToastStore((s) => s.showToast);
 
   const deletePost = useDeletePost();
@@ -62,6 +66,12 @@ export const Post = ({ post }: PostProps) => {
   };
 
   const handleLike = () => {
+    if (status === "unauthenticated") {
+      navigate("/login");
+
+      return;
+    }
+
     reactPost.mutate({
       postId: id,
       type: "like",
@@ -69,6 +79,12 @@ export const Post = ({ post }: PostProps) => {
   };
 
   const handleDislike = () => {
+    if (status === "unauthenticated") {
+      navigate("/login");
+
+      return;
+    }
+
     reactPost.mutate({
       postId: id,
       type: "dislike",
@@ -126,10 +142,10 @@ export const Post = ({ post }: PostProps) => {
         />
       </Box>
 
-      {imageUrl && (
+      {image && (
         <CardMedia
           component="img"
-          image={imageUrl}
+          image={image.url}
           alt={title}
           sx={{
             borderRadius: 2,

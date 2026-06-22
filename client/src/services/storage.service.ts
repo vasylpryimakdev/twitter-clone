@@ -5,9 +5,10 @@ import {
   deleteObject,
 } from "firebase/storage";
 import { storage } from "../firebase/firebase";
+import type { PostImage } from "../types/post.types";
 
-export const uploadImage = async (file: File) => {
-  const path = `posts/${Date.now()}-${file.name}`;
+export const uploadImage = async (file: File): Promise<PostImage> => {
+  const path = `posts/${crypto.randomUUID()}-${file.name}`;
   const fileRef = ref(storage, path);
 
   await uploadBytes(fileRef, file);

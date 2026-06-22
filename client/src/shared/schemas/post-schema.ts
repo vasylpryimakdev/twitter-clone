@@ -1,12 +1,18 @@
 import { z } from "zod";
 
 export const createPostSchema = z.object({
-  title: z.string().min(1, "Title is required").max(120),
+  title: z.string().min(1).max(120),
+  text: z.string().min(1).max(5000),
 
-  text: z.string().min(1, "Text is required").max(5000),
-
-  imageUrl: z
-    .union([z.instanceof(File), z.string().url(), z.null()])
+  image: z
+    .union([
+      z.instanceof(File),
+      z.object({
+        url: z.string().url(),
+        path: z.string(),
+      }),
+    ])
+    .nullable()
     .optional(),
 });
 

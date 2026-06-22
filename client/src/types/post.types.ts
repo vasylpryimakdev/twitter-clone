@@ -25,7 +25,7 @@ export type Post = {
   author: Author;
   title: string;
   text: string;
-  imageUrl: string | null;
+  image: PostImage | null;
   likesCount: number;
   dislikesCount: number;
   commentsCount: number;

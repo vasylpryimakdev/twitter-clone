@@ -10,7 +10,9 @@ import {
 } from "../services/comments.service";
 import { useQueryErrorHandler } from "./useQueryErrorHandler";
 import { handleError } from "../shared/errors/handleError";
-import type { PostsFeedResponse } from "../services/posts.service";
+import type { PostsFeedResponse } from "../types/post.types";
+import { useAuthStore } from "../stores/auth.store";
+import { useNavigate } from "react-router-dom";
 
 type Cursor = string | undefined;
 
@@ -46,9 +48,18 @@ export const useComments = (postId?: string) => {
 
 export const useCreateComment = (postId: string) => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const status = useAuthStore((s) => s.status);
 
   return useMutation({
-    mutationFn: (text: string) => commentsService.create(postId, { text }),
+    mutationFn: async (text: string) => {
+      if (status === "unauthenticated") {
+        navigate("/login");
+        throw new Error("Unauthorized");
+      }
+
+      return commentsService.create(postId, { text });
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({

@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { repliesService } from "../services/replies.service";
 import { handleError } from "../shared/errors/handleError";
 import type { Reply } from "../types/reply.types";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../stores/auth.store";
 
 export const useReplies = (commentId: string) => {
   return useQuery<Reply[], Error>({
@@ -16,9 +18,18 @@ export const useReplies = (commentId: string) => {
 
 export const useCreateReply = (postId: string, commentId: string) => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const status = useAuthStore((s) => s.status);
 
   return useMutation({
-    mutationFn: (text: string) => repliesService.create(commentId, { text }),
+    mutationFn: (text: string) => {
+      if (status === "unauthenticated") {
+        navigate("/login");
+        throw new Error("Unauthorized");
+      }
+
+      return repliesService.create(commentId, { text });
+    },
 
     onSuccess: async () => {
       await Promise.all([

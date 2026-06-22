@@ -50,7 +50,7 @@ const PostFormPage = () => {
       reset({
         title: post.title,
         text: post.text,
-        imageUrl: post.imageUrl ?? "",
+        image: post.image ?? null,
       });
     }
 
@@ -58,7 +58,7 @@ const PostFormPage = () => {
       reset({
         title: "",
         text: "",
-        imageUrl: "",
+        image: null,
       });
     }
   }, [post, isEditMode, reset]);
@@ -70,12 +70,12 @@ const PostFormPage = () => {
     setSubmitting(true);
 
     try {
-      if (data.imageUrl instanceof File) {
-        uploadedImage = await uploadImage(data.imageUrl);
+      if (data.image instanceof File) {
+        uploadedImage = await uploadImage(data.image);
         imagePayload = uploadedImage;
       }
 
-      if (data.imageUrl === null) {
+      if (data.image === null) {
         imagePayload = null;
       }
 
@@ -149,7 +149,7 @@ const PostFormPage = () => {
             />
 
             <Controller
-              name="imageUrl"
+              name="image"
               control={control}
               render={({ field, fieldState }) => {
                 const value = field.value;
@@ -157,9 +157,7 @@ const PostFormPage = () => {
                 const preview =
                   value instanceof File
                     ? URL.createObjectURL(value)
-                    : typeof value === "string"
-                      ? value
-                      : null;
+                    : (value?.url ?? null);
 
                 const handleFileChange = (
                   e: React.ChangeEvent<HTMLInputElement>,

@@ -17,7 +17,6 @@ import { PostCounterFields } from "./types/post-counter-field";
 import { ReactionsRepository } from "../reactions/reactions.repository";
 import { UsersService } from "../users/users.service";
 import { StorageService } from "../storage/storage.service";
-import { toPostResponse } from "./mappers/post.response.mapper";
 
 @Injectable()
 export class PostsService {
@@ -65,14 +64,11 @@ export class PostsService {
 
     await this.postsRepository.create(post.id, post);
 
-    const createdPost = await this.postsRepository.findByIdOrThrow(post.id);
-
-    return toPostResponse(createdPost);
+    return await this.postsRepository.findByIdOrThrow(post.id);
   }
 
   async findOne(id: string): Promise<Omit<Post, "image">> {
-    const post = await this.postsRepository.findByIdOrThrow(id);
-    return toPostResponse(post);
+    return await this.postsRepository.findByIdOrThrow(id);
   }
 
   async findByUser(userId: string, limit = 10, cursor?: string) {
@@ -105,12 +101,10 @@ export class PostsService {
     }
 
     return {
-      data: docs.map((post) =>
-        toPostResponse({
-          ...post,
-          userReaction: reactionsMap.get(post.id) ?? null,
-        }),
-      ),
+      data: docs.map((post) => ({
+        ...post,
+        userReaction: reactionsMap.get(post.id) ?? null,
+      })),
       nextCursor: lastDoc,
     };
   }
@@ -177,9 +171,7 @@ export class PostsService {
 
     await this.postsRepository.update(postId, updateData);
 
-    const updatedPost = await this.postsRepository.findByIdOrThrow(postId);
-
-    return toPostResponse(updatedPost);
+    return await this.postsRepository.findByIdOrThrow(postId);
   }
 
   async delete(userId: string, postId: string): Promise<void> {
@@ -236,12 +228,10 @@ export class PostsService {
     }
 
     return {
-      data: docs.map((post) =>
-        toPostResponse({
-          ...post,
-          userReaction: reactionMap.get(post.id) ?? null,
-        }),
-      ),
+      data: docs.map((post) => ({
+        ...post,
+        userReaction: reactionMap.get(post.id) ?? null,
+      })),
       nextCursor: lastDoc,
     };
   }

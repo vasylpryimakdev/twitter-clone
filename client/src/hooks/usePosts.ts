@@ -26,11 +26,10 @@ const showToast = useToastStore.getState().showToast;
 
 export const usePosts = () => {
   const initialized = useAuthStore((s) => s.isInitialized);
-  const status = useAuthStore((s) => s.status);
 
   const query = useInfiniteQuery<PostsFeedResponse>({
     queryKey: ["posts", "feed"],
-    enabled: initialized && status === "authenticated",
+    enabled: initialized,
     queryFn: ({ pageParam }) =>
       postsService.getPosts({ cursor: pageParam as string | null }),
 
@@ -143,15 +142,24 @@ export const useDeletePost = () => {
 
 export const useReactPost = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const status = useAuthStore((s) => s.status);
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       postId,
       type,
     }: {
       postId: string;
       type: "like" | "dislike";
-    }) => reactionsService.react(postId, type),
+    }) => {
+      if (status === "unauthenticated") {
+        navigate("/login");
+        throw new Error("Unauthorized");
+      }
+
+      return reactionsService.react(postId, type);
+    },
 
     onMutate: async ({ postId, type }) => {
       await queryClient.cancelQueries({ queryKey: ["posts"] });
