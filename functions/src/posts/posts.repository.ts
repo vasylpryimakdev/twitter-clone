@@ -26,6 +26,8 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
   async findPosts(dto: FindPostsDto) {
     const { userId, limit, cursor, search } = dto;
 
+    const realLimit = limit + 1;
+
     let query: Query = this.firestore.collection("posts");
 
     if (userId) {
@@ -40,7 +42,7 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
         .where("searchField", "<=", normalized + "\uf8ff");
     }
 
-    query = query.orderBy("createdAt", "desc").limit(limit);
+    query = query.orderBy("createdAt", "desc");
 
     if (cursor) {
       const cursorDoc = await this.firestore
@@ -51,18 +53,18 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
       query = query.startAfter(cursorDoc);
     }
 
-    const snapshot = await query.get();
+    const snapshot = await query.limit(realLimit).get();
 
-    const docs = snapshot.docs.map((doc) => mapDoc<Post>(doc));
+    const hasNextPage = snapshot.docs.length > limit;
 
-    const lastDoc =
-      snapshot.docs.length > 0
-        ? snapshot.docs[snapshot.docs.length - 1].id
-        : null;
+    const docs = hasNextPage ? snapshot.docs.slice(0, limit) : snapshot.docs;
+
+    const nextCursor = docs.length > 0 ? docs[docs.length - 1].id : null;
 
     return {
-      docs,
-      lastDoc,
+      docs: docs.map((doc) => mapDoc<Post>(doc)),
+      nextCursor,
+      hasNextPage,
     };
   }
 

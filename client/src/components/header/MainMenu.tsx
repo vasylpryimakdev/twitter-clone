@@ -4,7 +4,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import AddIcon from "@mui/icons-material/Add";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { Link } from "react-router-dom";
-import { authService } from "../services/auth.service";
+import { authService } from "../../services/auth.service";
 
 type Props = {
   anchorEl: HTMLElement | null;

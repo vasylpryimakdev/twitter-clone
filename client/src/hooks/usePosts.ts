@@ -4,20 +4,25 @@ import { postsService } from "../services/posts.service";
 import type {
   PostDTO,
   Post,
-  PostsInfinite,
   PostsFeedResponse,
+  ReactPostVariables,
+  MutationPostsContext,
+  PostsQueryData,
 } from "../types/post.types";
 import { useToastStore } from "../stores/toast.store";
 import { handleError } from "../shared/errors/handleError";
 import { useNavigate } from "react-router-dom";
 import { useQueryErrorHandler } from "./useQueryErrorHandler";
-import { reactionsService } from "../services/reactions.service";
+import {
+  reactionsService,
+  type ReactionType,
+} from "../services/reactions.service";
 import { useAuthStore } from "../stores/auth.store";
 import { useState } from "react";
 
 const showToast = useToastStore.getState().showToast;
 
-const LIMIT = 8;
+const LIMIT = 3;
 
 export const usePosts = (params?: { userId?: string; search?: string }) => {
   const initialized = useAuthStore((s) => s.isInitialized);
@@ -47,7 +52,9 @@ export const usePosts = (params?: { userId?: string; search?: string }) => {
   });
 
   const nextPage = () => {
-    const nextCursor = query.data?.nextCursor;
+    if (!query.data?.hasNextPage) return;
+
+    const nextCursor = query.data.nextCursor;
     if (!nextCursor) return;
 
     setCursors((prev) => ({
@@ -68,10 +75,6 @@ export const usePosts = (params?: { userId?: string; search?: string }) => {
   };
 
   const items = query.data?.data ?? [];
-  const hasNextPage = !!query.data?.nextCursor;
-
-  const isFirstPage = page === 1;
-  const isLastPage = !hasNextPage;
 
   return {
     ...query,
@@ -79,14 +82,14 @@ export const usePosts = (params?: { userId?: string; search?: string }) => {
     items,
     page,
 
-    isFirstPage,
-    isLastPage,
+    isFirstPage: page === 1,
+    isLastPage: !query.data?.hasNextPage,
 
     nextPage,
     prevPage,
     goToPage,
 
-    hasNextPage: !!query.data?.nextCursor,
+    hasNextPage: query.data?.hasNextPage ?? false,
   };
 };
 
@@ -169,14 +172,8 @@ export const useReactPost = () => {
   const navigate = useNavigate();
   const status = useAuthStore((s) => s.status);
 
-  return useMutation({
-    mutationFn: async ({
-      postId,
-      type,
-    }: {
-      postId: string;
-      type: "like" | "dislike";
-    }) => {
+  return useMutation<unknown, Error, ReactPostVariables, MutationPostsContext>({
+    mutationFn: async ({ postId, type }) => {
       if (status === "unauthenticated") {
         navigate("/login");
         throw new Error("Unauthorized");
@@ -188,66 +185,65 @@ export const useReactPost = () => {
     onMutate: async ({ postId, type }) => {
       await queryClient.cancelQueries({ queryKey: ["posts"] });
 
-      const previousData = queryClient.getQueriesData<PostsInfinite>({
+      const previous = queryClient.getQueriesData<PostsQueryData>({
         queryKey: ["posts"],
       });
 
-      queryClient.setQueriesData<PostsInfinite>(
+      queryClient.setQueriesData<PostsQueryData>(
         { queryKey: ["posts"] },
         (old) => {
-          if (!old) return old;
+          if (!old?.items) return old;
 
           return {
             ...old,
-            pages: old.pages.map((page) => ({
-              ...page,
-              data: page.data.map((post) => {
-                if (post.id !== postId) return post;
+            items: old.items.map((post) => {
+              if (post.id !== postId) return post;
 
-                const current = post.userReaction;
+              const current = post.userReaction;
 
-                let likes = post.likesCount;
-                let dislikes = post.dislikesCount;
-                let newReaction: typeof current = type;
+              let likes = post.likesCount;
+              let dislikes = post.dislikesCount;
+              let newReaction: ReactionType | null = type;
 
-                if (current === type) {
-                  newReaction = null;
+              if (current === type) {
+                newReaction = null;
 
-                  if (type === "like") likes--;
-                  if (type === "dislike") dislikes--;
-                } else {
-                  if (current === "like") likes--;
-                  if (current === "dislike") dislikes--;
+                if (type === "like") likes--;
+                else dislikes--;
+              } else {
+                if (current === "like") likes--;
+                if (current === "dislike") dislikes--;
 
-                  if (type === "like") likes++;
-                  if (type === "dislike") dislikes++;
-                }
+                if (type === "like") likes++;
+                else dislikes++;
+              }
 
-                return {
-                  ...post,
-                  userReaction: newReaction,
-                  likesCount: likes,
-                  dislikesCount: dislikes,
-                };
-              }),
-            })),
+              return {
+                ...post,
+                userReaction: newReaction,
+                likesCount: likes,
+                dislikesCount: dislikes,
+              };
+            }),
           };
         },
       );
 
-      return { previousData };
+      return { previous };
     },
 
     onError: (_err, _vars, context) => {
-      if (!context?.previousData) return;
+      if (!context?.previous) return;
 
-      context.previousData.forEach(([key, data]) => {
+      context.previous.forEach(([key, data]) => {
         queryClient.setQueryData(key, data);
       });
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
     },
   });
 };

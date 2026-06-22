@@ -77,12 +77,13 @@ export class PostsService {
   }) {
     const { userId, viewerId, search, limit, cursor } = params;
 
-    const { docs, lastDoc } = await this.postsRepository.findPosts({
-      userId,
-      search,
-      limit,
-      cursor,
-    });
+    const { docs, nextCursor, hasNextPage } =
+      await this.postsRepository.findPosts({
+        userId,
+        search,
+        limit,
+        cursor,
+      });
 
     const postIds = docs.map((p) => p.id);
 
@@ -122,7 +123,8 @@ export class PostsService {
         ...post,
         userReaction: reactionMap.get(post.id) ?? null,
       })),
-      nextCursor: lastDoc,
+      nextCursor,
+      hasNextPage,
     };
   }
 

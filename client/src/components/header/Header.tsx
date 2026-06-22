@@ -11,8 +11,8 @@ import {
 } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import TwitterIcon from "@mui/icons-material/Twitter";
-import { useAuthStore } from "../stores/auth.store";
 import { useState } from "react";
+import { useAuthStore } from "../../stores/auth.store";
 import MainMenu from "./MainMenu";
 
 export const Header = () => {

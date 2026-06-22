@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { Box } from "@mui/material";
-import { Header } from "./Header";
+import { Header } from "./header/Header";
 
 export const MainLayout = () => {
   return (

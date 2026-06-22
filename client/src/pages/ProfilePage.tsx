@@ -14,9 +14,9 @@ export const ProfilePage = () => {
   const status = useAuthStore((s) => s.status);
   const isInitialized = useAuthStore((s) => s.isInitialized);
 
-  const { data: user, isLoading: isUserLoading } = useUser(userId!);
+  const { data: user, isLoading: isUserLoading } = useUser(userId);
 
-  const query = usePosts({ userId: userId! });
+  const query = usePosts({ userId });
 
   const isOwner = authUser?.id === userId;
 

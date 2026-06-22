@@ -181,6 +181,7 @@ export const PostCard = ({ post }: PostProps) => {
                 "&.Mui-disabled": {
                   color: isLiked ? "primary.main" : "inherit",
                   opacity: 1,
+                  cursor: "pointer",
                 },
               }}
             >
@@ -200,6 +201,7 @@ export const PostCard = ({ post }: PostProps) => {
                 "&.Mui-disabled": {
                   color: isDisliked ? "error.main" : "text.primary",
                   opacity: 1,
+                  cursor: "pointer",
                 },
               }}
             >

@@ -34,11 +34,13 @@ export class PostsController {
     @Query("limit") limit = "10",
     @Query("cursor") cursor?: string,
     @Query("search") search?: string,
+    @Query("userId") userId?: string,
   ) {
     return this.postsService.findPosts({
       limit: Number(limit),
       cursor,
       search,
+      userId,
       viewerId: req.user?.id,
     });
   }
