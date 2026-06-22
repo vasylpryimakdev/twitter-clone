@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import type { Post as PostType } from "../../types/post.types";
-import { Post } from "./PostCard";
+import { PostCard } from "./PostCard";
 
 type Props = {
   posts: PostType[];
@@ -18,7 +18,7 @@ const PostsList = ({ posts }: Props) => {
       }}
     >
       {posts?.map((post) => (
-        <Post post={post} key={post.id} />
+        <PostCard post={post} key={post.id} />
       ))}
     </Box>
   );

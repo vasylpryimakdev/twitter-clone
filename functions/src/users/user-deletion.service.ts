@@ -39,7 +39,10 @@ export class UserDeletionService {
         await this.commentsRepository.delete(c.id, tx);
       }
 
-      const userPosts = await this.postsRepository.findByUser(userId, 1000);
+      const userPosts = await this.postsRepository.findPosts({
+        userId,
+        limit: 1000,
+      });
 
       for (const p of userPosts.docs) {
         if (p.image) {

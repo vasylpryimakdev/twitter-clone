@@ -2,9 +2,10 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { useAuthStore } from "../stores/auth.store";
 import { ProfileHeader } from "../components/profile/ProfileHeader";
-import PostsList from "../components/posts/PostsList";
-import { useUserPosts } from "../hooks/usePosts";
 import { useUser } from "../hooks/useUser";
+import { PaginationList } from "../components/posts/PostsPagination";
+import PostsList from "../components/posts/PostsList";
+import { usePosts } from "../hooks/usePosts";
 
 export const ProfilePage = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -15,9 +16,7 @@ export const ProfilePage = () => {
 
   const { data: user, isLoading: isUserLoading } = useUser(userId!);
 
-  const { data, isLoading: isPostsLoading } = useUserPosts(userId!);
-
-  const userPosts = data?.pages.flatMap((page) => page.data) ?? [];
+  const query = usePosts({ userId: userId! });
 
   const isOwner = authUser?.id === userId;
 
@@ -72,15 +71,9 @@ export const ProfilePage = () => {
           My Posts
         </Typography>
 
-        {isPostsLoading && <CircularProgress />}
-
-        {!isPostsLoading && userPosts.length === 0 && (
-          <Typography color="text.secondary">No posts yet</Typography>
-        )}
-
-        {!isPostsLoading && userPosts.length > 0 && (
-          <PostsList posts={userPosts} />
-        )}
+        <PaginationList query={query}>
+          {(items) => <PostsList posts={items} />}
+        </PaginationList>
       </Box>
     </Box>
   );

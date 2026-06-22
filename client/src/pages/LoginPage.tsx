@@ -22,6 +22,8 @@ import {
 import { useToastStore } from "../stores/toast.store";
 import { handleError } from "../shared/errors/handleError";
 import { usersService } from "../services/users.service";
+import { deleteUser } from "firebase/auth";
+import { auth } from "../firebase/firebase";
 
 type AuthMode = "login" | "reset";
 
@@ -80,10 +82,15 @@ export const LoginPage = () => {
       setGoogleLoading(true);
 
       await authService.loginWithGoogle();
+
       const user = await usersService.getMe();
 
-      showToast(`Welcome ${user.name} 👋`, "success");
+      if (!user) {
+        await deleteUser(auth.currentUser!);
+        throw new Error("You are not registered in system");
+      }
 
+      showToast(`Welcome ${user.name} 👋`, "success");
       navigate("/", { replace: true });
     } catch (err) {
       handleError(err);

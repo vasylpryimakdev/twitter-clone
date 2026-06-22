@@ -1,10 +1,4 @@
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
-  type InfiniteData,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { postsService } from "../services/posts.service";
 import type {
@@ -19,27 +13,81 @@ import { useNavigate } from "react-router-dom";
 import { useQueryErrorHandler } from "./useQueryErrorHandler";
 import { reactionsService } from "../services/reactions.service";
 import { useAuthStore } from "../stores/auth.store";
-
-type Cursor = string | undefined;
+import { useState } from "react";
 
 const showToast = useToastStore.getState().showToast;
 
-export const usePosts = () => {
+const LIMIT = 8;
+
+export const usePosts = (params?: { userId?: string; search?: string }) => {
   const initialized = useAuthStore((s) => s.isInitialized);
 
-  const query = useInfiniteQuery<PostsFeedResponse>({
-    queryKey: ["posts", "feed"],
-    enabled: initialized,
-    queryFn: ({ pageParam }) =>
-      postsService.getPosts({ cursor: pageParam as string | null }),
+  const { userId, search } = params ?? {};
 
-    initialPageParam: null,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  const [page, setPage] = useState(1);
+
+  const [cursors, setCursors] = useState<Record<number, string | null>>({
+    1: null,
   });
 
-  useQueryErrorHandler(query.error, query.isError);
+  const cursor = cursors[page];
 
-  return query;
+  const query = useQuery<PostsFeedResponse>({
+    queryKey: ["posts", userId, search, page],
+
+    enabled: initialized && (page === 1 || cursor !== undefined),
+
+    queryFn: () =>
+      postsService.getPosts({
+        userId,
+        search,
+        cursor,
+        limit: LIMIT,
+      }),
+  });
+
+  const nextPage = () => {
+    const nextCursor = query.data?.nextCursor;
+    if (!nextCursor) return;
+
+    setCursors((prev) => ({
+      ...prev,
+      [page + 1]: nextCursor,
+    }));
+
+    setPage((p) => p + 1);
+  };
+
+  const prevPage = () => {
+    setPage((p) => Math.max(1, p - 1));
+  };
+
+  const goToPage = (p: number) => {
+    if (p < 1) return;
+    setPage(p);
+  };
+
+  const items = query.data?.data ?? [];
+  const hasNextPage = !!query.data?.nextCursor;
+
+  const isFirstPage = page === 1;
+  const isLastPage = !hasNextPage;
+
+  return {
+    ...query,
+
+    items,
+    page,
+
+    isFirstPage,
+    isLastPage,
+
+    nextPage,
+    prevPage,
+    goToPage,
+
+    hasNextPage: !!query.data?.nextCursor,
+  };
 };
 
 export const usePost = (id?: string) => {
@@ -47,30 +95,6 @@ export const usePost = (id?: string) => {
     queryKey: ["post", id],
     queryFn: () => postsService.getPostById(id!),
     enabled: !!id,
-  });
-
-  useQueryErrorHandler(query.error, query.isError);
-
-  return query;
-};
-
-export const useUserPosts = (userId?: string) => {
-  const query = useInfiniteQuery<
-    PostsFeedResponse,
-    Error,
-    InfiniteData<PostsFeedResponse>,
-    [string, string, string | undefined],
-    Cursor
-  >({
-    queryKey: ["posts", "user", userId],
-
-    queryFn: ({ pageParam }) => postsService.getPostsByUser(userId!, pageParam),
-
-    initialPageParam: undefined,
-
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-
-    enabled: !!userId,
   });
 
   useQueryErrorHandler(query.error, query.isError);
@@ -227,11 +251,3 @@ export const useReactPost = () => {
     },
   });
 };
-
-// export const useSearchPosts = (query: string) => {
-//   return useQuery<Post[]>({
-//     queryKey: ["posts", "search", query],
-//     queryFn: () => postsService.searchPosts(query),
-//     enabled: !!query,
-//   });
-// };

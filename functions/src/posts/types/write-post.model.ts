@@ -10,6 +10,7 @@ export type WritePostModel = {
 
   title: string;
   text: string;
+  searchField: string;
 
   image: PostImageDto | null;
 

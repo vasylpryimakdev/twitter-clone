@@ -31,33 +31,50 @@ export class PostsController {
   @Get()
   findFeed(
     @Req() req: any,
-    @Query("limit") limit?: string,
+    @Query("limit") limit = "10",
     @Query("cursor") cursor?: string,
+    @Query("search") search?: string,
   ) {
-    return this.postsService.findFeed(
-      Number(limit ?? 10),
+    return this.postsService.findPosts({
+      limit: Number(limit),
       cursor,
-      req.user?.id,
-    );
+      search,
+      viewerId: req.user?.id,
+    });
   }
 
   @Get("me")
   @UseGuards(AuthGuard)
   findMyPosts(
     @CurrentUser() user: AuthUser,
-    @Query("limit") limit = 10,
+    @Query("limit") limit = "10",
     @Query("cursor") cursor?: string,
+    @Query("search") search?: string,
   ) {
-    return this.postsService.findByUser(user.id, Number(limit), cursor);
+    return this.postsService.findPosts({
+      userId: user.id,
+      viewerId: user.id,
+      limit: Number(limit),
+      cursor,
+      search,
+    });
   }
 
   @Get("user/:userId")
   findByUser(
     @Param("userId") userId: string,
-    @Query("limit") limit = 10,
+    @Req() req: any,
+    @Query("limit") limit = "10",
     @Query("cursor") cursor?: string,
+    @Query("search") search?: string,
   ) {
-    return this.postsService.findByUser(userId, Number(limit), cursor);
+    return this.postsService.findPosts({
+      userId,
+      viewerId: req.user?.id,
+      limit: Number(limit),
+      cursor,
+      search,
+    });
   }
 
   @Get(":id")

@@ -51,6 +51,7 @@ export class PostsService {
 
       title: dto.title,
       text: dto.text,
+      searchField: `${dto.title} ${dto.text}`.toLowerCase(),
 
       image: dto.image ? { ...dto.image } : null,
 
@@ -67,46 +68,66 @@ export class PostsService {
     return await this.postsRepository.findByIdOrThrow(post.id);
   }
 
-  async findOne(id: string): Promise<Omit<Post, "image">> {
-    return await this.postsRepository.findByIdOrThrow(id);
-  }
+  async findPosts(params: {
+    userId?: string;
+    viewerId?: string;
+    search?: string;
+    limit: number;
+    cursor?: string;
+  }) {
+    const { userId, viewerId, search, limit, cursor } = params;
 
-  async findByUser(userId: string, limit = 10, cursor?: string) {
-    const { docs, lastDoc } = await this.postsRepository.findByUser(
+    const { docs, lastDoc } = await this.postsRepository.findPosts({
       userId,
+      search,
       limit,
       cursor,
-    );
+    });
 
     const postIds = docs.map((p) => p.id);
 
-    let reactionsMap = new Map<string, "like" | "dislike">();
+    const reactionMap = new Map<string, "like" | "dislike">();
 
-    if (postIds.length) {
-      const reactionsSnap = await this.firestore
-        .collection("reactions")
-        .where("userId", "==", userId)
-        .get();
+    if (viewerId && postIds.length) {
+      const chunks: string[][] = [];
 
-      reactionsSnap.docs.forEach((doc) => {
-        const data = doc.data() as {
-          postId: string;
-          type: "like" | "dislike";
-        };
+      for (let i = 0; i < postIds.length; i += 10) {
+        chunks.push(postIds.slice(i, i + 10));
+      }
 
-        if (postIds.includes(data.postId)) {
-          reactionsMap.set(data.postId, data.type);
-        }
-      });
+      const snaps = await Promise.all(
+        chunks.map((chunk) =>
+          this.firestore
+            .collection("reactions")
+            .where("userId", "==", viewerId)
+            .where("postId", "in", chunk)
+            .get(),
+        ),
+      );
+
+      for (const snap of snaps) {
+        snap.docs.forEach((doc) => {
+          const data = doc.data() as {
+            postId: string;
+            type: "like" | "dislike";
+          };
+
+          reactionMap.set(data.postId, data.type);
+        });
+      }
     }
 
     return {
       data: docs.map((post) => ({
         ...post,
-        userReaction: reactionsMap.get(post.id) ?? null,
+        userReaction: reactionMap.get(post.id) ?? null,
       })),
       nextCursor: lastDoc,
     };
+  }
+
+  async findOne(id: string): Promise<Omit<Post, "image">> {
+    return await this.postsRepository.findByIdOrThrow(id);
   }
 
   async update(
@@ -186,54 +207,6 @@ export class PostsService {
     }
 
     await this.postDeletionService.deletePost(postId);
-  }
-
-  async findFeed(limit = 10, cursor?: string, userId?: string) {
-    const { docs, lastDoc } = await this.postsRepository.findFeed(
-      limit,
-      cursor,
-    );
-
-    const postIds = docs.map((p) => p.id);
-
-    const reactionMap = new Map<string, "like" | "dislike">();
-
-    if (userId && postIds.length) {
-      const chunks: string[][] = [];
-
-      for (let i = 0; i < postIds.length; i += 10) {
-        chunks.push(postIds.slice(i, i + 10));
-      }
-
-      const snaps = await Promise.all(
-        chunks.map((chunk) =>
-          this.firestore
-            .collection("reactions")
-            .where("userId", "==", userId)
-            .where("postId", "in", chunk)
-            .get(),
-        ),
-      );
-
-      for (const snap of snaps) {
-        snap.docs.forEach((doc) => {
-          const data = doc.data() as {
-            postId: string;
-            type: "like" | "dislike";
-          };
-
-          reactionMap.set(data.postId, data.type);
-        });
-      }
-    }
-
-    return {
-      data: docs.map((post) => ({
-        ...post,
-        userReaction: reactionMap.get(post.id) ?? null,
-      })),
-      nextCursor: lastDoc,
-    };
   }
 
   async react(userId: string, postId: string, type: ReactionType) {

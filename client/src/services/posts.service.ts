@@ -4,30 +4,17 @@ import type { Post, PostDTO, PostsFeedResponse } from "../types/post.types";
 export const postsService = {
   getPosts: async (params?: {
     cursor?: string | null;
+    limit?: number;
+    userId?: string;
+    search?: string;
   }): Promise<PostsFeedResponse> => {
     const res = await api.get<PostsFeedResponse>("/posts", {
       params: {
         cursor: params?.cursor ?? null,
+        limit: params?.limit ?? 10,
+        userId: params?.userId,
+        search: params?.search,
       },
-    });
-
-    return res.data;
-  },
-
-  getPostsByUser: async (
-    userId: string,
-    cursor?: string,
-  ): Promise<PostsFeedResponse> => {
-    const res = await api.get<PostsFeedResponse>(`/posts/user/${userId}`, {
-      params: { cursor },
-    });
-
-    return res.data;
-  },
-
-  getMyPosts: async (cursor?: string): Promise<PostsFeedResponse> => {
-    const res = await api.get<PostsFeedResponse>("/posts/me", {
-      params: { cursor },
     });
 
     return res.data;
@@ -40,13 +27,11 @@ export const postsService = {
 
   createPost: async (data: PostDTO) => {
     const res = await api.post("/posts", data);
-
     return res.data;
   },
 
   updatePost: async (id: string, data: PostDTO) => {
     const res = await api.patch(`/posts/${id}`, data);
-
     return res.data;
   },
 

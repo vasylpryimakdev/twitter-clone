@@ -30,7 +30,7 @@ export type PostProps = {
   post: PostType;
 };
 
-export const Post = ({ post }: PostProps) => {
+export const PostCard = ({ post }: PostProps) => {
   const {
     id,
     title,
