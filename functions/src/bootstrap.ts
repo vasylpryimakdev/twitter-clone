@@ -1,8 +1,8 @@
 import { NestFactory } from "@nestjs/core";
 import { ExpressAdapter } from "@nestjs/platform-express";
-import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { expressApp } from "./expressApp";
+import helmet from "helmet";
 
 export async function bootstrap() {
   const app = await NestFactory.create(
@@ -16,12 +16,14 @@ export async function bootstrap() {
     }),
   );
 
-  app.useGlobalPipes(
-    new (require("@nestjs/common").ValidationPipe)({
-      whitelist: true,
-      transform: true,
-    }),
-  );
+  const corsOrigin = process.env.CORS_ORIGIN?.split(",") ?? [];
+
+  app.enableCors({
+    origin: corsOrigin,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  });
 
   await app.init();
 }
