@@ -12,7 +12,7 @@ export async function createNestServer() {
   );
 
   app.enableCors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   });
