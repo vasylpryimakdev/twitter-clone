@@ -4,36 +4,39 @@ import {
   NestMiddleware,
 } from "@nestjs/common";
 
-import type { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 @Injectable()
 export class ContentTypeMiddleware implements NestMiddleware {
-  private readonly methods = new Set(["POST", "PUT", "PATCH"]);
+  private static readonly SUPPORTED_METHODS = ["POST", "PUT", "PATCH"] as const;
 
-  private readonly allowedContentTypes = [
-    "application/json",
-    "multipart/form-data",
-  ];
+  private static readonly SUPPORTED_CONTENT_TYPE = "application/json";
 
   use(req: Request, _: Response, next: NextFunction): void {
-    if (!this.methods.has(req.method)) {
+    if (
+      !ContentTypeMiddleware.SUPPORTED_METHODS.includes(
+        req.method as (typeof ContentTypeMiddleware.SUPPORTED_METHODS)[number],
+      )
+    ) {
       return next();
     }
 
-    const contentType = req.headers["content-type"];
+    const contentType = req.headers["content-type"]?.toString();
 
     if (!contentType) {
       throw new BadRequestException("Content-Type header is required");
     }
 
-    const isAllowed = this.allowedContentTypes.some((type) =>
-      contentType.includes(type),
-    );
+    const normalizedContentType = contentType.split(";")[0].trim();
 
-    if (!isAllowed) {
-      throw new BadRequestException(
-        `Unsupported Content-Type. Allowed: ${this.allowedContentTypes.join(", ")}`,
-      );
+    if (
+      normalizedContentType !== ContentTypeMiddleware.SUPPORTED_CONTENT_TYPE
+    ) {
+      throw new BadRequestException({
+        message: "Unsupported Content-Type",
+        expected: ContentTypeMiddleware.SUPPORTED_CONTENT_TYPE,
+        received: contentType,
+      });
     }
 
     next();

@@ -9,3 +9,5 @@ export const COLLECTIONS = {
   COMMENTS: "comments",
   REACTIONS: "reactions",
 } as const;
+
+export type CollectionName = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];

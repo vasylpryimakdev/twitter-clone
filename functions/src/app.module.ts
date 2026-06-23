@@ -11,22 +11,17 @@ import { APP_GUARD, APP_PIPE } from "@nestjs/core";
 import { AppController } from "./app.controller";
 import { UsersModule } from "./users/users.module";
 import { PostsModule } from "./posts/posts.module";
-import { ContentTypeGuard } from "./common/guards/content-type.guard";
 import { CommentsModule } from "./comments/comments.module";
 import { FirebaseModule } from "./common/firebase/firebase.module";
 import { FirebaseAuthGuard } from "./common/firebase/auth/firebase-auth.guard";
 import { ContentTypeMiddleware } from "./common/middlewares/content-type.middleware";
+import { validateEnv } from "./common/config/env.validation";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validate: (config) => {
-        if (!config.CORS_ORIGIN) {
-          throw new Error("CORS_ORIGIN is required");
-        }
-        return config;
-      },
+      validate: validateEnv,
     }),
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
@@ -45,10 +40,6 @@ import { ContentTypeMiddleware } from "./common/middlewares/content-type.middlew
   ],
   controllers: [AppController],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ContentTypeGuard,
-    },
     {
       provide: APP_GUARD,
       useClass: FirebaseAuthGuard,
