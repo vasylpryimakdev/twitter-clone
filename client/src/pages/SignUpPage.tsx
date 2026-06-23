@@ -115,16 +115,23 @@ export const SignUpPage = () => {
       const credential = await authService.signInWithGoogle();
       const firebaseUser = credential.user;
 
-      if (!firebaseUser.email) {
-        throw new Error("Google account has no email");
+      if (!firebaseUser.uid) {
+        throw new Error("Google user has no UID");
+      }
+
+      let user = await usersService.getById(firebaseUser.uid);
+
+      if (user) {
+        setUser(user);
+        finishAuth(`Welcome back ${user.name}`);
+        return;
       }
 
       const profile = createGoogleProfile(firebaseUser);
 
-      const user = await usersService.createProfile(profile);
+      user = await usersService.createProfile({ ...profile });
 
       setUser(user);
-
       finishAuth(`Welcome ${profile.name}!`);
     } catch (err) {
       handleError(err);

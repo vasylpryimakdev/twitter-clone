@@ -7,7 +7,6 @@ import { CommentsModule } from "../comments/comments.module";
 import { PostsModule } from "../posts/posts.module";
 import { ReactionsModule } from "../reactions/reactions.module";
 import { FirebaseModule } from "../common/firebase/firebase.module";
-
 @Module({
   imports: [FirebaseModule, PostsModule, CommentsModule, ReactionsModule],
   controllers: [UsersController],

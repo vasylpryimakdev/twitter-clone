@@ -59,8 +59,8 @@ export class UsersService {
       const mappedAvatar = avatar
         ? {
             url: avatar.url,
-            path: avatar.path ?? undefined,
             type: avatar.type,
+            ...(avatar.path ? { path: avatar.path } : {}),
           }
         : null;
 
