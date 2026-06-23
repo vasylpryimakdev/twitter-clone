@@ -6,10 +6,9 @@ import {
   Body,
   Param,
   Post,
-  ParseUUIDPipe,
 } from "@nestjs/common";
 
-import { UsersService } from "./users.service";
+import { UsersService } from "./services/users.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { CurrentUser } from "../decorators/current-user.decorator";
 import { AuthUser } from "../common/types/auth-user.type";
@@ -42,7 +41,7 @@ export class UsersController {
 
   @Public()
   @Get(":id")
-  getUser(@Param("id", ParseUUIDPipe) id: string) {
+  getUser(@Param("id") id: string) {
     return this.usersService.getById(id);
   }
 }

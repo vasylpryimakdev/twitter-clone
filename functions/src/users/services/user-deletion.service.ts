@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 
-import { UsersRepository } from "./users.repository";
-import { PostsRepository } from "../posts/posts.repository";
-import { CommentsRepository } from "../comments/comments.repository";
-import { ReactionsRepository } from "../reactions/reactions.repository";
-import { StorageService } from "../common/firebase/storage/storage.service";
-import { FirestoreService } from "../common/firebase/firebase.service";
+import { UsersRepository } from "../users.repository";
+import { PostsRepository } from "../../posts/posts.repository";
+import { CommentsRepository } from "../../comments/comments.repository";
+import { ReactionsRepository } from "../../reactions/reactions.repository";
+import { StorageService } from "../../common/firebase/storage/storage.service";
+import { FirestoreService } from "../../common/firebase/firebase.service";
 
 @Injectable()
 export class UserDeletionService {

@@ -53,25 +53,20 @@ export const LoginPage = () => {
       if (mode === "login") {
         await authService.login(data.email, data.password);
 
-        const user = await usersService.getMe();
-
-        showToast(`Welcome back ${user.name} 👋`, "success");
-
         navigate("/", { replace: true });
 
         return;
+      } else {
+        await authService.sendPasswordReset(data.email);
+
+        showToast("If an account exists, a reset email was sent.", "success");
+        setMode("login");
+
+        reset({
+          email: data.email,
+          password: "",
+        });
       }
-
-      await authService.sendPasswordReset(data.email);
-
-      showToast("If an account exists, a reset email was sent.", "success");
-
-      setMode("login");
-
-      reset({
-        email: data.email,
-        password: "",
-      });
     } catch (err) {
       handleError(err);
     }

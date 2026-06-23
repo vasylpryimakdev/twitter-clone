@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
 import { UsersController } from "./users.controller";
-import { UsersService } from "./users.service";
+import { UsersService } from "./services/users.service";
 import { UsersRepository } from "./users.repository";
-import { UserDeletionService } from "./user-deletion.service";
+import { UserDeletionService } from "./services/user-deletion.service";
 import { CommentsModule } from "../comments/comments.module";
 import { PostsModule } from "../posts/posts.module";
 import { ReactionsModule } from "../reactions/reactions.module";

@@ -1,5 +1,5 @@
 import { FieldValue } from "firebase-admin/firestore";
-import { AuthorSnapshot } from "../../shared/types/author-snapshot";
+import { AuthorSnapshot } from "../../users/types/users.entity";
 
 export type WriteComment = {
   id: string;

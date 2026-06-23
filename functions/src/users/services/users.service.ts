@@ -3,16 +3,16 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { CreateUserDto } from "./dto/create-user.dto";
-import { AuthUser } from "../common/types/auth-user.type";
-import { UsersRepository } from "./users.repository";
-import { WriteUserModel } from "./types/write-user.model";
+import { CreateUserDto } from "../dto/create-user.dto";
+import { AuthUser } from "../../common/types/auth-user.type";
+import { UsersRepository } from "../users.repository";
+import { WriteUserModel } from "../types/write-user.model";
 import { FieldValue } from "firebase-admin/firestore";
 import { UserDeletionService } from "./user-deletion.service";
-import { User } from "./types/users.entity";
-import { UpdateUserDto } from "./dto/update-user.dto";
-import { FirestoreService } from "../common/firebase/firebase.service";
-import { StorageService } from "../common/firebase/storage/storage.service";
+import { User } from "../types/users.entity";
+import { UpdateUserDto } from "../dto/update-user.dto";
+import { FirestoreService } from "../../common/firebase/firebase.service";
+import { StorageService } from "../../common/firebase/storage/storage.service";
 
 @Injectable()
 export class UsersService {
@@ -23,11 +23,14 @@ export class UsersService {
     private readonly userDeletionService: UserDeletionService,
   ) {}
 
-  async getById(id: string) {
+  async getById(id: string): Promise<User | null> {
     return await this.usersRepository.findById(id);
   }
 
-  async createProfile({ id, email }: AuthUser, dto: CreateUserDto) {
+  async createProfile(
+    { id, email }: AuthUser,
+    dto: CreateUserDto,
+  ): Promise<WriteUserModel> {
     const { name, surname, username, avatar } = dto;
 
     const userRef = this.usersRepository.getRef(id);
@@ -54,12 +57,12 @@ export class UsersService {
       }
 
       const mappedAvatar = avatar
-      ? {
-          url: avatar.url,
-          path: avatar.path ?? undefined,
-          type: avatar.type,
-        }
-      : null;
+        ? {
+            url: avatar.url,
+            path: avatar.path ?? undefined,
+            type: avatar.type,
+          }
+        : null;
 
       const userData: WriteUserModel = {
         id,
@@ -80,7 +83,10 @@ export class UsersService {
     return resultUser;
   }
 
-  async updateProfile(id: string, dto: Partial<UpdateUserDto>) {
+  async updateProfile(
+    id: string,
+    dto: Partial<UpdateUserDto>,
+  ): Promise<User | null> {
     const { name, surname, username, avatar } = dto;
     const hasAtLeastOneField = Object.values(dto).some((v) => v !== undefined);
 
@@ -154,7 +160,7 @@ export class UsersService {
     return this.usersRepository.findById(id);
   }
 
-  async deleteProfile(id: string) {
+  async deleteProfile(id: string): Promise<void> {
     return this.userDeletionService.deleteUser(id);
   }
 }

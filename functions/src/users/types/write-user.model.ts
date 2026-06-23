@@ -1,5 +1,5 @@
 import { FieldValue } from "firebase-admin/firestore";
-import { UserAvatar } from "../../shared/types/author-snapshot";
+import { UserAvatar } from "./users.entity";
 
 export class WriteUserModel {
   id!: string;

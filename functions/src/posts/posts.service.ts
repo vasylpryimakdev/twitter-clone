@@ -17,7 +17,7 @@ import {
 } from "../reactions/reaction.entity";
 import { PostCounterFields } from "./types/post-counter-field";
 import { ReactionsRepository } from "../reactions/reactions.repository";
-import { UsersService } from "../users/users.service";
+import { UsersService } from "../users/services/users.service";
 import { FirestoreService } from "../common/firebase/firebase.service";
 import { StorageService } from "../common/firebase/storage/storage.service";
 

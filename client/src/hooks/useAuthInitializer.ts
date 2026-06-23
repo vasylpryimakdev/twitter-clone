@@ -5,9 +5,11 @@ import { auth } from "../firebase/firebase";
 import { useAuthStore } from "../stores/auth.store";
 import { api } from "../api/api";
 import { handleError } from "../shared/errors/handleError";
+import { useToastStore } from "../stores/toast.store";
 
 export const useAuthInitializer = () => {
   const setUser = useAuthStore((s) => s.setUser);
+  const showToast = useToastStore.getState().showToast;
   const setStatus = useAuthStore((s) => s.setStatus);
   const setInitialized = useAuthStore((s) => s.setInitialized);
 
@@ -31,6 +33,7 @@ export const useAuthInitializer = () => {
           setUser(null);
           setStatus("unauthenticated");
           setInitialized(true);
+          
           return;
         }
 
@@ -54,5 +57,5 @@ export const useAuthInitializer = () => {
     });
 
     return unsubscribe;
-  }, [setUser, setStatus, setInitialized]);
+  }, [setUser, setStatus, setInitialized, showToast]);
 };
