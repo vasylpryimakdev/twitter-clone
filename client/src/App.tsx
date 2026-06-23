@@ -7,6 +7,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 export default function App() {
   useAuthInitializer();
 
+  
   return (
     <BrowserRouter>
       <ErrorBoundary>
