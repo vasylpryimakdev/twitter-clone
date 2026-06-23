@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 
-import { UsersRepository } from "./users.respository";
+import { UsersRepository } from "./users.repository";
 import { PostsRepository } from "../posts/posts.repository";
 import { CommentsRepository } from "../comments/comments.repository";
 import { ReactionsRepository } from "../reactions/reactions.repository";

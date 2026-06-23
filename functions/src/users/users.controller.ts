@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   Post,
+  ParseUUIDPipe,
 } from "@nestjs/common";
 
 import { UsersService } from "./users.service";
@@ -26,22 +27,22 @@ export class UsersController {
 
   @Post("me")
   createMe(@CurrentUser() user: AuthUser, @Body() body: CreateUserDto) {
-    return this.usersService.createUserProfile(user, body);
+    return this.usersService.createProfile(user, body);
   }
 
   @Patch("me")
   updateMe(@CurrentUser() user: AuthUser, @Body() body: UpdateUserDto) {
-    return this.usersService.updateUser(user.id, body);
+    return this.usersService.updateProfile(user.id, body);
   }
 
   @Delete("me")
   deleteMe(@CurrentUser() user: AuthUser) {
-    return this.usersService.deleteUser(user.id);
+    return this.usersService.deleteProfile(user.id);
   }
 
-  @Get(":id")
   @Public()
-  getUser(@Param("id") id: string) {
+  @Get(":id")
+  getUser(@Param("id", ParseUUIDPipe) id: string) {
     return this.usersService.getById(id);
   }
 }

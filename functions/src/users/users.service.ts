@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { AuthUser } from "../common/types/auth-user.type";
-import { UsersRepository } from "./users.respository";
+import { UsersRepository } from "./users.repository";
 import { WriteUserModel } from "./types/write-user.model";
 import { FieldValue } from "firebase-admin/firestore";
 import { UserDeletionService } from "./user-deletion.service";
@@ -27,7 +27,9 @@ export class UsersService {
     return await this.usersRepository.findById(id);
   }
 
-  async createUserProfile({ id, email }: AuthUser, dto: CreateUserDto) {
+  async createProfile({ id, email }: AuthUser, dto: CreateUserDto) {
+    const { name, surname, username, avatar } = dto;
+
     const userRef = this.usersRepository.getRef(id);
 
     let resultUser: any;
@@ -40,21 +42,32 @@ export class UsersService {
         return;
       }
 
-      await this.usersRepository.assertUsernameAvailable(id, dto.username, tx);
+      const existingUser = await this.usersRepository.findByUsername(
+        username,
+        tx,
+      );
+
+      const isUsernameTaken = existingUser && existingUser.id !== id;
+
+      if (isUsernameTaken) {
+        throw new BadRequestException("Username already taken");
+      }
+
+      const mappedAvatar = avatar
+      ? {
+          url: avatar.url,
+          path: avatar.path ?? undefined,
+          type: avatar.type,
+        }
+      : null;
 
       const userData: WriteUserModel = {
         id,
         email,
-        name: dto.name,
-        surname: dto.surname,
-        username: dto.username,
-        avatar: dto.avatar
-          ? {
-              url: dto.avatar.url,
-              ...(dto.avatar.path ? { path: dto.avatar.path } : {}),
-              type: dto.avatar.type,
-            }
-          : null,
+        name,
+        surname,
+        username,
+        avatar: mappedAvatar,
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       };
@@ -67,7 +80,8 @@ export class UsersService {
     return resultUser;
   }
 
-  async updateUser(id: string, dto: Partial<UpdateUserDto>) {
+  async updateProfile(id: string, dto: Partial<UpdateUserDto>) {
+    const { name, surname, username, avatar } = dto;
     const hasAtLeastOneField = Object.values(dto).some((v) => v !== undefined);
 
     if (!hasAtLeastOneField) {
@@ -85,32 +99,37 @@ export class UsersService {
 
       const user = userSnap.data() as User;
 
-      if (dto.username) {
-        await this.usersRepository.assertUsernameAvailable(
-          id,
-          dto.username,
+      if (username) {
+        const existingUser = await this.usersRepository.findByUsername(
+          username,
           tx,
         );
+
+        const isUsernameTaken = existingUser && existingUser.id !== id;
+
+        if (isUsernameTaken) {
+          throw new BadRequestException("Username already taken");
+        }
       }
 
       const updateData: Partial<WriteUserModel> = {
         updatedAt: FieldValue.serverTimestamp(),
       };
 
-      if (dto.name !== undefined) {
-        updateData.name = dto.name;
+      if (name !== undefined) {
+        updateData.name = name;
       }
 
-      if (dto.surname !== undefined) {
-        updateData.surname = dto.surname;
+      if (surname !== undefined) {
+        updateData.surname = surname;
       }
 
-      if (dto.username !== undefined) {
-        updateData.username = dto.username;
+      if (username !== undefined) {
+        updateData.username = username;
       }
 
-      if (dto.avatar !== undefined) {
-        if (dto.avatar === null) {
+      if (avatar !== undefined) {
+        if (avatar === null) {
           if (user.avatar?.type === "upload") {
             await this.storageService.deleteFile(user.avatar.path!);
           }
@@ -122,9 +141,9 @@ export class UsersService {
           }
 
           updateData.avatar = {
-            url: dto.avatar.url,
-            path: dto.avatar.path,
-            type: dto.avatar.type,
+            url: avatar.url,
+            path: avatar.path,
+            type: avatar.type,
           };
         }
       }
@@ -135,7 +154,7 @@ export class UsersService {
     return this.usersRepository.findById(id);
   }
 
-  async deleteUser(id: string) {
+  async deleteProfile(id: string) {
     return this.userDeletionService.deleteUser(id);
   }
 }

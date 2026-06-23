@@ -9,7 +9,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { WriteComment } from "./types/write-comment.model";
 import { PostCounterFields } from "../posts/types/post-counter-field";
 import { CommentCounterFields } from "./types/comment-counter-field";
-import { UsersRepository } from "../users/users.respository";
+import { UsersRepository } from "../users/users.repository";
 import { FirestoreService } from "../common/firebase/firebase.service";
 @Injectable()
 export class CommentsService {
