@@ -6,8 +6,6 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
-  console.log(import.meta.env.VITE_BASE_URL);
-
   const token = await getToken();
 
   if (token) {

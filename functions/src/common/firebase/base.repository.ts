@@ -5,9 +5,10 @@ import {
   Transaction,
   UpdateData,
   WithFieldValue,
+  Query,
+  QuerySnapshot,
 } from "firebase-admin/firestore";
-import { mapDoc } from "./firestore.mapper";
-import mapFirestoreError from "./firestore-error.mapper";
+import { mapDoc } from "./mappers/firestore.mapper";
 
 export abstract class BaseRepository<
   ReadModel,
@@ -22,6 +23,14 @@ export abstract class BaseRepository<
     return this.firestore.collection(this.collectionName);
   }
 
+  protected query(): Query {
+    return this.collection;
+  }
+
+  protected runQuery(query: Query): Promise<QuerySnapshot<DocumentData>> {
+    return query.get();
+  }
+
   getRef(id: string) {
     return this.collection.doc(id);
   }
@@ -30,12 +39,8 @@ export abstract class BaseRepository<
     return this.collection.doc().id;
   }
 
-  // -------------------
-  // READ
-  // -------------------
   async findById(id: string): Promise<ReadModel | null> {
     const snap = await this.getRef(id).get();
-
     if (!snap.exists) return null;
 
     return mapDoc<ReadModel>(snap);
@@ -61,70 +66,35 @@ export abstract class BaseRepository<
     return mapDoc<ReadModel>(snap);
   }
 
-  // -------------------
-  // WRITE
-  // -------------------
-  async create(id: string, data: WriteModel, tx?: Transaction): Promise<void> {
-    try {
-      const ref = this.getRef(id);
+  async create(id: string, data: WriteModel, tx?: Transaction) {
+    const ref = this.getRef(id);
 
-      if (tx) {
-        tx.create(ref, data);
-        return;
-      }
-
-      await ref.create(data);
-    } catch (err) {
-      mapFirestoreError(err);
-    }
+    if (tx) return tx.create(ref, data);
+    return ref.create(data);
   }
 
-  async set(id: string, data: WriteModel, tx?: Transaction): Promise<void> {
-    try {
-      const ref = this.getRef(id);
+  async set(id: string, data: WriteModel, tx?: Transaction) {
+    const ref = this.getRef(id);
 
-      if (tx) {
-        tx.set(ref, data);
-        return;
-      }
-
-      await ref.set(data);
-    } catch (err) {
-      mapFirestoreError(err);
-    }
+    if (tx) return tx.set(ref, data);
+    return ref.set(data);
   }
 
   async update(
     id: string,
     data: UpdateData<Partial<WriteModel>>,
     tx?: Transaction,
-  ): Promise<void> {
-    try {
-      const ref = this.getRef(id);
+  ) {
+    const ref = this.getRef(id);
 
-      if (tx) {
-        tx.update(ref, data);
-        return;
-      }
-
-      await ref.update(data);
-    } catch (err) {
-      mapFirestoreError(err);
-    }
+    if (tx) return tx.update(ref, data);
+    return ref.update(data);
   }
 
-  async delete(id: string, tx?: Transaction): Promise<void> {
-    try {
-      const ref = this.getRef(id);
+  async delete(id: string, tx?: Transaction) {
+    const ref = this.getRef(id);
 
-      if (tx) {
-        tx.delete(ref);
-        return;
-      }
-
-      await ref.delete();
-    } catch (err) {
-      mapFirestoreError(err);
-    }
+    if (tx) return tx.delete(ref);
+    return ref.delete();
   }
 }

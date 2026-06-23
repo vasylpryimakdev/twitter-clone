@@ -1,28 +1,26 @@
 import {
   BadRequestException,
-  Inject,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
-import { AuthUser } from "../auth/types/auth-user.type";
+import { AuthUser } from "../common/types/auth-user.type";
 import { UsersRepository } from "./users.respository";
 import { WriteUserModel } from "./types/write-user.model";
-import { FieldValue, Firestore } from "firebase-admin/firestore";
+import { FieldValue } from "firebase-admin/firestore";
 import { UserDeletionService } from "./user-deletion.service";
-import { FIRESTORE } from "../common/firestore/firestore.provider";
 import { User } from "./types/users.entity";
-import { StorageService } from "../storage/storage.service";
 import { UpdateUserDto } from "./dto/update-user.dto";
+import { FirestoreService } from "../common/firebase/firebase.service";
+import { StorageService } from "../common/firebase/storage/storage.service";
 
 @Injectable()
 export class UsersService {
   constructor(
+    private readonly firestoreService: FirestoreService,
+    private readonly storageService: StorageService,
     private usersRepository: UsersRepository,
     private readonly userDeletionService: UserDeletionService,
-    private readonly storageService: StorageService,
-    @Inject(FIRESTORE)
-    private readonly firestore: Firestore,
   ) {}
 
   async getById(id: string) {
@@ -34,7 +32,7 @@ export class UsersService {
 
     let resultUser: any;
 
-    await this.firestore.runTransaction(async (tx) => {
+    await this.firestoreService.runTransaction(async (tx) => {
       const userSnap = await tx.get(userRef);
 
       if (userSnap.exists) {
@@ -78,7 +76,7 @@ export class UsersService {
 
     const userRef = this.usersRepository.getRef(id);
 
-    await this.firestore.runTransaction(async (tx) => {
+    await this.firestoreService.runTransaction(async (tx) => {
       const userSnap = await tx.get(userRef);
 
       if (!userSnap.exists) {

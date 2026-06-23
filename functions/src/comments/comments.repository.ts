@@ -1,12 +1,12 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { Firestore, FieldValue, Transaction } from "firebase-admin/firestore";
 
-import { FIRESTORE } from "../common/firestore/firestore.provider";
-import { mapDoc } from "../common/firestore/firestore.mapper";
 import { Comment } from "./comment.entity";
-import { BaseRepository } from "../common/firestore/base.repository";
+import { BaseRepository } from "../common/firebase/base.repository";
 import { WriteComment } from "./types/write-comment.model";
 import { CommentCounterField } from "./types/comment-counter-field";
+import { COLLECTIONS, FIRESTORE } from "../common/firebase/firebase.constants";
+import { mapDoc } from "../common/firebase/mappers/firestore.mapper";
 
 @Injectable()
 export class CommentsRepository extends BaseRepository<Comment, WriteComment> {
@@ -14,7 +14,7 @@ export class CommentsRepository extends BaseRepository<Comment, WriteComment> {
     @Inject(FIRESTORE)
     firestore: Firestore,
   ) {
-    super(firestore, "comments");
+    super(firestore, COLLECTIONS.COMMENTS);
   }
 
   async findAllByPost(postId: string) {

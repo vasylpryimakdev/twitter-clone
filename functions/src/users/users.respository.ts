@@ -1,9 +1,9 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { User } from "./types/users.entity";
 import { WriteUserModel } from "./types/write-user.model";
-import { BaseRepository } from "../common/firestore/base.repository";
-import { FIRESTORE } from "../common/firestore/firestore.provider";
+import { BaseRepository } from "../common/firebase/base.repository";
 import { Firestore } from "firebase-admin/firestore";
+import { COLLECTIONS, FIRESTORE } from "../common/firebase/firebase.constants";
 
 @Injectable()
 export class UsersRepository extends BaseRepository<User, WriteUserModel> {
@@ -11,7 +11,7 @@ export class UsersRepository extends BaseRepository<User, WriteUserModel> {
     @Inject(FIRESTORE)
     firestore: Firestore,
   ) {
-    super(firestore, "users");
+    super(firestore, COLLECTIONS.USERS);
   }
 
   async findByUsername(username: string) {

@@ -1,24 +1,23 @@
-import { Injectable, ForbiddenException, Inject } from "@nestjs/common";
+import { Injectable, ForbiddenException } from "@nestjs/common";
 
 import { CommentsRepository } from "./comments.repository";
 import { PostsRepository } from "../posts/posts.repository";
 
 import { CreateCommentDto } from "./dto/create-comment.dto";
 import { UpdateCommentDto } from "./dto/update-comment.dto";
-import { FieldValue, Firestore } from "firebase-admin/firestore";
-import { FIRESTORE } from "../common/firestore/firestore.provider";
+import { FieldValue } from "firebase-admin/firestore";
 import { WriteComment } from "./types/write-comment.model";
 import { PostCounterFields } from "../posts/types/post-counter-field";
 import { CommentCounterFields } from "./types/comment-counter-field";
 import { UsersRepository } from "../users/users.respository";
+import { FirestoreService } from "../common/firebase/firebase.service";
 @Injectable()
 export class CommentsService {
   constructor(
+    private readonly firestoreService: FirestoreService,
     private readonly commentsRepository: CommentsRepository,
     private readonly postsRepository: PostsRepository,
     private readonly usersRepository: UsersRepository,
-    @Inject(FIRESTORE)
-    private readonly firestore: Firestore,
   ) {}
 
   async createForPost(userId: string, postId: string, dto: CreateCommentDto) {
@@ -48,7 +47,7 @@ export class CommentsService {
       updatedAt: FieldValue.serverTimestamp(),
     };
 
-    await this.firestore.runTransaction(async (tx) => {
+    await this.firestoreService.runTransaction(async (tx) => {
       await this.postsRepository.getDataOrThrow(postId, tx);
 
       await this.commentsRepository.create(comment.id, comment, tx);
@@ -69,7 +68,7 @@ export class CommentsService {
 
     const user = await this.usersRepository.findByIdOrThrow(userId);
 
-    await this.firestore.runTransaction(async (tx) => {
+    await this.firestoreService.runTransaction(async (tx) => {
       const parent = await this.commentsRepository.getDataOrThrow(parentId, tx);
 
       const reply: WriteComment = {
@@ -135,7 +134,7 @@ export class CommentsService {
   }
 
   async delete(authorId: string, commentId: string) {
-    return this.firestore.runTransaction(async (tx) => {
+    return this.firestoreService.runTransaction(async (tx) => {
       const comment = await this.commentsRepository.getDataOrThrow(
         commentId,
         tx,
@@ -159,9 +158,7 @@ export class CommentsService {
           -1,
           tx,
         );
-      }
-
-      else {
+      } else {
         const replies = await this.commentsRepository.findReplies(commentId);
 
         for (const reply of replies.data) {

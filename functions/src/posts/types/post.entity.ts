@@ -1,4 +1,3 @@
-import { Timestamp } from "firebase-admin/firestore";
 import { PostImageDto } from "../dto/post-dto";
 import { UserAvatar } from "../../shared/types/author-snapshot";
 
@@ -20,8 +19,8 @@ export class Post {
 
   image!: PostImageDto | null;
 
-  createdAt!: Timestamp;
-  updatedAt!: Timestamp;
+  createdAt!: Date;
+  updatedAt!: Date;
 
   likesCount!: number;
   dislikesCount!: number;

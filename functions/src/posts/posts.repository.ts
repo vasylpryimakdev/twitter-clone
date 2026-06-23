@@ -7,12 +7,12 @@ import {
   Transaction,
 } from "firebase-admin/firestore";
 
-import { BaseRepository } from "../common/firestore/base.repository";
-import { FIRESTORE } from "../common/firestore/firestore.provider";
+import { BaseRepository } from "../common/firebase/base.repository";
 import { WritePostModel } from "./types/write-post.model";
 import { PostCounterField } from "./types/post-counter-field";
-import { mapDoc } from "../common/firestore/firestore.mapper";
 import { FindPostsDto } from "./dto/find-posts.dto";
+import { COLLECTIONS, FIRESTORE } from "../common/firebase/firebase.constants";
+import { mapDoc } from "../common/firebase/mappers/firestore.mapper";
 
 @Injectable()
 export class PostsRepository extends BaseRepository<Post, WritePostModel> {
@@ -20,7 +20,7 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
     @Inject(FIRESTORE)
     firestore: Firestore,
   ) {
-    super(firestore, "posts");
+    super(firestore, COLLECTIONS.POSTS);
   }
 
   async findPosts(dto: FindPostsDto) {
@@ -28,7 +28,7 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
 
     const realLimit = limit + 1;
 
-    let query: Query = this.firestore.collection("posts");
+    let query: Query = this.collection;
 
     if (userId) {
       query = query.where("authorId", "==", userId);
@@ -45,10 +45,7 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
     query = query.orderBy("createdAt", "desc");
 
     if (cursor) {
-      const cursorDoc = await this.firestore
-        .collection("posts")
-        .doc(cursor)
-        .get();
+      const cursorDoc = await this.getRef(cursor).get();
 
       query = query.startAfter(cursorDoc);
     }

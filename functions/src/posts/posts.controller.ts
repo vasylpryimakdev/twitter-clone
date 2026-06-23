@@ -8,29 +8,28 @@ import {
   Post,
   Query,
   Req,
-  UseGuards,
 } from "@nestjs/common";
 
 import { PostsService } from "./posts.service";
 import { PostDto } from "./dto/post-dto";
-import { AuthGuard } from "../auth/guards/firebase-auth.guard";
-import { CurrentUser } from "../auth/decorators/current-user.decorator";
-import { AuthUser } from "../auth/types/auth-user.type";
+import { CurrentUser } from "../decorators/current-user.decorator";
+import { AuthUser } from "../common/types/auth-user.type";
 import { ReactionDto } from "../reactions/dto/reaction-dto";
+import { Public } from "../decorators/public.decorator";
 
 @Controller("posts")
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
-  @UseGuards(AuthGuard)
   create(@CurrentUser() user: AuthUser, @Body() dto: PostDto) {
     return this.postsService.create(user.id, dto);
   }
 
   @Get()
+  @Public()
   findFeed(
-    @Req() req: any,
+    @CurrentUser() user: AuthUser,
     @Query("limit") limit = "10",
     @Query("cursor") cursor?: string,
     @Query("search") search?: string,
@@ -41,12 +40,11 @@ export class PostsController {
       cursor,
       search,
       userId,
-      viewerId: req.user?.id,
+      viewerId: user?.id,
     });
   }
 
   @Get("me")
-  @UseGuards(AuthGuard)
   findMyPosts(
     @CurrentUser() user: AuthUser,
     @Query("limit") limit = "10",
@@ -72,10 +70,10 @@ export class PostsController {
   ) {
     return this.postsService.findPosts({
       userId,
-      viewerId: req.user?.id,
       limit: Number(limit),
       cursor,
       search,
+      viewerId: req.user?.id,
     });
   }
 
@@ -85,7 +83,6 @@ export class PostsController {
   }
 
   @Patch(":id")
-  @UseGuards(AuthGuard)
   update(
     @CurrentUser() user: AuthUser,
     @Param("id") postId: string,
@@ -95,13 +92,11 @@ export class PostsController {
   }
 
   @Delete(":id")
-  @UseGuards(AuthGuard)
   delete(@CurrentUser() user: AuthUser, @Param("id") id: string) {
     return this.postsService.delete(user.id, id);
   }
 
   @Post(":id/reactions")
-  @UseGuards(AuthGuard)
   react(
     @CurrentUser() user: AuthUser,
     @Param("id") postId: string,

@@ -6,13 +6,11 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards,
   Query,
 } from "@nestjs/common";
 
-import { AuthGuard } from "../auth/guards/firebase-auth.guard";
-import { CurrentUser } from "../auth/decorators/current-user.decorator";
-import { AuthUser } from "../auth/types/auth-user.type";
+import { CurrentUser } from "../decorators/current-user.decorator";
+import { AuthUser } from "../common/types/auth-user.type";
 
 import { CommentsService } from "./comments.service";
 import { CreateCommentDto } from "./dto/create-comment.dto";
@@ -23,7 +21,6 @@ export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
   @Post("post/:postId")
-  @UseGuards(AuthGuard)
   createForPost(
     @Param("postId") postId: string,
     @Body() dto: CreateCommentDto,
@@ -33,7 +30,6 @@ export class CommentsController {
   }
 
   @Post(":commentId/reply")
-  @UseGuards(AuthGuard)
   reply(
     @Param("commentId") commentId: string,
     @Body() dto: CreateCommentDto,
@@ -43,7 +39,6 @@ export class CommentsController {
   }
 
   @Patch(":id")
-  @UseGuards(AuthGuard)
   update(
     @Param("id") commentId: string,
     @Body() dto: UpdateCommentDto,
@@ -53,7 +48,6 @@ export class CommentsController {
   }
 
   @Delete(":id")
-  @UseGuards(AuthGuard)
   delete(@Param("id") commentId: string, @CurrentUser() user: AuthUser) {
     return this.commentsService.delete(user.id, commentId);
   }

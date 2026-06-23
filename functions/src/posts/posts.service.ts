@@ -3,30 +3,33 @@ import {
   ForbiddenException,
   NotFoundException,
   BadRequestException,
-  Inject,
 } from "@nestjs/common";
 import { PostDto } from "./dto/post-dto";
 import { Post } from "./types/post.entity";
 import { PostsRepository } from "./posts.repository";
 import { WritePostModel } from "./types/write-post.model";
-import { FieldValue, Firestore, Transaction } from "firebase-admin/firestore";
+import { FieldValue, Transaction } from "firebase-admin/firestore";
 import { PostDeletionService } from "./post-deletion.service";
-import { FIRESTORE } from "../common/firestore/firestore.provider";
-import { ReactionType, ReactionTypes } from "../reactions/reaction.entity";
+import {
+  Reaction,
+  ReactionType,
+  ReactionTypes,
+} from "../reactions/reaction.entity";
 import { PostCounterFields } from "./types/post-counter-field";
 import { ReactionsRepository } from "../reactions/reactions.repository";
 import { UsersService } from "../users/users.service";
-import { StorageService } from "../storage/storage.service";
+import { FirestoreService } from "../common/firebase/firebase.service";
+import { StorageService } from "../common/firebase/storage/storage.service";
 
 @Injectable()
 export class PostsService {
   constructor(
-    @Inject(FIRESTORE) private readonly firestore: Firestore,
+    private readonly firestoreService: FirestoreService,
+    private readonly storageService: StorageService,
     private readonly postsRepository: PostsRepository,
     private readonly postDeletionService: PostDeletionService,
     private readonly reactionsRepository: ReactionsRepository,
     private readonly usersService: UsersService,
-    private readonly storageService: StorageService,
   ) {}
 
   async create(userId: string, dto: PostDto): Promise<Omit<Post, "image">> {
@@ -87,35 +90,19 @@ export class PostsService {
 
     const postIds = docs.map((p) => p.id);
 
-    const reactionMap = new Map<string, "like" | "dislike">();
+    let reactions: Reaction[] = [];
 
     if (viewerId && postIds.length) {
-      const chunks: string[][] = [];
-
-      for (let i = 0; i < postIds.length; i += 10) {
-        chunks.push(postIds.slice(i, i + 10));
-      }
-
-      const snaps = await Promise.all(
-        chunks.map((chunk) =>
-          this.firestore
-            .collection("reactions")
-            .where("userId", "==", viewerId)
-            .where("postId", "in", chunk)
-            .get(),
-        ),
+      reactions = await this.reactionsRepository.findByUserAndPostIds(
+        viewerId,
+        postIds,
       );
+    }
 
-      for (const snap of snaps) {
-        snap.docs.forEach((doc) => {
-          const data = doc.data() as {
-            postId: string;
-            type: "like" | "dislike";
-          };
+    const reactionMap = new Map<string, "like" | "dislike">();
 
-          reactionMap.set(data.postId, data.type);
-        });
-      }
+    for (const r of reactions) {
+      reactionMap.set(r.postId, r.type);
     }
 
     return {
@@ -212,7 +199,7 @@ export class PostsService {
   }
 
   async react(userId: string, postId: string, type: ReactionType) {
-    return this.firestore.runTransaction(async (tx) => {
+    return this.firestoreService.runTransaction(async (tx) => {
       await this.postsRepository.getDataOrThrow(postId, tx);
 
       const existing = await this.reactionsRepository.get(postId, userId, tx);
@@ -220,19 +207,19 @@ export class PostsService {
       const currentType = existing?.type ?? null;
 
       if (currentType === type) {
-        await this.reactionsRepository.delete(postId, userId, tx);
+        await this.reactionsRepository.deleteReaction(postId, userId, tx);
 
         await this.adjust(postId, currentType, -1, tx);
         return;
       }
 
       if (!currentType) {
-        await this.reactionsRepository.set(postId, userId, type, tx);
+        await this.reactionsRepository.setReaction(postId, userId, type, tx);
         await this.adjust(postId, type, +1, tx);
         return;
       }
 
-      await this.reactionsRepository.set(postId, userId, type, tx);
+      await this.reactionsRepository.setReaction(postId, userId, type, tx);
 
       await this.adjust(postId, currentType, -1, tx);
       await this.adjust(postId, type, +1, tx);

@@ -1,13 +1,19 @@
 import { NestFactory } from "@nestjs/core";
 import { ExpressAdapter } from "@nestjs/platform-express";
 import { AppModule } from "./app.module";
-import { expressApp } from "./expressApp";
+import express from "express";
 import helmet from "helmet";
 
+let cachedApp: any;
+
 export async function bootstrap() {
+  if (cachedApp) return cachedApp;
+
+  const expressInstance = express();
+
   const app = await NestFactory.create(
     AppModule,
-    new ExpressAdapter(expressApp),
+    new ExpressAdapter(expressInstance),
   );
 
   app.use(
@@ -26,4 +32,8 @@ export async function bootstrap() {
   });
 
   await app.init();
+
+  cachedApp = expressInstance;
+
+  return cachedApp;
 }

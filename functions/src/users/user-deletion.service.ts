@@ -1,26 +1,25 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { Firestore } from "firebase-admin/firestore";
+import { Injectable } from "@nestjs/common";
 
 import { UsersRepository } from "./users.respository";
 import { PostsRepository } from "../posts/posts.repository";
 import { CommentsRepository } from "../comments/comments.repository";
 import { ReactionsRepository } from "../reactions/reactions.repository";
-import { FIRESTORE } from "../common/firestore/firestore.provider";
-import { StorageService } from "../storage/storage.service";
+import { StorageService } from "../common/firebase/storage/storage.service";
+import { FirestoreService } from "../common/firebase/firebase.service";
 
 @Injectable()
 export class UserDeletionService {
   constructor(
-    @Inject(FIRESTORE) private readonly firestore: Firestore,
+    private readonly firestoreService: FirestoreService,
+    private readonly storageService: StorageService,
     private readonly usersRepository: UsersRepository,
     private readonly postsRepository: PostsRepository,
     private readonly commentsRepository: CommentsRepository,
     private readonly reactionsRepository: ReactionsRepository,
-    private readonly storageService: StorageService,
   ) {}
 
   async deleteUser(userId: string) {
-    await this.firestore.runTransaction(async (tx) => {
+    await this.firestoreService.runTransaction(async (tx) => {
       const user = await this.usersRepository.getDataOrThrow(userId, tx);
 
       if (user.avatar?.type === "upload") {
@@ -30,7 +29,7 @@ export class UserDeletionService {
       const userReactions = await this.reactionsRepository.findByUser(userId);
 
       for (const r of userReactions) {
-        await this.reactionsRepository.delete(r.postId, r.userId, tx);
+        await this.reactionsRepository.deleteReaction(r.postId, r.userId, tx);
       }
 
       const userComments = await this.commentsRepository.findByAuthor(userId);

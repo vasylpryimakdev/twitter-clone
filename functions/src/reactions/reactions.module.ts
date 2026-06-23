@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { ReactionsRepository } from "./reactions.repository";
-import FirebaseModule from "../common/firestore/firestore.module";
+import { FirebaseModule } from "../common/firebase/firebase.module";
 @Module({
   imports: [FirebaseModule],
   providers: [ReactionsRepository],
