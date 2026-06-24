@@ -13,8 +13,16 @@ const PostsList = ({ posts }: Props) => {
         width: "100%",
         display: "flex",
         flexDirection: "column",
+        mt: 3,
         gap: 1,
-        py: 2,
+        py: 4,
+
+        // 👇 новий стиль
+        px: 2,
+        borderRadius: 3,
+        backgroundColor: "grey.50",
+        border: "1px solid",
+        borderColor: "divider",
       }}
     >
       {posts?.map((post) => (
