@@ -42,15 +42,7 @@ export const useCreateReply = (postId: string, commentId: string) => {
         }),
 
         queryClient.invalidateQueries({
-          queryKey: ["post", postId],
-        }),
-
-        queryClient.invalidateQueries({
-          queryKey: ["posts", "feed"],
-        }),
-
-        queryClient.invalidateQueries({
-          queryKey: ["posts", "user"],
+          queryKey: ["posts"],
         }),
       ]);
     },

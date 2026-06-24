@@ -22,8 +22,12 @@ const CommentsList = ({ postId }: Props) => {
 
   if (error) {
     return (
-      <Typography color="error" variant="body2">
-        Failed to load comments
+      <Typography
+        color="error"
+        variant="body2"
+        sx={{ textAlign: "center", py: 2 }}
+      >
+        Failed to load comments. Please try again.
       </Typography>
     );
   }
@@ -32,14 +36,24 @@ const CommentsList = ({ postId }: Props) => {
     <Stack spacing={4}>
       <CommentForm postId={postId} />
 
-      {comments.map((comment) => (
-        <CommentCard
-          postId={postId}
-          key={comment.id}
-          comment={comment}
-          userId={user?.id}
-        />
-      ))}
+      {comments.length === 0 ? (
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ textAlign: "center", py: 2 }}
+        >
+          No comments yet. Be the first to share your thoughts 💬
+        </Typography>
+      ) : (
+        comments.map((comment) => (
+          <CommentCard
+            key={comment.id}
+            postId={postId}
+            comment={comment}
+            userId={user?.id}
+          />
+        ))
+      )}
     </Stack>
   );
 };
