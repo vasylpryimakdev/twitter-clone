@@ -67,8 +67,30 @@ export const ProfilePage = () => {
       />
 
       <Box sx={{ mt: 3, px: 2 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          My Posts
+        <Typography
+          variant="h5"
+          sx={{
+            mb: 4,
+            fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            width: "fit-content",
+            position: "relative",
+
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              bottom: -8,
+              left: 0,
+              width: "100%",
+              height: 4,
+              borderRadius: 999,
+              bgcolor: "grey.400",
+            },
+          }}
+        >
+          {isOwner ? "My Posts" : `${user.name}'s Posts`}
         </Typography>
 
         <PaginationList query={query}>
