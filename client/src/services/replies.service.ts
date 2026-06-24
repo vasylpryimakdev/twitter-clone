@@ -11,8 +11,17 @@ export type RepliesResponse = {
 };
 
 class RepliesService {
-  async getByCommentId(commentId: string): Promise<RepliesResponse> {
-    const { data } = await api.get(`/comments/${commentId}/replies`);
+  async getByCommentId(
+    commentId: string,
+    cursor?: string | null,
+    limit = 20,
+  ): Promise<RepliesResponse> {
+    const { data } = await api.get(`/comments/${commentId}/replies`, {
+      params: {
+        cursor,
+        limit,
+      },
+    });
 
     return data;
   }

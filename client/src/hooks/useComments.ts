@@ -96,22 +96,17 @@ export const useCreateComment = (postId: string) => {
     },
 
     onSuccess: (newComment) => {
-      queryClient.setQueryData<InfiniteData<CommentsResponse>>(
-        ["comments", postId],
+      queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
+        { queryKey: ["comments", postId] },
         (old) => {
-          if (!old) return old;
-
-          const firstPage = old.pages[0];
+          if (!old?.pages?.length) return old;
 
           return {
             ...old,
-            pages: [
-              {
-                ...firstPage,
-                data: [newComment, ...firstPage.data],
-              },
-              ...old.pages.slice(1),
-            ],
+            pages: old.pages.map((page) => ({
+              ...page,
+              data: [newComment, ...page.data],
+            })),
           };
         },
       );
@@ -153,10 +148,10 @@ export const useUpdateComment = (postId: string) => {
     },
 
     onSuccess: (updatedComment) => {
-      queryClient.setQueryData<InfiniteData<CommentsResponse>>(
-        ["comments", postId],
+      queryClient.setQueriesData<InfiniteData<CommentsResponse>>(
+        { queryKey: ["comments", postId] },
         (old) => {
-          if (!old) return old;
+          if (!old?.pages) return old;
 
           return {
             ...old,
@@ -196,7 +191,14 @@ export const useDeleteComment = (postId: string) => {
         queryKey: ["posts"],
       });
 
-      const previousComments = queryClient.getQueryData(["comments", postId]);
+      const previousComments = queryClient.getQueryData<
+        InfiniteData<CommentsResponse>
+      >(["comments", postId]);
+      const comment = previousComments?.pages
+        ?.flatMap((p) => p.data)
+        .find((c) => c.id === commentId);
+
+      const repliesCount = comment?.repliesCount ?? 0;
 
       const previousPosts = queryClient.getQueriesData({
         queryKey: ["posts"],
@@ -228,7 +230,10 @@ export const useDeleteComment = (postId: string) => {
               post.id === postId
                 ? {
                     ...post,
-                    commentsCount: Math.max(0, (post.commentsCount ?? 0) - 1),
+                    commentsCount: Math.max(
+                      0,
+                      (post.commentsCount ?? 0) - 1 - repliesCount,
+                    ),
                   }
                 : post,
             ),

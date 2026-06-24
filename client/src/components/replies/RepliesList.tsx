@@ -10,7 +10,7 @@ type Props = {
 };
 
 export const RepliesList = ({ commentId, userId, postId }: Props) => {
-  const { data: replies = [], isLoading, error } = useReplies(commentId);
+  const { replies, isLoading, error } = useReplies(commentId);
 
   if (isLoading) {
     return (

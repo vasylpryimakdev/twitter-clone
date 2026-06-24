@@ -9,6 +9,7 @@ import {
   Button,
   Menu,
   MenuItem,
+  CircularProgress,
 } from "@mui/material";
 
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
@@ -142,7 +143,7 @@ export const ReplyCard = ({
                 <MenuItem onClick={handleEdit}>Edit</MenuItem>
 
                 <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
-                  {isDeleting ? "Deleting..." : "Delete"}
+                  {isDeleting ? <CircularProgress size={16} /> : "Delete"}
                 </MenuItem>
               </Menu>
             </>
@@ -181,8 +182,9 @@ export const ReplyCard = ({
                 variant="contained"
                 onClick={handleSave}
                 disabled={isUpdating}
+                loading={isUpdating}
               >
-                {isUpdating ? "Saving..." : "Save"}
+                Save
               </Button>
 
               <Button size="small" onClick={handleCancel}>

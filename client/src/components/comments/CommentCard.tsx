@@ -9,6 +9,7 @@ import {
   Button,
   Menu,
   MenuItem,
+  CircularProgress,
 } from "@mui/material";
 
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
@@ -36,8 +37,10 @@ export const CommentCard = ({ comment, postId, userId }: Props) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  const updateComment = useUpdateComment(postId);
-  const deleteComment = useDeleteComment(postId);
+  const { mutate: updateMutate, isPending: updateLoading } =
+    useUpdateComment(postId);
+  const { mutate: deleteMutate, isPending: deleteLoading } =
+    useDeleteComment(postId);
 
   const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(e.currentTarget);
@@ -60,7 +63,7 @@ export const CommentCard = ({ comment, postId, userId }: Props) => {
   const handleSave = () => {
     if (!text.trim()) return;
 
-    updateComment.mutate(
+    updateMutate(
       {
         commentId: comment.id,
         text,
@@ -74,7 +77,7 @@ export const CommentCard = ({ comment, postId, userId }: Props) => {
   };
 
   const handleDelete = () => {
-    deleteComment.mutate(comment.id);
+    deleteMutate(comment.id);
     handleMenuClose();
   };
 
@@ -176,7 +179,7 @@ export const CommentCard = ({ comment, postId, userId }: Props) => {
                 <MenuItem onClick={handleEdit}>Edit</MenuItem>
 
                 <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
-                  Delete
+                  {deleteLoading ? <CircularProgress size={16} /> : "Delete"}
                 </MenuItem>
               </Menu>
             </>
@@ -223,7 +226,12 @@ export const CommentCard = ({ comment, postId, userId }: Props) => {
             />
 
             <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-              <Button type="submit" size="small" variant="contained">
+              <Button
+                type="submit"
+                size="small"
+                variant="contained"
+                loading={updateLoading}
+              >
                 Save
               </Button>
 

@@ -14,6 +14,10 @@ export type Comment = {
   updatedAt: string;
 };
 
+export type CommentsQueryData = {
+  data: Comment[];
+};
+
 export type UpdateCommentVariables = {
   commentId: string;
   text: string;

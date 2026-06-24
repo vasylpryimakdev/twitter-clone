@@ -21,13 +21,12 @@ export const ReplyForm = ({ commentId, postId }: Props) => {
 
   const [text, setText] = useState("");
 
-  const createReply = useCreateReply(postId, commentId);
-  const loading = createReply.isPending;
+  const { mutate, isPending } = useCreateReply(postId, commentId);
 
   const handleSubmit = () => {
     if (!text.trim()) return;
 
-    createReply.mutate(text, {
+    mutate(text, {
       onSuccess: () => setText(""),
     });
   };
@@ -60,10 +59,10 @@ export const ReplyForm = ({ commentId, postId }: Props) => {
       <Button
         type="submit"
         variant="contained"
-        disabled={!text.trim() || loading}
+        disabled={!text.trim() || isPending}
         onClick={handleSubmit}
       >
-        {loading ? <CircularProgress size={18} /> : "Reply"}
+        {isPending ? <CircularProgress size={18} /> : "Reply"}
       </Button>
     </Stack>
   );
