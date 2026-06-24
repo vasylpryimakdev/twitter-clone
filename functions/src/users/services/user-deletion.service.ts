@@ -29,13 +29,61 @@ export class UserDeletionService {
       const userReactions = await this.reactionsRepository.findByUser(userId);
 
       for (const r of userReactions) {
-        await this.reactionsRepository.deleteReaction(r.postId, r.userId, tx);
+        const postRef = this.postsRepository.getRef(r.postId);
+        const postSnap = await tx.get(postRef);
+
+        if (postSnap.exists) {
+          const post = postSnap.data();
+
+          if (!post) return;
+
+          tx.update(postRef, {
+            likesCount:
+              r.type === "like"
+                ? Math.max((post.likesCount ?? 1) - 1, 0)
+                : post.likesCount,
+
+            dislikesCount:
+              r.type === "dislike"
+                ? Math.max((post.dislikesCount ?? 1) - 1, 0)
+                : post.dislikesCount,
+          });
+        }
+
+        this.reactionsRepository.deleteReaction(r.postId, r.userId, tx);
       }
 
       const userComments = await this.commentsRepository.findByAuthor(userId);
 
       for (const c of userComments) {
-        await this.commentsRepository.delete(c.id, tx);
+        const postRef = this.postsRepository.getRef(c.postId);
+        const postSnap = await tx.get(postRef);
+
+        if (postSnap.exists) {
+          const post = postSnap.data();
+
+          if (!post) return;
+
+          tx.update(postRef, {
+            commentsCount: Math.max((post.commentsCount ?? 0) - 1, 0),
+          });
+        }
+        if (c.parentId) {
+          const parentRef = this.commentsRepository.getRef(c.parentId);
+          const parentSnap = await tx.get(parentRef);
+
+          if (parentSnap.exists) {
+            const parent = parentSnap.data();
+
+            if (!parent) return;
+
+            tx.update(parentRef, {
+              repliesCount: Math.max((parent.repliesCount ?? 1) - 1, 0),
+            });
+          }
+        }
+
+        this.commentsRepository.delete(c.id, tx);
       }
 
       const userPosts = await this.postsRepository.findPosts({
@@ -48,10 +96,10 @@ export class UserDeletionService {
           await this.storageService.deleteFile(p.image.path);
         }
 
-        await this.postsRepository.delete(p.id, tx);
+        tx.delete(this.postsRepository.getRef(p.id));
       }
 
-      await this.usersRepository.delete(userId, tx);
+      this.usersRepository.delete(userId, tx);
     });
   }
 }
