@@ -16,7 +16,6 @@ export const ProfileHeaderView = ({ user, isOwner }: Props) => {
       <Box
         sx={{
           px: 3,
-          px: 3,
           borderLeft: "1px solid",
           borderRight: "1px solid",
           borderColor: "divider",
