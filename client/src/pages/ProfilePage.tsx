@@ -66,7 +66,17 @@ export const ProfilePage = () => {
         isOwner={isOwner}
       />
 
-      <Box sx={{ mt: 3, px: 2 }}>
+      <Box
+        sx={{
+          my: 3,
+          px: 2,
+          py: 2,
+          border: "1px solid",
+          borderColor: "divider",
+          borderRadius: 3,
+          backgroundColor: "#fafafa",
+        }}
+      >
         <Typography
           variant="h5"
           sx={{
