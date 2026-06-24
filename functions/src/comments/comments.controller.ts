@@ -15,6 +15,7 @@ import { AuthUser } from "../common/types/auth-user.type";
 import { CommentsService } from "./comments.service";
 import { CreateCommentDto } from "./dto/create-comment.dto";
 import { UpdateCommentDto } from "./dto/update-comment.dto";
+import { Public } from "../decorators/public.decorator";
 
 @Controller("comments")
 export class CommentsController {
@@ -52,6 +53,7 @@ export class CommentsController {
     return this.commentsService.delete(user.id, commentId);
   }
 
+  @Public()
   @Get("post/:postId")
   getByPost(
     @Param("postId") postId: string,
@@ -61,6 +63,7 @@ export class CommentsController {
     return this.commentsService.findByPost(postId, Number(limit ?? 20), cursor);
   }
 
+  @Public()
   @Get(":commentId/replies")
   getReplies(
     @Param("commentId") commentId: string,
