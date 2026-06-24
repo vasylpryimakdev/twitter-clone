@@ -7,6 +7,7 @@ import {
 } from "@mui/material";
 import { useAuthStore } from "../../stores/auth.store";
 import type { ReactNode } from "react";
+import SentimentDissatisfiedIcon from "@mui/icons-material/SentimentDissatisfied";
 
 type PaginationQuery<T> = {
   items: T[];
@@ -53,7 +54,29 @@ export const PaginationList = <T,>({ children, query }: Props<T>) => {
   }
 
   if (!items.length) {
-    return <Typography>No Posts</Typography>;
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          py: 8,
+          textAlign: "center",
+          color: "text.secondary",
+        }}
+      >
+        <SentimentDissatisfiedIcon sx={{ fontSize: 48, mb: 1, opacity: 0.6 }} />
+
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          No posts yet
+        </Typography>
+
+        <Typography variant="body2" sx={{ mt: 0.5 }}>
+          Create your first post
+        </Typography>
+      </Box>
+    );
   }
 
   const showPagination = !(isFirstPage && isLastPage);

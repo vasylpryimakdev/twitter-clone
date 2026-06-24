@@ -5,6 +5,7 @@ import AddIcon from "@mui/icons-material/Add";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { Link } from "react-router-dom";
 import { authService } from "../../services/auth.service";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Props = {
   anchorEl: HTMLElement | null;
@@ -13,6 +14,8 @@ type Props = {
 };
 
 const MainMenu = ({ anchorEl, open, handleClose }: Props) => {
+  const queryClient = useQueryClient();
+
   return (
     <Menu
       anchorEl={anchorEl}
@@ -44,6 +47,9 @@ const MainMenu = ({ anchorEl, open, handleClose }: Props) => {
       <MenuItem
         onClick={async () => {
           await authService.logout();
+
+          queryClient.invalidateQueries({ queryKey: ["posts"] });
+
           handleClose();
         }}
       >
