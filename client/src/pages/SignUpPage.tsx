@@ -113,13 +113,6 @@ export const SignUpPage = () => {
 
       const credential = await authService.signInWithGoogle();
 
-      console.log(credential.user.metadata.creationTime);
-      console.log(credential.user.metadata.lastSignInTime);
-      console.log(
-        credential.user.metadata.creationTime ===
-          credential.user.metadata.lastSignInTime,
-      );
-
       const firebaseUser = credential.user;
 
       if (!firebaseUser.uid) {
