@@ -13,6 +13,8 @@ import {
 import ThumbDownOffAltIcon from "@mui/icons-material/ThumbDownOffAlt";
 import ThumbUpOffAlt from "@mui/icons-material/ThumbUpOffAlt";
 import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 
 import type { Post as PostType } from "../../types/post.types";
 import { formatDate } from "../../shared/utils/formatDate";
@@ -46,6 +48,7 @@ export const PostCard = ({ post }: PostProps) => {
   } = post;
 
   const [showComments, setShowComments] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const navigate = useNavigate();
 
@@ -93,6 +96,13 @@ export const PostCard = ({ post }: PostProps) => {
 
   const isLiked = userReaction === "like";
   const isDisliked = userReaction === "dislike";
+
+  const MAX_LENGTH = 200;
+
+  const isLongText = text.length > MAX_LENGTH;
+
+  const displayedText =
+    !expanded && isLongText ? text.slice(0, MAX_LENGTH) + "..." : text;
 
   return (
     <Card
@@ -161,8 +171,32 @@ export const PostCard = ({ post }: PostProps) => {
           {title}
         </Typography>
 
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {text}
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            mb: 2,
+            cursor: isLongText ? "pointer" : "default",
+            whiteSpace: "pre-line",
+          }}
+          onClick={() => {
+            if (isLongText) {
+              setExpanded((prev) => !prev);
+            }
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              {displayedText}
+            </Typography>
+
+            {isLongText &&
+              (expanded ? (
+                <ExpandLessIcon sx={{ fontSize: 28, mb: "2px" }} />
+              ) : (
+                <ExpandMoreIcon sx={{ fontSize: 28, mb: "2px" }} />
+              ))}
+          </Box>
         </Typography>
 
         <Stack

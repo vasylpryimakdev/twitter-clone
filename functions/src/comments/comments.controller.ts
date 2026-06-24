@@ -53,8 +53,8 @@ export class CommentsController {
     return this.commentsService.delete(user.id, commentId);
   }
 
-  @Public()
   @Get("post/:postId")
+  @Public()
   getByPost(
     @Param("postId") postId: string,
     @Query("cursor") cursor?: string,
@@ -63,8 +63,8 @@ export class CommentsController {
     return this.commentsService.findByPost(postId, Number(limit ?? 20), cursor);
   }
 
-  @Public()
   @Get(":commentId/replies")
+  @Public()
   getReplies(
     @Param("commentId") commentId: string,
     @Query("cursor") cursor?: string,
