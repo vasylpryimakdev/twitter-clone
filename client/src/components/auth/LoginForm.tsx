@@ -6,7 +6,11 @@ import {
   Link,
   Typography,
   Divider,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {
@@ -23,6 +27,7 @@ import { auth } from "../../firebase/firebase";
 import { usersService } from "../../services/users.service";
 import { handleError } from "../../shared/errors/handleError";
 import { isValidEmail } from "../../shared/utils/isValidEmail";
+import { useAuthStore } from "../../stores/auth.store";
 
 type Props = {
   email: string;
@@ -38,6 +43,7 @@ export const LoginForm = ({
   const [googleLoading, setGoogleLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -77,6 +83,8 @@ export const LoginForm = ({
     setLoading(true);
 
     try {
+      useAuthStore.getState().setShouldShowWelcome(true);
+
       await authService.login(email, password);
       navigate("/", { replace: true });
     } catch (e) {
@@ -136,7 +144,7 @@ export const LoginForm = ({
 
           <TextField
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
@@ -145,9 +153,22 @@ export const LoginForm = ({
                 setErrors((prev) => ({ ...prev, password: undefined }));
               }
             }}
-            fullWidth
             error={!!errors.password}
             helperText={errors.password}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      edge="end"
+                      onClick={() => setShowPassword((p) => !p)}
+                    >
+                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
 
           <Box sx={{ textAlign: "right" }}>

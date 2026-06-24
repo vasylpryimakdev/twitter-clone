@@ -21,7 +21,7 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import GoogleIcon from "@mui/icons-material/Google";
 
-import type { User } from "firebase/auth";
+import { type User } from "firebase/auth";
 
 import { authService } from "../services/auth.service";
 import { usersService } from "../services/users.service";
@@ -31,16 +31,15 @@ import {
 } from "../shared/schemas/signup.schema";
 
 import { useAuthStore } from "../stores/auth.store";
-import { useToastStore } from "../stores/toast.store";
 
 import { handleError } from "../shared/errors/handleError";
 import { createGoogleProfile } from "../shared/utils/createGoogleProfile";
+import { finishAuth } from "../shared/utils/finishAuth";
 
 export const SignUpPage = () => {
   const navigate = useNavigate();
 
   const setUser = useAuthStore((s) => s.setUser);
-  const showToast = useToastStore((s) => s.showToast);
 
   const [googleLoading, setGoogleLoading] = useState(false);
 
@@ -64,11 +63,6 @@ export const SignUpPage = () => {
     }));
   };
 
-  const finishAuth = (message: string) => {
-    showToast(message, "success");
-    navigate("/", { replace: true });
-  };
-
   const rollbackFirebaseUser = async (firebaseUser: User | null) => {
     if (!firebaseUser) return;
 
@@ -86,6 +80,8 @@ export const SignUpPage = () => {
     try {
       const credential = await authService.signUp(data.email, data.password);
 
+      console.log(credential.user.metadata);
+
       firebaseUser = credential.user;
 
       const user = await usersService.createProfile({
@@ -100,7 +96,10 @@ export const SignUpPage = () => {
         emailVerified: firebaseUser.emailVerified,
       });
 
-      finishAuth("Account created successfully. Please verify your email");
+      finishAuth(
+        "Account created successfully. Please verify your email",
+        navigate,
+      );
     } catch (err) {
       await rollbackFirebaseUser(firebaseUser);
 
@@ -113,6 +112,14 @@ export const SignUpPage = () => {
       setGoogleLoading(true);
 
       const credential = await authService.signInWithGoogle();
+
+      console.log(credential.user.metadata.creationTime);
+      console.log(credential.user.metadata.lastSignInTime);
+      console.log(
+        credential.user.metadata.creationTime ===
+          credential.user.metadata.lastSignInTime,
+      );
+
       const firebaseUser = credential.user;
 
       if (!firebaseUser.uid) {
@@ -123,7 +130,7 @@ export const SignUpPage = () => {
 
       if (user) {
         setUser(user);
-        finishAuth(`Welcome back ${user.name}`);
+        finishAuth(`Welcome back ${user.name}`, navigate);
         return;
       }
 
@@ -132,7 +139,7 @@ export const SignUpPage = () => {
       user = await usersService.createProfile({ ...profile });
 
       setUser(user);
-      finishAuth(`Welcome ${profile.name}!`);
+      finishAuth(`Welcome ${profile.name}!`, navigate);
     } catch (err) {
       handleError(err);
     } finally {

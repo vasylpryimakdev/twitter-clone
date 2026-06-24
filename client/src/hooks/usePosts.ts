@@ -112,11 +112,18 @@ export const useCreatePost = () => {
   return useMutation<Post, unknown, PostDTO>({
     mutationFn: postsService.createPost,
 
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["posts", "feed"] }),
-        queryClient.invalidateQueries({ queryKey: ["posts"] }),
-      ]);
+    onSuccess: (newPost) => {
+      queryClient.setQueriesData<PostsQueryData>(
+        { queryKey: ["posts"] },
+        (old) => {
+          if (!old?.data) return old;
+
+          return {
+            ...old,
+            items: [newPost, ...old.data],
+          };
+        },
+      );
 
       showToast("Post created successfully", "success");
       navigate("/");
@@ -133,12 +140,18 @@ export const useUpdatePost = (id: string) => {
   return useMutation<Post, unknown, PostDTO>({
     mutationFn: (data) => postsService.updatePost(id, data),
 
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["post", id] }),
-        queryClient.invalidateQueries({ queryKey: ["posts"] }),
-        queryClient.invalidateQueries({ queryKey: ["posts", "feed"] }),
-      ]);
+    onSuccess: (updatedPost) => {
+      queryClient.setQueriesData<PostsQueryData>(
+        { queryKey: ["posts"] },
+        (old) => {
+          if (!old?.data) return old;
+
+          return {
+            ...old,
+            items: old.data.map((p) => (p.id === id ? updatedPost : p)),
+          };
+        },
+      );
 
       showToast("Post updated successfully", "success");
       navigate("/");
@@ -154,11 +167,18 @@ export const useDeletePost = () => {
   return useMutation<void, unknown, string>({
     mutationFn: postsService.deletePost,
 
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["posts"] }),
-        queryClient.invalidateQueries({ queryKey: ["posts", "feed"] }),
-      ]);
+    onSuccess: (_, postId) => {
+      queryClient.setQueriesData<PostsQueryData>(
+        { queryKey: ["posts"] },
+        (old) => {
+          if (!old?.data) return old;
+
+          return {
+            ...old,
+            items: old.data.filter((p) => p.id !== postId),
+          };
+        },
+      );
 
       showToast("Post deleted", "success");
     },
@@ -189,45 +209,59 @@ export const useReactPost = () => {
         queryKey: ["posts"],
       });
 
+      const updatePost = (post: Post, type: ReactionType) => {
+        const current = post.userReaction;
+
+        let likes = post.likesCount;
+        let dislikes = post.dislikesCount;
+
+        let newReaction: ReactionType | null = type;
+
+        if (current === type) {
+          newReaction = null;
+
+          if (type === "like") {
+            likes--;
+          } else {
+            dislikes--;
+          }
+        } else {
+          if (current === "like") likes--;
+          if (current === "dislike") dislikes--;
+
+          if (type === "like") {
+            likes++;
+          } else {
+            dislikes++;
+          }
+        }
+
+        return {
+          ...post,
+          userReaction: newReaction,
+          likesCount: likes,
+          dislikesCount: dislikes,
+        };
+      };
+
       queryClient.setQueriesData<PostsQueryData>(
         { queryKey: ["posts"] },
-        (old) => {
-          if (!old?.items) return old;
+        (old: PostsQueryData | undefined) => {
+          if (!old?.data) return old;
 
           return {
             ...old,
-            items: old.items.map((post) => {
-              if (post.id !== postId) return post;
-
-              const current = post.userReaction;
-
-              let likes = post.likesCount;
-              let dislikes = post.dislikesCount;
-              let newReaction: ReactionType | null = type;
-
-              if (current === type) {
-                newReaction = null;
-
-                if (type === "like") likes--;
-                else dislikes--;
-              } else {
-                if (current === "like") likes--;
-                if (current === "dislike") dislikes--;
-
-                if (type === "like") likes++;
-                else dislikes++;
-              }
-
-              return {
-                ...post,
-                userReaction: newReaction,
-                likesCount: likes,
-                dislikesCount: dislikes,
-              };
-            }),
+            data: old.data.map((post) =>
+              post.id === postId ? updatePost(post, type) : post,
+            ),
           };
         },
       );
+
+      queryClient.setQueryData<Post>(["post", postId], (old) => {
+        if (!old) return old;
+        return updatePost(old, type);
+      });
 
       return { previous };
     },
@@ -240,10 +274,6 @@ export const useReactPost = () => {
       });
     },
 
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["posts"],
-      });
-    },
+    onSettled: () => {},
   });
 };

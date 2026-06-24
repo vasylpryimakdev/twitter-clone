@@ -8,15 +8,16 @@ import { handleError } from "../shared/errors/handleError";
 import { useToastStore } from "../stores/toast.store";
 
 export const useAuthInitializer = () => {
-  const setUser = useAuthStore((s) => s.setUser);
-  const showToast = useToastStore.getState().showToast;
-  const setStatus = useAuthStore((s) => s.setStatus);
-  const setInitialized = useAuthStore((s) => s.setInitialized);
-
   useEffect(() => {
+    const showToast = useToastStore.getState().showToast;
+    const { setUser, setStatus, setInitialized, setShouldShowWelcome } =
+      useAuthStore.getState();
+
     setStatus("loading");
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      const shouldShowWelcome = useAuthStore.getState().shouldShowWelcome;
+
       try {
         if (!firebaseUser) {
           setUser(null);
@@ -33,7 +34,7 @@ export const useAuthInitializer = () => {
           setUser(null);
           setStatus("unauthenticated");
           setInitialized(true);
-          
+
           return;
         }
 
@@ -44,6 +45,12 @@ export const useAuthInitializer = () => {
           id: firebaseUser.uid,
           emailVerified: firebaseUser.emailVerified,
         });
+
+        if (shouldShowWelcome) {
+          showToast(`Welcome ${res.data.name} 👋`, "success");
+
+          setShouldShowWelcome(false);
+        }
 
         setStatus("authenticated");
       } catch (error) {
@@ -57,5 +64,5 @@ export const useAuthInitializer = () => {
     });
 
     return unsubscribe;
-  }, [setUser, setStatus, setInitialized, showToast]);
+  }, []);
 };

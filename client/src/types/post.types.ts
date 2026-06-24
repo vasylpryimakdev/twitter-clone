@@ -34,7 +34,7 @@ export type PostsFeedResponse = {
 };
 
 export type PostsQueryData = {
-  items: Post[];
+  data: Post[];
 };
 
 export type ReactPostVariables = {

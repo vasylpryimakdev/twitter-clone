@@ -28,7 +28,9 @@ export const ResetPasswordForm = ({ email, onEmailChange, onBack }: Props) => {
     emailRef.current?.focus();
   }, []);
 
-  const handleReset = async () => {
+  const handleReset = async (e: React.SubmitEvent) => {
+    e.preventDefault();
+
     setLoading(true);
     try {
       await authService.sendPasswordReset(email);
