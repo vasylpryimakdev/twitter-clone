@@ -56,6 +56,8 @@ export const PaginationList = <T,>({ children, query }: Props<T>) => {
     return <Typography>No Posts</Typography>;
   }
 
+  const showPagination = !(isFirstPage && isLastPage);
+
   return (
     <Box>
       {children(items)}
@@ -68,52 +70,56 @@ export const PaginationList = <T,>({ children, query }: Props<T>) => {
           alignItems: "center",
         }}
       >
-        {!isFirstPage && (
-          <Button
-            onClick={prevPage}
-            disabled={!prevPage || page === 1}
-            variant="contained"
-            sx={{
-              minWidth: 40,
-              borderRadius: "10px",
-              fontSize: 18,
-              lineHeight: 1,
-            }}
-          >
-            ‹
-          </Button>
-        )}
+        {page !== undefined && showPagination && (
+          <>
+            {page - 1 > 0 && (
+              <Button
+                onClick={prevPage}
+                disabled={!prevPage || page === 1}
+                variant="contained"
+                sx={{
+                  minWidth: 48,
+                  borderRadius: "10px",
+                  fontWeight: 600,
+                  opacity: 1,
+                  cursor: "default",
+                }}
+              >
+                {page && page - 1}
+              </Button>
+            )}
 
-        {page !== undefined && (
-          <Button
-            disabled
-            variant="contained"
-            sx={{
-              minWidth: 48,
-              borderRadius: "10px",
-              fontWeight: 600,
-              opacity: 1,
-              cursor: "default",
-            }}
-          >
-            {page}
-          </Button>
-        )}
+            <Button
+              disabled
+              variant="contained"
+              sx={{
+                minWidth: 48,
+                borderRadius: "10px",
+                fontWeight: 600,
+                opacity: 1,
+                cursor: "default",
+              }}
+            >
+              {page}
+            </Button>
 
-        {!isLastPage && (
-          <Button
-            onClick={nextPage}
-            disabled={!hasNextPage}
-            variant="outlined"
-            sx={{
-              minWidth: 40,
-              borderRadius: "10px",
-              fontSize: 18,
-              lineHeight: 1,
-            }}
-          >
-            ›
-          </Button>
+            {!isLastPage && (
+              <Button
+                onClick={nextPage}
+                disabled={!hasNextPage}
+                variant="contained"
+                sx={{
+                  minWidth: 48,
+                  borderRadius: "10px",
+                  fontWeight: 600,
+                  opacity: 1,
+                  cursor: "default",
+                }}
+              >
+                {page && page + 1}
+              </Button>
+            )}
+          </>
         )}
       </Stack>
     </Box>

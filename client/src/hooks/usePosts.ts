@@ -22,7 +22,7 @@ import { useState } from "react";
 
 const showToast = useToastStore.getState().showToast;
 
-const LIMIT = 3;
+const LIMIT = 5;
 
 export const usePosts = (params?: { userId?: string; search?: string }) => {
   const initialized = useAuthStore((s) => s.isInitialized);
