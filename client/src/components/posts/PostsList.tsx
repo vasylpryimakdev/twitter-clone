@@ -17,8 +17,8 @@ const PostsList = ({ posts }: Props) => {
         gap: 1,
         py: 4,
 
-        // 👇 новий стиль
         px: 2,
+       
         borderRadius: 3,
         backgroundColor: "grey.50",
         border: "1px solid",

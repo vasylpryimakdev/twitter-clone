@@ -59,7 +59,11 @@ export const ProfilePage = () => {
   }
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box
+      sx={{
+        width: "100%",
+      }}
+    >
       <ProfileHeader
         user={user}
         emailVerified={authUser?.emailVerified}
@@ -68,13 +72,15 @@ export const ProfilePage = () => {
 
       <Box
         sx={{
-          my: 3,
+          mb: 3,
           px: 2,
           py: 2,
           border: "1px solid",
           borderColor: "divider",
           borderRadius: 3,
-          backgroundColor: "#fafafa",
+          borderTopLeftRadius: 0,
+          borderTopRightRadius: 0,
+          backgroundColor: "#f5f5f5",
         }}
       >
         <Typography

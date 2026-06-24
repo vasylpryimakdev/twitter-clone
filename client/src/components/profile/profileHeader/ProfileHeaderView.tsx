@@ -9,12 +9,22 @@ type Props = {
 };
 
 export const ProfileHeaderView = ({ user, isOwner }: Props) => {
-
   return (
     <>
       <Box sx={{ height: 180, backgroundColor: "#cfd9de" }} />
 
-      <Box sx={{ px: 3 }}>
+      <Box
+        sx={{
+          px: 3,
+          px: 3,
+          borderLeft: "1px solid",
+          borderRight: "1px solid",
+          borderColor: "divider",
+          borderTop: 0,
+          borderBottom: 0,
+          borderRadius: 0,
+        }}
+      >
         <Stack sx={{ gap: 2, alignItems: "flex-start" }} direction="row">
           <EditableAvatar src={user.avatar?.url} isOwner={isOwner} />
 
