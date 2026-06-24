@@ -168,14 +168,14 @@ export const useDeletePost = () => {
     mutationFn: postsService.deletePost,
 
     onSuccess: (_, postId) => {
-      queryClient.setQueriesData<PostsQueryData>(
+      queryClient.setQueriesData<PostsFeedResponse>(
         { queryKey: ["posts"] },
         (old) => {
           if (!old?.data) return old;
 
           return {
             ...old,
-            items: old.data.filter((p) => p.id !== postId),
+            data: old.data.filter((p) => p.id !== postId),
           };
         },
       );
