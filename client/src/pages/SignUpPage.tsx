@@ -69,7 +69,6 @@ export const SignUpPage = () => {
     try {
       await firebaseUser.delete();
     } catch (err) {
-      console.error("Failed to rollback auth user", err);
       handleError(err);
     }
   };
@@ -79,8 +78,6 @@ export const SignUpPage = () => {
 
     try {
       const credential = await authService.signUp(data.email, data.password);
-
-      console.log(credential.user.metadata);
 
       firebaseUser = credential.user;
 

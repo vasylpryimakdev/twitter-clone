@@ -7,10 +7,11 @@ import { CreateCommentDto } from "./dto/create-comment.dto";
 import { UpdateCommentDto } from "./dto/update-comment.dto";
 import { FieldValue } from "firebase-admin/firestore";
 import { WriteComment } from "./types/write-comment.model";
-import { PostCounterFields } from "../posts/types/post-counter-field";
 import { CommentCounterFields } from "./types/comment-counter-field";
 import { UsersRepository } from "../users/users.repository";
 import { FirestoreService } from "../common/firebase/firebase.service";
+import { PostCounterFields } from "../posts/posts.fields";
+import { POST_SCORE_WEIGHTS } from "../posts/posts.constants";
 @Injectable()
 export class CommentsService {
   constructor(
@@ -58,6 +59,13 @@ export class CommentsService {
         1,
         tx,
       );
+
+      await this.postsRepository.adjustCounter(
+        postId,
+        PostCounterFields.SCORE,
+        POST_SCORE_WEIGHTS.COMMENT,
+        tx,
+      );
     });
 
     return this.commentsRepository.findByIdOrThrow(commentId);
@@ -98,6 +106,13 @@ export class CommentsService {
         tx,
       );
 
+      await this.postsRepository.adjustCounter(
+        reply.postId,
+        PostCounterFields.SCORE,
+        POST_SCORE_WEIGHTS.COMMENT,
+        tx,
+      );
+
       await this.commentsRepository.adjustCounter(
         parentId,
         CommentCounterFields.REPLIES,
@@ -134,7 +149,9 @@ export class CommentsService {
   }
 
   async delete(authorId: string, commentId: string) {
-    return this.firestoreService.runTransaction(async (tx) => {
+    const repliesCount = await this.commentsRepository.countReplies(commentId);
+
+    const result = await this.firestoreService.runTransaction(async (tx) => {
       const comment = await this.commentsRepository.getDataOrThrow(
         commentId,
         tx,
@@ -151,7 +168,9 @@ export class CommentsService {
 
       let decrement = 1;
 
-      if (comment.parentId) {
+      const shouldDeleteReplies = !comment.parentId;
+
+      if (!shouldDeleteReplies && comment.parentId) {
         await this.commentsRepository.adjustCounter(
           comment.parentId,
           CommentCounterFields.REPLIES,
@@ -159,13 +178,7 @@ export class CommentsService {
           tx,
         );
       } else {
-        const replies = await this.commentsRepository.findReplies(commentId);
-
-        for (const reply of replies.data) {
-          await this.commentsRepository.delete(reply.id, tx);
-        }
-
-        decrement += replies.data.length;
+        decrement += repliesCount;
       }
 
       await this.postsRepository.adjustCounter(
@@ -175,9 +188,25 @@ export class CommentsService {
         tx,
       );
 
+      await this.postsRepository.adjustCounter(
+        post.id,
+        PostCounterFields.SCORE,
+        -POST_SCORE_WEIGHTS.COMMENT * decrement,
+        tx,
+      );
+
       await this.commentsRepository.delete(commentId, tx);
 
-      return { success: true };
+      return {
+        shouldDeleteReplies,
+        postId: post.id,
+      };
     });
+
+    if (result.shouldDeleteReplies) {
+      await this.commentsRepository.deleteRepliesInBatches(commentId);
+    }
+
+    return { success: true };
   }
 }

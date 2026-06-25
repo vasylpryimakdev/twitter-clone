@@ -26,6 +26,7 @@ export function mapPost(doc: DocumentSnapshot): Post {
     likesCount: data.likesCount ?? 0,
     dislikesCount: data.dislikesCount ?? 0,
     commentsCount: data.commentsCount ?? 0,
+    score: data.score ?? 0,
 
     userReaction: data.userReaction ?? null,
   };

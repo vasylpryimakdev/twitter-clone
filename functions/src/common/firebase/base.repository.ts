@@ -97,4 +97,9 @@ export abstract class BaseRepository<
     if (tx) return tx.delete(ref);
     return ref.delete();
   }
+
+  async countDocs<T>(query: FirebaseFirestore.Query<T>): Promise<number> {
+    const snapshot = await query.count().get();
+    return snapshot.data().count;
+  }
 }

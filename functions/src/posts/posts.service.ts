@@ -15,11 +15,12 @@ import {
   ReactionType,
   ReactionTypes,
 } from "../reactions/reaction.entity";
-import { PostCounterFields } from "./types/post-counter-field";
 import { ReactionsRepository } from "../reactions/reactions.repository";
 import { UsersService } from "../users/services/users.service";
 import { FirestoreService } from "../common/firebase/firebase.service";
 import { StorageService } from "../common/firebase/storage/storage.service";
+import { PostCounterFields } from "./posts.fields";
+import { REACTION_SCORE_WEIGHT } from "./posts.constants";
 
 @Injectable()
 export class PostsService {
@@ -61,6 +62,7 @@ export class PostsService {
       likesCount: 0,
       dislikesCount: 0,
       commentsCount: 0,
+      score: 0,
 
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
@@ -210,12 +212,29 @@ export class PostsService {
         await this.reactionsRepository.deleteReaction(postId, userId, tx);
 
         await this.adjust(postId, currentType, -1, tx);
+
+        await this.postsRepository.adjustCounter(
+          postId,
+          PostCounterFields.SCORE,
+          -REACTION_SCORE_WEIGHT[currentType],
+          tx,
+        );
+
         return;
       }
 
       if (!currentType) {
         await this.reactionsRepository.setReaction(postId, userId, type, tx);
+
         await this.adjust(postId, type, +1, tx);
+
+        await this.postsRepository.adjustCounter(
+          postId,
+          PostCounterFields.SCORE,
+          REACTION_SCORE_WEIGHT[type],
+          tx,
+        );
+
         return;
       }
 
@@ -223,6 +242,16 @@ export class PostsService {
 
       await this.adjust(postId, currentType, -1, tx);
       await this.adjust(postId, type, +1, tx);
+
+      const delta =
+        -REACTION_SCORE_WEIGHT[currentType] + REACTION_SCORE_WEIGHT[type];
+
+      await this.postsRepository.adjustCounter(
+        postId,
+        PostCounterFields.SCORE,
+        delta,
+        tx,
+      );
     });
   }
 

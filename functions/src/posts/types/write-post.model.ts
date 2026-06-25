@@ -17,6 +17,7 @@ export type WritePostModel = {
   likesCount: number;
   dislikesCount: number;
   commentsCount: number;
+  score: number;
 
   createdAt: FieldValue;
   updatedAt: FieldValue;

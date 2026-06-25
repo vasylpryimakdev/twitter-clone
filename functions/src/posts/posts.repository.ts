@@ -9,10 +9,10 @@ import {
 
 import { BaseRepository } from "../common/firebase/base.repository";
 import { WritePostModel } from "./types/write-post.model";
-import { PostCounterField } from "./types/post-counter-field";
 import { FindPostsDto } from "./dto/find-posts.dto";
 import { COLLECTIONS, FIRESTORE } from "../common/firebase/firebase.constants";
 import { mapDoc } from "../common/firebase/mappers/firestore.mapper";
+import { PostCounterField } from "./posts.fields";
 
 @Injectable()
 export class PostsRepository extends BaseRepository<Post, WritePostModel> {
@@ -31,22 +31,27 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
     let query: Query = this.collection;
 
     if (userId) {
-      query = query.where("authorId", "==", userId);
+      query = this.collection
+        .where("authorId", "==", userId)
+        .orderBy("createdAt", "desc");
     }
 
     if (search) {
       const normalized = search.toLowerCase();
 
-      query = query
+      query = this.collection
         .where("searchField", ">=", normalized)
-        .where("searchField", "<=", normalized + "\uf8ff");
+        .where("searchField", "<=", normalized + "\uf8ff")
+        .orderBy("searchField", "asc")
+        .orderBy("createdAt", "desc");
+    } else {
+      query = this.collection
+        .orderBy("score", "desc")
+        .orderBy("createdAt", "desc");
     }
-
-    query = query.orderBy("createdAt", "desc");
 
     if (cursor) {
       const cursorDoc = await this.getRef(cursor).get();
-
       query = query.startAfter(cursorDoc);
     }
 

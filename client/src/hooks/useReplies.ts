@@ -167,7 +167,6 @@ export const useCreateReply = (postId: string, commentId: string) => {
     },
 
     onError: (err, _vars, ctx) => {
-      console.log(err);
       handleError(err);
 
       if (ctx?.previousReplies) {
@@ -312,7 +311,6 @@ export const useDeleteReply = (postId: string, commentId: string) => {
     },
 
     onError: (err, _vars, ctx) => {
-      console.log(err);
       handleError(err);
 
       if (ctx?.previousReplies) {

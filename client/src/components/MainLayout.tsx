@@ -1,8 +1,11 @@
 import { Outlet } from "react-router-dom";
 import { Box } from "@mui/material";
 import { Header } from "./header/Header";
+import { AuthRedirectHandler } from "../guards/AuthRedirectHandler";
 
 export const MainLayout = () => {
+  AuthRedirectHandler();
+
   return (
     <Box
       sx={{

@@ -84,6 +84,43 @@ export class CommentsRepository extends BaseRepository<Comment, WriteComment> {
     };
   }
 
+  async countReplies(parentId: string) {
+    const query = this.collection.where("parentId", "==", parentId);
+
+    return this.countDocs(query);
+  }
+
+  async deleteRepliesInBatches(parentId: string) {
+    let lastDoc: FirebaseFirestore.QueryDocumentSnapshot | null = null;
+
+    while (true) {
+      let query = this.collection
+        .where("parentId", "==", parentId)
+        .orderBy("createdAt", "asc")
+        .limit(500);
+
+      if (lastDoc) {
+        query = query.startAfter(lastDoc);
+      }
+
+      const snapshot = await query.get();
+
+      if (snapshot.empty) break;
+
+      const batch = this.firestore.batch();
+
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+
+      await batch.commit();
+
+      lastDoc = snapshot.docs[snapshot.docs.length - 1];
+
+      if (snapshot.size < 500) break;
+    }
+  }
+
   async adjustCounter(
     id: string,
     field: CommentCounterField,
