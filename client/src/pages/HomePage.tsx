@@ -28,7 +28,7 @@ export const HomePage = () => {
       />
 
       <PaginationList query={query}>
-        {(items) => <PostsList posts={items} />}
+        {(posts) => <PostsList posts={posts} />}
       </PaginationList>
     </Stack>
   );

@@ -172,6 +172,7 @@ export const PostCard = ({ post }: PostProps) => {
         </Typography>
 
         <Typography
+          component="div"
           variant="body2"
           color="text.secondary"
           sx={{
