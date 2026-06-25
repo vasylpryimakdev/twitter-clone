@@ -20,7 +20,7 @@ import { UsersService } from "../users/services/users.service";
 import { FirestoreService } from "../common/firebase/firebase.service";
 import { StorageService } from "../common/firebase/storage/storage.service";
 import { PostCounterFields } from "./posts.fields";
-import { REACTION_SCORE_WEIGHT } from "./posts.constants";
+import { POST_SCORE_WEIGHTS } from "./posts.constants";
 
 @Injectable()
 export class PostsService {
@@ -208,15 +208,18 @@ export class PostsService {
 
       const currentType = existing?.type ?? null;
 
+      const getWeight = (t: "like" | "dislike") =>
+        t === "like" ? POST_SCORE_WEIGHTS.LIKE : POST_SCORE_WEIGHTS.DISLIKE;
+
       if (currentType === type) {
         await this.reactionsRepository.deleteReaction(postId, userId, tx);
 
-        await this.adjust(postId, currentType, -1, tx);
+        await this.adjust(postId, type, -1, tx);
 
         await this.postsRepository.adjustCounter(
           postId,
           PostCounterFields.SCORE,
-          -REACTION_SCORE_WEIGHT[currentType],
+          -getWeight(type),
           tx,
         );
 
@@ -231,7 +234,7 @@ export class PostsService {
         await this.postsRepository.adjustCounter(
           postId,
           PostCounterFields.SCORE,
-          REACTION_SCORE_WEIGHT[type],
+          getWeight(type),
           tx,
         );
 
@@ -243,8 +246,7 @@ export class PostsService {
       await this.adjust(postId, currentType, -1, tx);
       await this.adjust(postId, type, +1, tx);
 
-      const delta =
-        -REACTION_SCORE_WEIGHT[currentType] + REACTION_SCORE_WEIGHT[type];
+      const delta = -getWeight(currentType) + getWeight(type);
 
       await this.postsRepository.adjustCounter(
         postId,

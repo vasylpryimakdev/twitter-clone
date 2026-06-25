@@ -35,12 +35,13 @@ export const usePosts = (params?: { userId?: string; search?: string }) => {
     1: null,
   });
 
-  const cursor = cursors[page];
+  const cursor = page === 1 ? null : cursors[page];
+  const isValidCursor = page === 1 || cursor !== null;
 
   const query = useQuery<PostsFeedResponse>({
     queryKey: ["posts", userId, search, page],
 
-    enabled: initialized && (page === 1 || cursor !== undefined),
+    enabled: initialized && isValidCursor,
 
     queryFn: () =>
       postsService.getPosts({
@@ -120,7 +121,7 @@ export const useCreatePost = () => {
 
           return {
             ...old,
-            items: [newPost, ...old.data],
+            data: [newPost, ...old.data],
           };
         },
       );
@@ -148,7 +149,7 @@ export const useUpdatePost = (id: string) => {
 
           return {
             ...old,
-            items: old.data.map((p) => (p.id === id ? updatedPost : p)),
+            data: old.data.map((p) => (p.id === id ? updatedPost : p)),
           };
         },
       );

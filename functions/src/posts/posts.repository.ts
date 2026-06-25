@@ -51,7 +51,13 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
     }
 
     if (cursor) {
-      const cursorDoc = await this.getRef(cursor).get();
+      const docRef = this.collection.doc(cursor);
+      const cursorDoc = await docRef.get();
+
+      if (!cursorDoc.exists) {
+        throw new Error("Invalid cursor");
+      }
+
       query = query.startAfter(cursorDoc);
     }
 
