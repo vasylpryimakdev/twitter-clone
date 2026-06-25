@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { Post } from "./types/post.entity";
 import {
   FieldValue,
@@ -55,7 +55,7 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
       const cursorDoc = await docRef.get();
 
       if (!cursorDoc.exists) {
-        throw new Error("Invalid cursor");
+        throw new BadRequestException("Invalid cursor");
       }
 
       query = query.startAfter(cursorDoc);
