@@ -8,12 +8,12 @@ import {
   Post,
 } from "@nestjs/common";
 
-import { UsersService } from "./services/users.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { CurrentUser } from "../decorators/current-user.decorator";
 import { AuthUser } from "../common/types/auth-user.type";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { Public } from "../decorators/public.decorator";
+import { UsersService } from "./users.service";
 
 @Controller("users")
 export class UsersController {

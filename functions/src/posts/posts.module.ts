@@ -10,7 +10,7 @@ import { FirebaseModule } from "../common/firebase/firebase.module";
 @Module({
   imports: [
     FirebaseModule,
-    ReactionsModule,
+    forwardRef(() => ReactionsModule),
     forwardRef(() => CommentsModule),
     forwardRef(() => UsersModule),
   ],

@@ -16,11 +16,11 @@ import {
   ReactionTypes,
 } from "../reactions/reaction.entity";
 import { ReactionsRepository } from "../reactions/reactions.repository";
-import { UsersService } from "../users/services/users.service";
 import { FirestoreService } from "../common/firebase/firebase.service";
 import { StorageService } from "../common/firebase/storage/storage.service";
 import { PostCounterFields } from "./posts.fields";
 import { POST_SCORE_WEIGHTS } from "./posts.constants";
+import { UsersService } from "../users/users.service";
 
 @Injectable()
 export class PostsService {
@@ -208,7 +208,7 @@ export class PostsService {
 
       const currentType = existing?.type ?? null;
 
-      const getWeight = (t: "like" | "dislike") =>
+      const getWeight = (t: ReactionType) =>
         t === "like" ? POST_SCORE_WEIGHTS.LIKE : POST_SCORE_WEIGHTS.DISLIKE;
 
       if (currentType === type) {

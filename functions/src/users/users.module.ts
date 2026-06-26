@@ -1,16 +1,14 @@
 import { Module } from "@nestjs/common";
 import { UsersController } from "./users.controller";
-import { UsersService } from "./services/users.service";
 import { UsersRepository } from "./users.repository";
-import { UserDeletionService } from "./services/user-deletion.service";
-import { CommentsModule } from "../comments/comments.module";
-import { PostsModule } from "../posts/posts.module";
-import { ReactionsModule } from "../reactions/reactions.module";
+
 import { FirebaseModule } from "../common/firebase/firebase.module";
+import { DeletionModule } from "../deletion/deletion.module";
+import { UsersService } from "./users.service";
 @Module({
-  imports: [FirebaseModule, PostsModule, CommentsModule, ReactionsModule],
+  imports: [FirebaseModule, DeletionModule],
   controllers: [UsersController],
-  providers: [UsersService, UsersRepository, UserDeletionService],
+  providers: [UsersService, UsersRepository],
   exports: [UsersService, UsersRepository],
 })
 export class UsersModule {}

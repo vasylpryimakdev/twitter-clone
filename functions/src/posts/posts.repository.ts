@@ -30,24 +30,24 @@ export class PostsRepository extends BaseRepository<Post, WritePostModel> {
 
     let query: Query = this.collection;
 
-    if (userId) {
-      query = this.collection
+    if (userId && !search) {
+      query = query
         .where("authorId", "==", userId)
         .orderBy("createdAt", "desc");
     }
 
-    if (search) {
+    else if (search) {
       const normalized = search.toLowerCase();
 
-      query = this.collection
+      query = query
         .where("searchField", ">=", normalized)
         .where("searchField", "<=", normalized + "\uf8ff")
         .orderBy("searchField", "asc")
         .orderBy("createdAt", "desc");
-    } else {
-      query = this.collection
-        .orderBy("score", "desc")
-        .orderBy("createdAt", "desc");
+    }
+
+    else {
+      query = query.orderBy("score", "desc").orderBy("createdAt", "desc");
     }
 
     if (cursor) {

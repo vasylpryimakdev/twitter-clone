@@ -11,7 +11,7 @@ import { FirebaseModule } from "../common/firebase/firebase.module";
 @Module({
   imports: [
     FirebaseModule,
-    PostsModule,
+    forwardRef(() => PostsModule),
     forwardRef(() => UsersModule),
   ],
   controllers: [CommentsController],

@@ -20,9 +20,11 @@ import { handleError } from "../shared/errors/handleError";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import type { PostImage } from "../types/post.types";
+import { useAuthStore } from "../stores/auth.store";
 
 const PostFormPage = () => {
   const [submitting, setSubmitting] = useState(false);
+  const user = useAuthStore((s) => s.user);
 
   const { id } = useParams();
 
@@ -71,7 +73,7 @@ const PostFormPage = () => {
 
     try {
       if (data.image instanceof File) {
-        uploadedImage = await uploadImage(data.image);
+        uploadedImage = await uploadImage(data.image, `users/${user?.id}/posts`);
         imagePayload = uploadedImage;
       }
 

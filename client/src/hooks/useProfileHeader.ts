@@ -76,7 +76,7 @@ export const useProfileHeader = (user: UserProfile) => {
     try {
       setAvatarLoading(true);
 
-      const uploaded = await uploadImage(file);
+      const uploaded = await uploadImage(file, `users/${user.id}/avatar`);
 
       const updatedProfile = await usersService.updateProfile({
         avatar: {

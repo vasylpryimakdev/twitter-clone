@@ -3,16 +3,17 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { CreateUserDto } from "../dto/create-user.dto";
-import { AuthUser } from "../../common/types/auth-user.type";
-import { UsersRepository } from "../users.repository";
-import { WriteUserModel } from "../types/write-user.model";
+
 import { FieldValue } from "firebase-admin/firestore";
-import { UserDeletionService } from "./user-deletion.service";
-import { User } from "../types/users.entity";
-import { UpdateUserDto } from "../dto/update-user.dto";
-import { FirestoreService } from "../../common/firebase/firebase.service";
-import { StorageService } from "../../common/firebase/storage/storage.service";
+import { FirestoreService } from "../common/firebase/firebase.service";
+import { StorageService } from "../common/firebase/storage/storage.service";
+import { UsersRepository } from "./users.repository";
+import { User } from "./types/users.entity";
+import { AuthUser } from "../common/types/auth-user.type";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { WriteUserModel } from "./types/write-user.model";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { DeletionService } from "../deletion/deletion.service";
 
 @Injectable()
 export class UsersService {
@@ -20,7 +21,7 @@ export class UsersService {
     private readonly firestoreService: FirestoreService,
     private readonly storageService: StorageService,
     private usersRepository: UsersRepository,
-    private readonly userDeletionService: UserDeletionService,
+    private deletionService: DeletionService,
   ) {}
 
   async getById(id: string): Promise<User | null> {
@@ -161,6 +162,6 @@ export class UsersService {
   }
 
   async deleteProfile(id: string): Promise<void> {
-    return this.userDeletionService.deleteUser(id);
+    return this.deletionService.deleteUser(id);
   }
 }

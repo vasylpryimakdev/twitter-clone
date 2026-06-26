@@ -17,7 +17,7 @@ export class CommentsRepository extends BaseRepository<Comment, WriteComment> {
     super(firestore, COLLECTIONS.COMMENTS);
   }
 
-  async findAllByPost(postId: string) {
+  async findByPost(postId: string) {
     const snapshot = await this.collection.where("postId", "==", postId).get();
 
     return snapshot.docs.map((doc) => mapDoc<Comment>(doc));
