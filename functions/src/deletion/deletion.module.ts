@@ -11,6 +11,7 @@ import { StorageCleanupService } from "./services/storage-clean-up.service";
 import { DeletionPlanner } from "./deletion-planner";
 import { DeletionExecutor } from "./deletion-executor";
 import { UsersRepository } from "../users/users.repository";
+import { ReactionDeletionPlanner } from "./reaction-deletion/reaction-deletion-planner";
 
 @Module({
   imports: [FirebaseModule, ReactionsModule, PostsModule, CommentsModule],
@@ -19,6 +20,7 @@ import { UsersRepository } from "../users/users.repository";
     StorageCleanupService,
     UsersRepository,
     DeletionPlanner,
+    ReactionDeletionPlanner,
     DeletionExecutor,
   ],
   exports: [DeletionService],
