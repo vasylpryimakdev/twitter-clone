@@ -3,7 +3,7 @@ import { PostsRepository } from "../posts/posts.repository";
 import { CommentsRepository } from "../comments/comments.repository";
 import { ReactionsRepository } from "../reactions/reactions.repository";
 import { UsersRepository } from "../users/users.repository";
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, Transaction } from "firebase-admin/firestore";
 
 @Injectable()
 export class DeletionExecutor {
@@ -14,101 +14,92 @@ export class DeletionExecutor {
     private readonly usersRepo: UsersRepository,
   ) {}
 
-  async applyPlan(
-    tx: FirebaseFirestore.Transaction,
-    plan: any,
-    userId: string,
-  ) {
-    const postDeleteSet = new Set(plan.postIds ?? []);
-    const commentDeleteSet = new Set(plan.userCommentIds ?? []);
-
+  async applyPlan(tx: Transaction, plan: any, userId: string) {
     // =====================================================
-    // 1. DELETE POSTS
+    // 1. DELETE DATA (unchanged)
     // =====================================================
     for (const postId of plan.postIds ?? []) {
-      if (!postId) continue;
       tx.delete(this.postsRepo.getRef(postId));
     }
 
-    // =====================================================
-    // 2. DELETE COMMENTS UNDER POSTS
-    // =====================================================
     for (const commentId of plan.postCommentIds ?? []) {
-      if (!commentId) continue;
-      commentDeleteSet.add(commentId);
       tx.delete(this.commentsRepo.getRef(commentId));
     }
 
-    // =====================================================
-    // 3. DELETE REACTIONS UNDER POSTS
-    // =====================================================
     for (const reactionId of plan.postReactionIds ?? []) {
-      if (!reactionId) continue;
       tx.delete(this.reactionsRepo.getRef(reactionId));
     }
 
-    // =====================================================
-    // 4. DELETE USER COMMENTS
-    // =====================================================
     for (const commentId of plan.userCommentIds ?? []) {
-      if (!commentId) continue;
       tx.delete(this.commentsRepo.getRef(commentId));
     }
 
-    // =====================================================
-    // 5. DELETE ORPHAN REPLIES
-    // =====================================================
     for (const replyId of plan.orphanCommentIds ?? []) {
-      if (!replyId) continue;
       tx.delete(this.commentsRepo.getRef(replyId));
     }
 
-    // =====================================================
-    // 6. DELETE USER REACTIONS
-    // =====================================================
     for (const reactionId of plan.userReactionIds ?? []) {
-      if (!reactionId) continue;
       tx.delete(this.reactionsRepo.getRef(reactionId));
     }
 
     // =====================================================
-    // 7. UPDATE POSTS (🔥 FIXED)
+    // 2. APPLY DELTA IMPACT (your current system)
     // =====================================================
     const postImpact = plan.postImpact ?? new Map();
 
     for (const [postId, impact] of postImpact.entries()) {
       if (!postId || !impact) continue;
-      if (postDeleteSet.has(postId)) continue;
 
       const ref = this.postsRepo.getRef(postId);
 
       tx.update(ref, {
         commentsCount: FieldValue.increment(impact.commentsDelta ?? 0),
-        likesCount: FieldValue.increment(impact.likesDelta ?? 0),
-        dislikesCount: FieldValue.increment(impact.dislikesDelta ?? 0),
+        likesCount: FieldValue.increment(
+          impact.likesDelta ?? 0,
+        ),
+        dislikesCount: FieldValue.increment(
+          impact.dislikesDelta ?? 0,
+        ),
         score: FieldValue.increment(impact.scoreDelta ?? 0),
       });
     }
 
     // =====================================================
-    // 8. UPDATE PARENT COMMENTS
+    // 3. FINAL SAFETY STEP (🔥 NEW)
     // =====================================================
-    const parentImpact = plan.parentImpact ?? new Map();
-
-    for (const [parentId, impact] of parentImpact.entries()) {
-      if (!parentId || !impact) continue;
-      if (commentDeleteSet.has(parentId)) continue;
-
-      const ref = this.commentsRepo.getRef(parentId);
-
-      tx.update(ref, {
-        repliesCount: FieldValue.increment(impact.repliesDelta ?? 0),
-      });
-    }
+    await this.reconcileDeletedPosts(tx, plan.postIds ?? []);
 
     // =====================================================
-    // 9. DELETE USER
+    // 4. DELETE USER
     // =====================================================
     tx.delete(this.usersRepo.getRef(userId));
+  }
+
+  // =====================================================
+  // SAFETY RECONCILIATION (THE FIX)
+  // =====================================================
+  private async reconcileDeletedPosts(tx: Transaction, postIds: string[]) {
+    for (const postId of postIds) {
+      const comments = await this.commentsRepo.findByPost(postId);
+      const reactions = await this.reactionsRepo.findByPost(postId);
+
+      const ref = this.postsRepo.getRef(postId);
+
+      tx.update(ref, {
+        commentsCount: comments.length,
+        likesCount: reactions.data.filter((r) => r.type === "like").length,
+        dislikesCount: reactions.data.filter((r) => r.type === "dislike")
+          .length,
+        score: this.calculateScore(reactions.data),
+      });
+    }
+  }
+
+  private calculateScore(reactions: any[]) {
+    return reactions.reduce((sum, r) => {
+      if (r.type === "like") return sum + 1;
+      if (r.type === "dislike") return sum - 1;
+      return sum;
+    }, 0);
   }
 }

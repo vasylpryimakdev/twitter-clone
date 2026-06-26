@@ -3,6 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { FieldValue } from "firebase-admin/firestore";
 import { PostsRepository } from "../../posts/posts.repository";
 import { ReactionsRepository } from "../../reactions/reactions.repository";
+import { Transaction } from "firebase-admin/firestore";
 
 @Injectable()
 export class ReactionDeletionExecutor {
@@ -11,7 +12,7 @@ export class ReactionDeletionExecutor {
     private readonly reactionsRepo: ReactionsRepository,
   ) {}
 
-  apply(tx: FirebaseFirestore.Transaction, plan: any) {
+  apply(tx: Transaction, plan: any) {
     const deleted = new Set(plan.reactionIds ?? []);
 
     // =========================

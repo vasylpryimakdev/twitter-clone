@@ -1,13 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { PostsRepository } from "../posts/posts.repository";
 import { CommentsRepository } from "../comments/comments.repository";
-import { POST_SCORE_WEIGHTS } from "../posts/posts.constants";
-import { ReactionDeletionPlanner } from "./reaction-deletion/reaction-deletion-planner";
+import { ReactionDeletionPlanner } from "./reactions-deletion/reaction-deletion-planner";
 import { PostImpact } from "./types/post-impacty.type";
-
-type ParentCommentImpact = {
-  repliesDelta: number;
-};
+import { CommentDeletionPlanner } from "./comments-deletion/comments-deletion-planner";
 
 @Injectable()
 export class DeletionPlanner {
@@ -15,6 +11,7 @@ export class DeletionPlanner {
     private readonly postsRepo: PostsRepository,
     private readonly commentsRepo: CommentsRepository,
     private readonly reactionDeletionPlanner: ReactionDeletionPlanner,
+    private readonly commentDeletionPlanner: CommentDeletionPlanner,
   ) {}
 
   async buildUserDeletionPlan(userId: string) {
@@ -31,9 +28,6 @@ export class DeletionPlanner {
     const postCommentIds: string[] = [];
     const postReactionIds: string[] = [];
 
-    // =====================================================
-    // POST-LEVEL REACTIONS (impact + ids)
-    // =====================================================
     const postReactionImpactSources: Map<string, PostImpact>[] = [];
 
     for (const post of posts.docs) {
@@ -47,60 +41,26 @@ export class DeletionPlanner {
 
       postReactionIds.push(...reactionPlan.reactionIds);
 
-      // IMPORTANT FIX: include impact from post reactions
       postReactionImpactSources.push(reactionPlan.postImpact);
     }
 
     // =====================================================
-    // 2. COMMENTS WRITTEN BY USER
+    // 2. COMMENTS WRITTEN BY USER (NOW DELEGATED)
     // =====================================================
-    const userComments = await this.commentsRepo.findByAuthor(userId);
+    const commentPlan = await this.commentDeletionPlanner.buildByUser(userId);
 
-    const userCommentIds = userComments.map((c) => c.id);
-
-    const orphanCommentIds: string[] = [];
-    const parentImpact = new Map<string, ParentCommentImpact>();
-    const commentPostImpact = new Map<string, PostImpact>();
-
-    for (const comment of userComments) {
-      const post = commentPostImpact.get(comment.postId) ?? {
-        commentsDelta: 0,
-        likesDelta: 0,
-        dislikesDelta: 0,
-        scoreDelta: 0,
-      };
-
-      post.commentsDelta--;
-
-      post.scoreDelta -= comment.parentId
-        ? POST_SCORE_WEIGHTS.REPLY
-        : POST_SCORE_WEIGHTS.COMMENT;
-
-      commentPostImpact.set(comment.postId, post);
-
-      if (comment.parentId) {
-        const parent = parentImpact.get(comment.parentId) ?? {
-          repliesDelta: 0,
-        };
-
-        parent.repliesDelta--;
-        parentImpact.set(comment.parentId, parent);
-      }
-
-      if (comment.repliesCount > 0) {
-        const replies = await this.commentsRepo.findReplies(comment.id);
-        orphanCommentIds.push(...replies.data.map((r) => r.id));
-      }
-    }
+    const userCommentIds = commentPlan.commentIds;
+    const orphanCommentIds = commentPlan.orphanCommentIds;
+    const commentPostImpact = commentPlan.postImpact;
+    const parentImpact = commentPlan.parentImpact;
 
     // =====================================================
-    // 3. USER REACTIONS (impact + ids)
+    // 3. USER REACTIONS
     // =====================================================
     const userReactionPlan =
       await this.reactionDeletionPlanner.buildByUser(userId);
 
     const userReactionIds = userReactionPlan.reactionIds;
-
     const userReactionImpact = userReactionPlan.postImpact;
 
     // =====================================================
@@ -126,7 +86,6 @@ export class DeletionPlanner {
       }
     };
 
-    // merge all sources (IMPORTANT FIX)
     merge(commentPostImpact);
     merge(userReactionImpact);
 
