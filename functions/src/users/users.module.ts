@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { UsersController } from "./users.controller";
 import { UsersRepository } from "./users.repository";
 
@@ -6,7 +6,7 @@ import { FirebaseModule } from "../common/firebase/firebase.module";
 import { DeletionModule } from "../deletion/deletion.module";
 import { UsersService } from "./users.service";
 @Module({
-  imports: [FirebaseModule, DeletionModule],
+  imports: [FirebaseModule, forwardRef(() => DeletionModule)],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository],
   exports: [UsersService, UsersRepository],

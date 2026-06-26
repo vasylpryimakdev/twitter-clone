@@ -9,7 +9,6 @@ import { Post } from "./types/post.entity";
 import { PostsRepository } from "./posts.repository";
 import { WritePostModel } from "./types/write-post.model";
 import { FieldValue, Transaction } from "firebase-admin/firestore";
-import { PostDeletionService } from "./post-deletion.service";
 import {
   Reaction,
   ReactionType,
@@ -21,14 +20,15 @@ import { StorageService } from "../common/firebase/storage/storage.service";
 import { PostCounterFields } from "./posts.fields";
 import { POST_SCORE_WEIGHTS } from "./posts.constants";
 import { UsersService } from "../users/users.service";
+import { DeletionService } from "../deletion/deletion.service";
 
 @Injectable()
 export class PostsService {
   constructor(
     private readonly firestoreService: FirestoreService,
     private readonly storageService: StorageService,
+    private readonly deletionService: DeletionService,
     private readonly postsRepository: PostsRepository,
-    private readonly postDeletionService: PostDeletionService,
     private readonly reactionsRepository: ReactionsRepository,
     private readonly usersService: UsersService,
   ) {}
@@ -197,7 +197,7 @@ export class PostsService {
       await this.storageService.deleteFile(post.image.path);
     }
 
-    await this.postDeletionService.deletePost(postId);
+    await this.deletionService.deletePost(postId);
   }
 
   async react(userId: string, postId: string, type: ReactionType) {

@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import { PostsRepository } from "../posts/posts.repository";
-import { CommentsRepository } from "../comments/comments.repository";
-import { ReactionsRepository } from "../reactions/reactions.repository";
-import { UsersRepository } from "../users/users.repository";
-import { FieldValue } from "firebase-admin/firestore";
+import { PostsRepository } from "../../posts/posts.repository";
+import { CommentsRepository } from "../../comments/comments.repository";
+import { ReactionsRepository } from "../../reactions/reactions.repository";
+import { UsersRepository } from "../../users/users.repository";
+import { FieldValue, Transaction } from "firebase-admin/firestore";
 
 @Injectable()
-export class DeletionExecutor {
+export class UserDeletionExecutor {
   constructor(
     private readonly postsRepo: PostsRepository,
     private readonly commentsRepo: CommentsRepository,
@@ -14,11 +14,7 @@ export class DeletionExecutor {
     private readonly usersRepo: UsersRepository,
   ) {}
 
-  async applyPlan(
-    tx: FirebaseFirestore.Transaction,
-    plan: any,
-    userId: string,
-  ) {
+  async applyPlan(tx: Transaction, plan: any, userId: string) {
     const postDeleteSet = new Set(plan.postIds ?? []);
     const commentDeleteSet = new Set(plan.userCommentIds ?? []);
 

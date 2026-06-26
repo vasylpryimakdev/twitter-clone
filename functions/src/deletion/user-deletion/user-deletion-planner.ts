@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import { PostsRepository } from "../posts/posts.repository";
-import { CommentsRepository } from "../comments/comments.repository";
-import { ReactionDeletionPlanner } from "./reactions-deletion/reaction-deletion-planner";
-import { PostImpact } from "./types/post-impacty.type";
-import { CommentDeletionPlanner } from "./comments-deletion/comments-deletion-planner";
+import { PostsRepository } from "../../posts/posts.repository";
+import { CommentsRepository } from "../../comments/comments.repository";
+import { ReactionDeletionPlanner } from "../reactions-deletion/reaction-deletion-planner";
+import { PostImpact } from "../types/post-impacty.type";
+import { CommentDeletionPlanner } from "../comments-deletion/comments-deletion-planner";
 
 @Injectable()
-export class DeletionPlanner {
+export class UserDeletionPlanner {
   constructor(
     private readonly postsRepo: PostsRepository,
     private readonly commentsRepo: CommentsRepository,
