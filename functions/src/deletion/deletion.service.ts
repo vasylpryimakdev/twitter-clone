@@ -1,20 +1,31 @@
 import { Injectable } from "@nestjs/common";
 import { FirestoreService } from "../common/firebase/firebase.service";
-import { UserDeletionPlanner } from "./user-deletion/user-deletion-planner";
-import { UserDeletionExecutor } from "./user-deletion/user-deletion-executor";
+
 import { StorageCleanupService } from "./services/storage-clean-up.service";
-import { PostDeletionPlanner } from "./post-deletion/planner";
-import { PostDeletionExecutor } from "./post-deletion/executor";
+
+import { UserDeletionPlanner } from "./user/planner";
+import { UserDeletionExecutor } from "./user/executor";
+
+import { PostDeletionPlanner } from "./posts/planner";
+import { PostDeletionExecutor } from "./posts/executor";
+
+import { CommentDeletionPlanner } from "./comments/planner";
+import { CommentDeletionExecutor } from "./comments/executor";
 
 @Injectable()
 export class DeletionService {
   constructor(
     private readonly firestoreService: FirestoreService,
     private readonly storage: StorageCleanupService,
+
     private readonly userDeletionPlanner: UserDeletionPlanner,
     private readonly userDeletionExecutor: UserDeletionExecutor,
+
     private readonly postDeletionPlanner: PostDeletionPlanner,
     private readonly postDeletionExecutor: PostDeletionExecutor,
+
+    private readonly commentDeletionPlanner: CommentDeletionPlanner,
+    private readonly commentDeletionExecutor: CommentDeletionExecutor,
   ) {}
 
   async deleteUser(userId: string) {
@@ -32,6 +43,14 @@ export class DeletionService {
 
     await this.firestoreService.runTransaction(async (tx) => {
       await this.postDeletionExecutor.applyPlan(tx, plan);
+    });
+  }
+
+  async deleteComment(commentId: string) {
+    const plan = await this.commentDeletionPlanner.buildByComment(commentId);
+
+    await this.firestoreService.runTransaction(async (tx) => {
+      await this.commentDeletionExecutor.applyPlan(tx, plan);
     });
   }
 }

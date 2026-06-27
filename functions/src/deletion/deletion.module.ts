@@ -7,14 +7,15 @@ import { DeletionService } from "./deletion.service";
 
 import { StorageCleanupService } from "./services/storage-clean-up.service";
 
-import { UserDeletionPlanner } from "./user-deletion/user-deletion-planner";
-import { UserDeletionExecutor } from "./user-deletion/user-deletion-executor";
+import { UserDeletionPlanner } from "./user/planner";
+import { UserDeletionExecutor } from "./user/executor";
 import { UsersRepository } from "../users/users.repository";
-import { ReactionDeletionPlanner } from "./reactions-deletion/reaction-deletion-planner";
-import { CommentDeletionPlanner } from "./comments-deletion/comments-deletion-planner";
-import { PostDeletionPlanner } from "./post-deletion/planner";
-import { PostDeletionExecutor } from "./post-deletion/executor";
+import { ReactionDeletionPlanner } from "./reactions/planner";
+import { CommentDeletionPlanner } from "./comments/planner";
+import { PostDeletionPlanner } from "./posts/planner";
+import { PostDeletionExecutor } from "./posts/executor";
 import { PostsModule } from "../posts/posts.module";
+import { CommentDeletionExecutor } from "./comments/executor";
 
 @Module({
   imports: [
@@ -31,8 +32,9 @@ import { PostsModule } from "../posts/posts.module";
     UserDeletionExecutor,
     PostDeletionPlanner,
     PostDeletionExecutor,
-    ReactionDeletionPlanner,
     CommentDeletionPlanner,
+    CommentDeletionExecutor,
+    ReactionDeletionPlanner,
   ],
   exports: [DeletionService],
 })
