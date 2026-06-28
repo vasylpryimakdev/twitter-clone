@@ -47,7 +47,6 @@ export class CommentDeletionPlanner {
       this.applyCommentImpact(comment, postImpact, parentImpact);
     };
 
-    // IMPORTANT: process roots first (once)
     for (const root of rootComments) {
       processComment(root);
     }

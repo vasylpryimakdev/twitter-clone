@@ -7,10 +7,12 @@ import { CommentsService } from "./comments.service";
 import { CommentsRepository } from "./comments.repository";
 import { UsersModule } from "../users/users.module";
 import { FirebaseModule } from "../common/firebase/firebase.module";
+import { DeletionModule } from "../deletion/deletion.module";
 
 @Module({
   imports: [
     FirebaseModule,
+    forwardRef(() => DeletionModule),
     forwardRef(() => PostsModule),
     forwardRef(() => UsersModule),
   ],

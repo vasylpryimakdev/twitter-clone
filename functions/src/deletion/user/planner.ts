@@ -28,7 +28,7 @@ export class UserDeletionPlanner {
       ),
     );
 
-    const commentPlan = await this.commentPlanner.buildByUser(userId);
+    const commentPlan = await this.commentPlanner.buildByUser(userId, postIds);
 
     const userReactionPlan = await this.reactionPlanner.buildByUser(
       userId,
@@ -37,15 +37,14 @@ export class UserDeletionPlanner {
 
     const postImpact = this.mergeImpacts([
       commentPlan.postImpact,
-      ...ownedPostPlans.map((p) => p.postImpact),
       userReactionPlan.postImpact,
     ]);
 
     return {
       postIds,
       ownedPostPlans,
-      reactionIds: userReactionPlan.reactionIds,
       userCommentPlan: commentPlan,
+      reactionIds: userReactionPlan.reactionIds,
       postImpact,
     };
   }

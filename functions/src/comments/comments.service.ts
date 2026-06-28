@@ -12,10 +12,12 @@ import { UsersRepository } from "../users/users.repository";
 import { FirestoreService } from "../common/firebase/firebase.service";
 import { PostCounterFields } from "../posts/posts.fields";
 import { POST_SCORE_WEIGHTS } from "../posts/posts.constants";
+import { DeletionService } from "../deletion/deletion.service";
 @Injectable()
 export class CommentsService {
   constructor(
     private readonly firestoreService: FirestoreService,
+    private readonly deletionService: DeletionService,
     private readonly commentsRepository: CommentsRepository,
     private readonly postsRepository: PostsRepository,
     private readonly usersRepository: UsersRepository,
@@ -149,63 +151,13 @@ export class CommentsService {
   }
 
   async delete(authorId: string, commentId: string) {
-    const repliesCount = await this.commentsRepository.countReplies(commentId);
+    const comment = await this.commentsRepository.findByIdOrThrow(commentId);
 
-    const result = await this.firestoreService.runTransaction(async (tx) => {
-      const comment = await this.commentsRepository.getDataOrThrow(
-        commentId,
-        tx,
-      );
-
-      if (comment.authorId !== authorId) {
-        throw new ForbiddenException("Forbidden");
-      }
-
-      const post = await this.postsRepository.getDataOrThrow(
-        comment.postId,
-        tx,
-      );
-
-      let decrement = 1;
-
-      const shouldDeleteReplies = !comment.parentId;
-
-      if (!shouldDeleteReplies && comment.parentId) {
-        await this.commentsRepository.adjustCounter(
-          comment.parentId,
-          CommentCounterFields.REPLIES,
-          -1,
-          tx,
-        );
-      } else {
-        decrement += repliesCount;
-      }
-
-      await this.postsRepository.adjustCounter(
-        post.id,
-        PostCounterFields.COMMENTS,
-        -decrement,
-        tx,
-      );
-
-      await this.postsRepository.adjustCounter(
-        post.id,
-        PostCounterFields.SCORE,
-        -POST_SCORE_WEIGHTS.COMMENT * decrement,
-        tx,
-      );
-
-      await this.commentsRepository.delete(commentId, tx);
-
-      return {
-        shouldDeleteReplies,
-        postId: post.id,
-      };
-    });
-
-    if (result.shouldDeleteReplies) {
-      await this.commentsRepository.deleteRepliesInBatches(commentId);
+    if (comment.authorId !== authorId) {
+      throw new ForbiddenException("Forbidden");
     }
+
+    await this.deletionService.deleteComment(commentId);
 
     return { success: true };
   }

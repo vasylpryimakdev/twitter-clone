@@ -32,6 +32,22 @@ export class UserDeletionExecutor {
       tx.delete(this.postsRepo.getRef(ownedPostPlan.postId));
     }
 
+    const deletedPostIds = new Set(
+      plan.ownedPostPlans.map((plan) => plan.postId),
+    );
+
+    for (const [postId, impact] of plan.postImpact) {
+      if (deletedPostIds.has(postId)) {
+        continue;
+      }
+
+      tx.update(this.postsRepo.getRef(postId), {
+        likesCount: FieldValue.increment(impact.likesDelta),
+        dislikesCount: FieldValue.increment(impact.dislikesDelta),
+        score: FieldValue.increment(impact.scoreDelta),
+      });
+    }
+
     await this.commentDeletionExecutor.applyPlan(tx, {
       cascadeCommentIds: plan.userCommentPlan.cascadeCommentIds,
       postImpact: plan.userCommentPlan.postImpact,
@@ -42,14 +58,6 @@ export class UserDeletionExecutor {
     for (const reactionId of plan.reactionIds ?? []) {
       if (!reactionId) continue;
       tx.delete(this.reactionsRepo.getRef(reactionId));
-    }
-
-    for (const [postId, impact] of plan.postImpact) {
-      tx.update(this.postsRepo.getRef(postId), {
-        likesCount: FieldValue.increment(impact.likesDelta),
-        dislikesCount: FieldValue.increment(impact.dislikesDelta),
-        score: FieldValue.increment(impact.scoreDelta),
-      });
     }
 
     tx.delete(this.usersRepo.getRef(userId));
